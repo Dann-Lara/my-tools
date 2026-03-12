@@ -6,23 +6,11 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useFadeInUp } from '../../../hooks/useAnime';
 import { DashboardLayout } from '../../../components/ui/DashboardLayout';
 import { PermissionGate } from '../../../components/ui/PermissionGate';
-import { AppCard }            from './_components/AppCard';
-import { BaseCVForm }         from './_components/BaseCVForm';
-import { NewApplicationForm } from './_components/NewApplicationForm';
-import { AiFeedbackPanel }    from './_components/AiFeedbackPanel';
-import { Spinner }            from './_components/icons';
-import { Application, AppStatus, BaseCV, EMPTY_CV, getHeaders, isCVComplete, Tab } from './_components/types';
+import { Spinner } from '../../../components/ui/Spinner';
+import { Toast } from '../../../components/ui/Toast';
+import { AppCard, BaseCVForm, NewApplicationForm, AiFeedbackPanel, Application, AppStatus, BaseCV, EMPTY_CV, getHeaders, isCVComplete, Tab } from '../../../components/applications';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
-
-function Toast({ msg, type }: { msg: string; type: 'ok' | 'err' }) {
-  return (
-    <div className={`fixed bottom-6 right-6 z-[300] px-5 py-3 rounded-xl shadow-xl font-mono text-[11px]
-                     ${type === 'ok' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
-      {msg}
-    </div>
-  );
-}
 
 export default function ApplicationsPage() {
   const { t, locale }  = useI18n();
