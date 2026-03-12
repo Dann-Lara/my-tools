@@ -1,0 +1,264 @@
+{
+  "name": "02 - Telegram Responses (Complete / Postpone)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "callback_query",
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "telegram-checklist-bot",
+      "credentials": {
+        "telegramApi": {
+          "id": "8JyddEiApG6k1J3x",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "is-callback",
+              "leftValue": "={{ $json.callback_query !== undefined }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        }
+      },
+      "id": "is-callback-query",
+      "name": "Is Callback Query?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const cb = $input.item.json.callback_query;\n// Format: 'action:itemId'  e.g. 'complete:uuid-of-item'\nconst colonIdx = cb.data.indexOf(':');\nconst action = colonIdx >= 0 ? cb.data.slice(0, colonIdx) : cb.data;\nconst itemId = colonIdx >= 0 ? cb.data.slice(colonIdx + 1) : '';\n\n// Validate known actions — ignore unknown to be forward-compatible\nconst knownActions = ['complete', 'postpone', 'skip'];\nif (!knownActions.includes(action)) {\n  throw new Error('Unknown callback action: ' + action);\n}\n\nreturn {\n  action,\n  itemId,\n  chatId: String(cb.message.chat.id),\n  callbackQueryId: cb.id,\n  fromName: cb.from?.first_name ?? 'there',\n};"
+      },
+      "id": "parse-callback",
+      "name": "Parse Callback Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BACKEND_PUBLIC_URL }}/v1/checklists/_/items/{{ $('Parse Callback Data').item.json.itemId }}",
+        "method": "PATCH",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: $('Parse Callback Data').item.json.action }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "call-backend",
+      "name": "Call Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EfBrBbQ88fwJlS4R",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Parse Callback Data').item.json.chatId }}",
+        "text": "={{ $('Parse Callback Data').item.json.action === 'complete' ? '✅ Task completed! Keep it up, ' + $('Parse Callback Data').item.json.fromName + ' 💪' : $('Parse Callback Data').item.json.action === 'postpone' ? '⏳ Task postponed to tomorrow. You got this!' : '⏭️ Task skipped.' }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "confirm-to-user",
+      "name": "Confirm to User",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "8JyddEiApG6k1J3x",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "callbackQueryId": "={{ $('Parse Callback Data').item.json.callbackQueryId }}",
+        "text": "={{ $('Parse Callback Data').item.json.action === 'complete' ? 'Completed ✅' : $('Parse Callback Data').item.json.action === 'postpone' ? 'Postponed ⏳' : 'Skipped ⏭️' }}",
+        "additionalFields": {
+          "showAlert": false
+        }
+      },
+      "id": "answer-callback",
+      "name": "Answer Callback Query",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        200
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "8JyddEiApG6k1J3x",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle plain text commands like /start or /help\nconst text = $input.item.json.message?.text ?? '';\nconst chatId = String($input.item.json.message?.chat?.id ?? '');\nreturn { text, chatId, isStart: text === '/start', isHelp: text === '/help' };"
+      },
+      "id": "parse-message",
+      "name": "Parse Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chatId }}",
+        "text": "👋 ¡Hola! Soy el bot de AI Lab Checklists.\n\nTu Telegram Chat ID es:\n`{{ $json.chatId }}`\n\nCópialo y pégalo en tu perfil de AI Lab para activar los recordatorios 🔔",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "reply-start",
+      "name": "Reply /start",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        420
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "8JyddEiApG6k1J3x",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Is Callback Query?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Callback Query?": {
+      "main": [
+        [
+          {
+            "node": "Parse Callback Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Callback Data": {
+      "main": [
+        [
+          {
+            "node": "Call Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Backend": {
+      "main": [
+        [
+          {
+            "node": "Confirm to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm to User": {
+      "main": [
+        [
+          {
+            "node": "Answer Callback Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Message": {
+      "main": [
+        [
+          {
+            "node": "Reply /start",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "tags": [
+    "checklist",
+    "telegram",
+    "responses"
+  ],
+  "meta": {
+    "description": "Handles Telegram button clicks (complete/postpone) and /start command which shows the user their Chat ID. Requires: Telegram Bot credentials + Backend Webhook Secret."
+  }
+}

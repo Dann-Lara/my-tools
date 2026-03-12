@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Development overrides — loaded automatically by docker compose
+# Hot reload + source mounts
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  backend:
+    build:
+      target: development
+    volumes:
+      - ./apps/backend/src:/app/apps/backend/src
+      - ./packages/ai-core/src:/app/packages/ai-core/src
+      - ./packages/shared/src:/app/packages/shared/src
+    command: npm run dev --workspace=apps/backend
+
+  frontend:
+    build:
+      target: development
+    volumes:
+      - ./apps/frontend:/app/apps/frontend
+      - /app/apps/frontend/node_modules
+      - /app/apps/frontend/.next
+    command: npm run dev --workspace=apps/frontend

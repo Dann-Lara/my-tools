@@ -1,0 +1,57 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+.next
+out
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Turbo
+.turbo
+
+# Testing
+coverage
+playwright-report
+test-results
+
+# Editor
+.vscode/settings.json
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+lerna-debug.log*
+
+# Docker
+docker/data/
+
+# ── Environment files (NEVER commit real env files) ──────────────────────────
+.env
+.env.staging
+.env.prod
+.env.local
+apps/backend/.env
+apps/frontend/.env.local
+# Keep examples in git
+!.env.example
+!.env.staging.example
+!.env.prod.example
+!apps/backend/.env.example
+!apps/frontend/.env.example

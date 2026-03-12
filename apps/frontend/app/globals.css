@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Variables ────────────────────────────────────────────── */
+:root {
+  --bg:          #ffffff;
+  --bg-2:        #f8fafc;
+  --card:        #ffffff;
+  --border:      #e2e8f0;
+  --text:        #0f172a;
+  --text-2:      #475569;
+  --text-3:      #94a3b8;
+  --accent:      #0284c7;
+  --accent-glow: rgba(2, 132, 199, 0.3);
+}
+
+.dark {
+  --bg:          #020617;
+  --bg-2:        #0f172a;
+  --card:        #0f172a;
+  --border:      #1e293b;
+  --text:        #f1f5f9;
+  --text-2:      #94a3b8;
+  --text-3:      #475569;
+  --accent:      #38bdf8;
+  --accent-glow: rgba(56, 189, 248, 0.2);
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans, system-ui);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Light mode overrides for pages that use Tailwind slate-950 (dark-first design) */
+/* Light mode pages get a softer slate-50 background */
+html:not(.dark) .page-bg {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .page-bg-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* ── Components ───────────────────────────────────────────────── */
+@layer components {
+
+  /* Cards */
+  .card {
+    @apply rounded-xl border
+           bg-white dark:bg-slate-900
+           border-slate-200 dark:border-slate-800
+           shadow-sm transition-colors duration-300;
+  }
+
+  .card-dark {
+    @apply rounded-xl bg-slate-900/60 border border-slate-800
+           backdrop-blur-sm;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply px-5 py-2.5 bg-sky-600 hover:bg-sky-500 active:bg-sky-700
+           text-white font-mono text-xs uppercase tracking-widest
+           rounded-lg transition-all duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed
+           focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2
+           dark:focus:ring-offset-slate-950;
+  }
+
+  .btn-ghost {
+    @apply px-5 py-2.5 border
+           border-slate-300 dark:border-slate-700
+           text-slate-600 dark:text-slate-300
+           font-mono text-xs uppercase tracking-widest
+           hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400
+           hover:bg-sky-50 dark:hover:bg-transparent
+           rounded-lg transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2
+           focus:ring-offset-white dark:focus:ring-offset-slate-950;
+  }
+
+  .btn-danger {
+    @apply px-5 py-2.5 bg-red-600 hover:bg-red-500
+           text-white font-mono text-xs uppercase tracking-widest
+           rounded-lg transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-3 text-sm font-mono rounded-lg
+           border border-slate-200 dark:border-slate-700
+           bg-white dark:bg-slate-900
+           text-slate-900 dark:text-slate-100
+           placeholder-slate-400 dark:placeholder-slate-600
+           focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent
+           shadow-sm dark:shadow-none
+           transition-all duration-150;
+  }
+  
+  select.input {
+    @apply appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5l3 3 3-3' stroke='%2394a3b8' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 2.5rem;
+  }
+
+  .label {
+    @apply block text-[10px] font-mono font-bold uppercase tracking-[0.2em]
+           text-slate-500 dark:text-slate-400 mb-2;
+  }
+
+  /* Terminal / code style text */
+  .terminal {
+    @apply font-mono text-sky-400 dark:text-sky-400;
+  }
+
+  /* Headline style */
+  .headline {
+    font-family: var(--font-headline, Impact, sans-serif);
+    @apply uppercase tracking-tighter leading-none;
+  }
+}
+
+/* ── Noise texture overlay ────────────────────────────────────── */
+.noise::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.04;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #0284c7; }
+
+/* ── Selection ────────────────────────────────────────────────── */
+::selection { background: rgba(56, 189, 248, 0.25); color: inherit; }
+
+/* ── Input field (used in Applications module) ────────────────── */
+.input-field {
+  @apply font-mono text-[12px] bg-white dark:bg-slate-900
+         border border-slate-200 dark:border-slate-700 rounded-lg
+         px-3 py-2 text-slate-800 dark:text-slate-200 w-full
+         placeholder:text-slate-300 dark:placeholder:text-slate-600
+         focus:outline-none focus:border-sky-400 dark:focus:border-sky-500
+         transition-colors duration-150;
+}

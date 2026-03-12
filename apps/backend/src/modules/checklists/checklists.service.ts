@@ -1,0 +1,666 @@
+import {
+  BadRequestException, ForbiddenException, Injectable,
+  InternalServerErrorException, Logger, NotFoundException,
+  TooManyRequestsException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, LessThanOrEqual } from 'typeorm';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+import { generateText } from '@ai-lab/ai-core';
+
+import {
+  ChecklistEntity, ChecklistItemEntity, ChecklistFeedbackEntity,
+} from './entities/checklist.entity';
+import type {
+  CreateChecklistParamsDto, ChecklistItemDraftDto,
+  ConfirmChecklistDto, RegenerateDraftDto, PatchItemDto, PatchChecklistDto,
+} from './dto/checklist.dto';
+import { ConfigService } from '@nestjs/config';
+
+// ── Escape LangChain template variables in user-supplied strings ──────────────
+// LangChain ChatPromptTemplate treats {word} as a template variable and throws
+// "Missing value for input variable" if the braces don't match a known variable.
+// Escape { } from user-provided data before interpolating into prompts.
+function esc(text: string): string {
+  return (text ?? '').replace(/\{/g, '(').replace(/\}/g, ')');
+}
+
+
+// ── Simple in-memory rate limiter per user (resets on restart) ──────────────
+const generationCounts = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(userId: string, maxPerHour = 10): void {
+  const now = Date.now();
+  const entry = generationCounts.get(userId);
+  if (!entry || entry.resetAt < now) {
+    generationCounts.set(userId, { count: 1, resetAt: now + 3_600_000 });
+    return;
+  }
+  if (entry.count >= maxPerHour) {
+    throw new TooManyRequestsException('AI generation limit reached. Try again later.');
+  }
+  entry.count++;
+}
+
+// ── AI response schema validation ───────────────────────────────────────────
+interface AiItem {
+  description: string;
+  frequency: string;
+  estimatedDuration: number;
+  hack: string;
+  customFrequencyDays?: number;
+}
+interface AiDraft { items: AiItem[]; rationale?: string; }
+
+function validateAiResponse(raw: unknown): AiDraft {
+  if (!raw || typeof raw !== 'object') throw new Error('Not an object');
+  const obj = raw as Record<string, unknown>;
+  if (!Array.isArray(obj['items']) || obj['items'].length === 0)
+    throw new Error('Missing or empty items array');
+
+  const validFreqs = new Set(['once', 'daily', 'weekly', 'custom']);
+  for (const item of obj['items'] as unknown[]) {
+    const i = item as Record<string, unknown>;
+    if (typeof i['description'] !== 'string' || !i['description'])
+      throw new Error('Item missing description');
+    if (typeof i['frequency'] !== 'string' || !validFreqs.has(i['frequency'] as string))
+      throw new Error(`Invalid frequency: ${String(i['frequency'])}`);
+    if (typeof i['estimatedDuration'] !== 'number' || (i['estimatedDuration'] as number) < 1)
+      throw new Error('Invalid estimatedDuration');
+    if (typeof i['hack'] !== 'string' || !i['hack'])
+      throw new Error('Item missing hack');
+  }
+  return obj as unknown as AiDraft;
+}
+
+// ── Parse AI JSON — robust parser handles Gemini/LLM quirks ─────────────────
+function parseAiJson(
+  text: string,
+  logger?: { warn: (m: string) => void; debug: (m: string) => void },
+): AiDraft {
+  // Log full raw AI response — critical for debugging truncation / format issues
+  if (logger) {
+    logger.debug(`AI raw response (${text.length} chars, maxTokens=4000):\n${text}`);
+  } else {
+    console.log(`[AI-Debug] Raw (${text.length} chars):\n${text}`);
+  }
+
+  // Strip markdown fences: ```json...``` or ```...```
+  const cleaned = text
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim();
+
+  const objStart = cleaned.indexOf('{');
+  const arrStart = cleaned.indexOf('[');
+
+  if (objStart === -1 && arrStart === -1) {
+    const msg = `No JSON structure in AI response. Full text: ${text}`;
+    if (logger) logger.warn(msg); else console.warn('[AI-Debug]', msg);
+    throw new Error('No JSON object found in AI response');
+  }
+
+  let jsonStr: string;
+
+  // If object comes before array (or no array), use object directly
+  if (objStart !== -1 && (arrStart === -1 || objStart < arrStart)) {
+    const end = cleaned.lastIndexOf('}');
+    if (end === -1) throw new Error('Malformed JSON: missing closing }');
+    jsonStr = cleaned.slice(objStart, end + 1);
+  } else {
+    // AI returned a bare array — wrap it into the expected shape
+    const warnMsg = 'AI returned bare array — wrapping as {"items":[...]}';
+    if (logger) logger.warn(warnMsg); else console.warn('[AI-Debug]', warnMsg);
+    const end = cleaned.lastIndexOf(']');
+    if (end === -1) throw new Error('Malformed JSON: missing closing ]');
+    jsonStr = `{"items":${cleaned.slice(arrStart, end + 1)}}`;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (e) {
+    const msg = `JSON.parse failed on: ${jsonStr.slice(0, 400)}`;
+    if (logger) logger.warn(msg); else console.warn('[AI-Debug]', msg);
+    throw new Error(`JSON parse error: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  return validateAiResponse(parsed);
+}
+
+// ── Retry helper with exponential backoff ────────────────────────────────────
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = 2,
+  baseDelayMs = 2000,
+): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try { return await fn(); }
+    catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise((r) => setTimeout(r, baseDelayMs * Math.pow(2, attempt)));
+    }
+  }
+  throw new Error('unreachable');
+}
+
+// ── Build prompts ────────────────────────────────────────────────────────────
+function buildGenerationPrompt(p: CreateChecklistParamsDto): string {
+  const lang = p.language ?? 'es';
+  return `Productivity expert. Output ONLY valid JSON — start with { end with } — no markdown, no text outside JSON.
+
+Input:
+- title: ${esc(p.title)}
+- objective: ${esc(p.objective)}
+${p.category ? `- category: ${esc(p.category ?? '')}` : ''}
+- period: ${p.startDate} to ${p.endDate}
+- difficulty: ${p.difficulty}
+- daily_minutes: ${p.dailyTimeAvailable}
+${p.goalMetric ? `- goal: ${esc(p.goalMetric ?? '')}` : ''}
+- style: ${p.style}
+- language: ${lang}
+
+Rules:
+1. Generate 5-10 tasks (keep descriptions SHORT: max 80 chars each, in ${lang})
+2. hack: max 80 chars in ${lang}
+3. Sum of daily task durations <= ${p.dailyTimeAvailable} min
+4. frequency must be one of: "once","daily","weekly","custom"
+5. rationale: max 100 chars in ${lang}
+
+Required JSON schema (no extra fields, no comments):
+{"items":[{"description":"string","frequency":"daily","estimatedDuration":15,"hack":"string"}],"rationale":"string"}`;
+}
+
+function buildRegenerationPrompt(p: CreateChecklistParamsDto, feedback: string): string {
+  return `${buildGenerationPrompt(p)}
+
+User feedback: "${esc(feedback)}"
+
+Apply feedback. Output ONLY the revised JSON — same schema, no extra text.`;
+}
+
+function buildFeedbackPrompt(data: {
+  title: string; objective: string; startDate: string; endDate: string;
+  completedLastWeek: number; totalTasks: number; trend: string;
+  upcomingTasks: string[]; language: string;
+}): { systemMessage: string; prompt: string } {
+  const lang = data.language === 'es' ? 'Spanish' : data.language === 'en' ? 'English' : data.language;
+  const upcoming = data.upcomingTasks.length > 0 ? data.upcomingTasks.join(', ') : 'none';
+  return {
+    systemMessage:
+      `You are a concise motivational productivity coach. Always respond in ${lang}. ` +
+      'Output plain text only — no markdown, no bullet points, no lists. Max 150 words.',
+    prompt:
+      `Checklist: "${data.title}"\n` +
+      `Goal: ${esc(data.objective)}\n` +
+      `Period: ${data.startDate} → ${data.endDate}\n` +
+      `Completed this week: ${data.completedLastWeek} of ${data.totalTasks} tasks. Trend: ${data.trend}.\n` +
+      `Next up: ${upcoming}\n\n` +
+      `Write a warm, specific, encouraging weekly feedback. Acknowledge progress, name the trend, ` +
+      `and give one concrete tip for the coming week. Plain text, ${lang} only.`,
+  };
+}
+
+@Injectable()
+export class ChecklistsService {
+  private readonly logger = new Logger(ChecklistsService.name);
+
+  constructor(
+    @InjectRepository(ChecklistEntity)
+    private readonly checklistRepo: Repository<ChecklistEntity>,
+    @InjectRepository(ChecklistItemEntity)
+    private readonly itemRepo: Repository<ChecklistItemEntity>,
+    @InjectRepository(ChecklistFeedbackEntity)
+    private readonly feedbackRepo: Repository<ChecklistFeedbackEntity>,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  // ── Generate draft ─────────────────────────────────────────────────────────
+  async generateDraft(
+    userId: string,
+    params: CreateChecklistParamsDto,
+  ): Promise<{ suggestedItems: ChecklistItemDraftDto[]; rationale?: string }> {
+    checkRateLimit(userId);
+
+    // Validate date logic
+    if (new Date(params.endDate) <= new Date(params.startDate)) {
+      throw new BadRequestException('endDate must be after startDate');
+    }
+
+    const prompt = buildGenerationPrompt(params);
+
+    const draft = await withRetry(async () => {
+      const { text } = await generateText({ prompt, maxTokens: 4000, temperature: 0.6 });
+      return parseAiJson(text, { warn: (m) => this.logger.warn(m), debug: (m) => this.logger.debug(m) });
+    }, 2, 2000);
+
+    const items: ChecklistItemDraftDto[] = draft.items.map((item, idx) => ({
+      order: idx,
+      description: item.description.slice(0, 500),
+      frequency: (item.frequency as ChecklistItemDraftDto['frequency']) ?? 'daily',
+      customFrequencyDays: item.customFrequencyDays,
+      estimatedDuration: Math.min(Math.max(item.estimatedDuration, 1), 480),
+      hack: item.hack.slice(0, 200),
+    }));
+
+    return { suggestedItems: items, rationale: draft.rationale };
+  }
+
+  // ── Regenerate draft ───────────────────────────────────────────────────────
+  async regenerateDraft(
+    userId: string,
+    dto: RegenerateDraftDto,
+  ): Promise<{ suggestedItems: ChecklistItemDraftDto[]; rationale?: string }> {
+    checkRateLimit(userId);
+    const prompt = buildRegenerationPrompt(dto.parameters, dto.feedback);
+
+    const draft = await withRetry(async () => {
+      const { text } = await generateText({ prompt, maxTokens: 4000, temperature: 0.6 });
+      return parseAiJson(text, { warn: (m) => this.logger.warn(m), debug: (m) => this.logger.debug(m) });
+    }, 2, 2000);
+
+    const items: ChecklistItemDraftDto[] = draft.items.map((item, idx) => ({
+      order: idx,
+      description: item.description.slice(0, 500),
+      frequency: (item.frequency as ChecklistItemDraftDto['frequency']) ?? 'daily',
+      customFrequencyDays: item.customFrequencyDays,
+      estimatedDuration: Math.min(Math.max(item.estimatedDuration, 1), 480),
+      hack: item.hack.slice(0, 200),
+    }));
+
+    return { suggestedItems: items, rationale: draft.rationale };
+  }
+
+  // ── Confirm (save) ─────────────────────────────────────────────────────────
+  async confirm(userId: string, dto: ConfirmChecklistDto): Promise<ChecklistEntity> {
+    if (!dto.finalItems.length) throw new BadRequestException('At least one task required');
+
+    const checklist = this.checklistRepo.create({
+      userId,
+      title: dto.parameters.title,
+      objective: dto.parameters.objective,
+      category: dto.parameters.category,
+      startDate: dto.parameters.startDate,
+      endDate: dto.parameters.endDate,
+      difficulty: dto.parameters.difficulty,
+      dailyTimeAvailable: dto.parameters.dailyTimeAvailable,
+      reminderPreferences: dto.parameters.reminderPreferences,
+      isRecurring: dto.parameters.isRecurring ?? false,
+      recurrencePattern: dto.parameters.recurrencePattern,
+      goalMetric: dto.parameters.goalMetric,
+      style: dto.parameters.style,
+      telegramChatId: dto.parameters.telegramChatId,
+      language: dto.parameters.language ?? 'es',
+      status: 'active',
+    });
+
+    const saved = await this.checklistRepo.save(checklist);
+
+    const itemEntities = dto.finalItems.map((item, idx) =>
+      this.itemRepo.create({
+        checklistId: saved.id,
+        order: item.order ?? idx,
+        description: item.description,
+        frequency: item.frequency,
+        customFrequencyDays: item.customFrequencyDays,
+        estimatedDuration: item.estimatedDuration,
+        hack: item.hack,
+        status: 'pending',
+        dueDate: new Date(),
+      }),
+    );
+
+    await this.itemRepo.save(itemEntities);
+    return this.findOne(userId, saved.id);
+  }
+
+  // ── List checklists ────────────────────────────────────────────────────────
+  async findAll(userId: string): Promise<ChecklistEntity[]> {
+    return this.checklistRepo.find({
+      where: { userId },
+      relations: ['items'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  // ── Get single checklist ───────────────────────────────────────────────────
+  async findOne(userId: string, id: string): Promise<ChecklistEntity> {
+    const checklist = await this.checklistRepo.findOne({
+      where: { id, userId },
+      relations: ['items', 'feedbacks'],
+    });
+    if (!checklist) throw new NotFoundException('Checklist not found');
+    // Sort items by order
+    checklist.items?.sort((a, b) => a.order - b.order);
+    return checklist;
+  }
+
+  // ── Patch checklist ────────────────────────────────────────────────────────
+  async patchChecklist(userId: string, id: string, dto: PatchChecklistDto): Promise<ChecklistEntity> {
+    const checklist = await this.findOne(userId, id);
+    if (dto.status) checklist.status = dto.status;
+    if (dto.title) checklist.title = dto.title;
+    await this.checklistRepo.save(checklist);
+    return checklist;
+  }
+
+  /** Patch checklist by id only (for internal/webhook callers with x-webhook-secret). */
+  async patchChecklistById(id: string, dto: PatchChecklistDto): Promise<ChecklistEntity> {
+    const checklist = await this.checklistRepo.findOneByOrFail({ id });
+    if (dto.status) checklist.status = dto.status;
+    if (dto.title) checklist.title = dto.title;
+    await this.checklistRepo.save(checklist);
+    return checklist;
+  }
+
+  // ── Delete checklist ───────────────────────────────────────────────────────
+  async remove(userId: string, id: string): Promise<void> {
+    const checklist = await this.findOne(userId, id);
+    await this.checklistRepo.remove(checklist);
+  }
+
+  // ── Patch item (complete / postpone / skip) ────────────────────────────────
+  async patchItem(userId: string, checklistId: string, itemId: string, dto: PatchItemDto): Promise<ChecklistItemEntity> {
+    const checklist = await this.findOne(userId, checklistId);
+    const item = checklist.items?.find((i) => i.id === itemId);
+    if (!item) throw new NotFoundException('Item not found');
+
+    if (dto.action === 'complete') {
+      item.status = 'completed';
+      item.completedAt = new Date();
+    } else if (dto.action === 'postpone') {
+      const due = dto.dueDate ? new Date(dto.dueDate) : (() => {
+        const d = new Date(); d.setDate(d.getDate() + 1); return d;
+      })();
+      item.dueDate = due;
+      item.reminderSent = false;
+    } else if (dto.action === 'skip') {
+      item.status = 'skipped';
+    }
+
+    return this.itemRepo.save(item);
+  }
+
+  // ── Progress data for dashboard ────────────────────────────────────────────
+  async getProgress(userId: string, checklistId: string): Promise<{
+    total: number; completed: number; skipped: number; pending: number;
+    completionRate: number; dailyData: Array<{ date: string; count: number }>;
+    estimatedTotalMinutes: number; completedMinutes: number;
+  }> {
+    const checklist = await this.findOne(userId, checklistId);
+    const items = checklist.items ?? [];
+
+    const total = items.length;
+    const completed = items.filter((i) => i.status === 'completed').length;
+    const skipped = items.filter((i) => i.status === 'skipped').length;
+    const pending = items.filter((i) => i.status === 'pending').length;
+
+    // Daily completions (last 14 days)
+    const dailyMap = new Map<string, number>();
+    items
+      .filter((i) => i.completedAt)
+      .forEach((i) => {
+        const date = new Date(i.completedAt!).toISOString().split('T')[0]!;
+        dailyMap.set(date, (dailyMap.get(date) ?? 0) + 1);
+      });
+
+    // Fill last 14 days
+    const dailyData: Array<{ date: string; count: number }> = [];
+    for (let d = 13; d >= 0; d--) {
+      const date = new Date();
+      date.setDate(date.getDate() - d);
+      const dateStr = date.toISOString().split('T')[0]!;
+      dailyData.push({ date: dateStr, count: dailyMap.get(dateStr) ?? 0 });
+    }
+
+    const estimatedTotalMinutes = items.reduce((s, i) => s + i.estimatedDuration, 0);
+    const completedMinutes = items
+      .filter((i) => i.status === 'completed')
+      .reduce((s, i) => s + i.estimatedDuration, 0);
+
+    return {
+      total, completed, skipped, pending,
+      completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
+      dailyData, estimatedTotalMinutes, completedMinutes,
+    };
+  }
+
+  // ── Generate feedback ──────────────────────────────────────────────────────
+  async generateFeedback(userId: string, checklistId: string): Promise<ChecklistFeedbackEntity> {
+    const checklist = await this.findOne(userId, checklistId);
+    return this.buildFeedback(checklist);
+  }
+
+  // ── patchItemByIdOnly — n8n/Telegram, no user ownership check ───────────────
+  async patchItemByIdOnly(
+    itemId: string,
+    action: 'complete' | 'postpone' | 'skip' | 'mark-reminded',
+  ): Promise<{ ok: boolean }> {
+    const item = await this.itemRepo.findOneByOrFail({ id: itemId });
+
+    switch (action) {
+      case 'complete':
+        item.status = 'completed';
+        item.completedAt = new Date();
+        item.reminderSent = false;
+        break;
+      case 'postpone':
+        // Push dueDate +1 day; reset reminderSent so it fires again tomorrow
+        item.dueDate = (() => {
+          const d = item.dueDate ? new Date(item.dueDate) : new Date();
+          d.setDate(d.getDate() + 1);
+          return d;
+        })();
+        item.reminderSent = false;
+        break;
+      case 'skip':
+        item.status = 'skipped';
+        break;
+      case 'mark-reminded':
+        // n8n calls this immediately after sending the Telegram message
+        item.reminderSent = true;
+        break;
+    }
+
+    await this.itemRepo.save(item);
+    return { ok: true };
+  }
+
+  // ── getDueReminders — ONE next item per checklist, in order ──────────────
+  /**
+   * Rule: for each active checklist with a telegramChatId, return the FIRST
+   * item (by `order`) that is still 'pending' — but only if every item before
+   * it is already 'completed' or 'skipped'.
+   *
+   * Example: checklist has 23 tasks, #3 and #6 are completed.
+   *   → Returns item #1 (lowest-order pending)
+   *   → After #1, #2, #3 are done → returns #4
+   *   → After 1-6 done → returns #7
+   *
+   * Only items with reminderSent=false are returned (prevents duplicate sends).
+   */
+  async getDueReminders(): Promise<Array<{
+    itemId: string;
+    checklistId: string;
+    checklistTitle: string;
+    description: string;
+    hack: string;
+    telegramChatId: string;
+    order: number;
+    totalItems: number;
+    completedItems: number;
+  }>> {
+    const checklists = await this.checklistRepo.find({
+      where: { status: 'active' },
+      relations: ['items'],
+    });
+
+    const results: Array<{
+      itemId: string; checklistId: string; checklistTitle: string;
+      description: string; hack: string; telegramChatId: string;
+      order: number; totalItems: number; completedItems: number;
+    }> = [];
+
+    for (const checklist of checklists) {
+      if (!checklist.telegramChatId) continue;
+
+      const sorted = (checklist.items ?? []).sort((a, b) => a.order - b.order);
+      const totalItems = sorted.length;
+      const completedItems = sorted.filter(i => i.status === 'completed').length;
+
+      for (const item of sorted) {
+        if (item.status === 'completed' || item.status === 'skipped') {
+          // This item is done — keep scanning, all predecessors still "done"
+          continue;
+        }
+        // First pending item found — it's unblocked because we only reach here
+        // after iterating past all completed/skipped items in order
+        if (!item.reminderSent) {
+          results.push({
+            itemId: item.id,
+            checklistId: checklist.id,
+            checklistTitle: checklist.title,
+            description: item.description,
+            hack: item.hack ?? '',
+            telegramChatId: checklist.telegramChatId,
+            order: item.order,
+            totalItems,
+            completedItems,
+          });
+        }
+        break; // one item per checklist only
+      }
+    }
+
+    return results;
+  }
+
+  // ── getActiveWithTelegram — n8n weekly feedback list ─────────────────────
+  async getActiveWithTelegram(): Promise<Array<{ id: string; title: string; telegramChatId: string; language: string }>> {
+    const checklists = await this.checklistRepo.find({
+      where: { status: 'active' },
+      select: ['id', 'title', 'telegramChatId', 'language'],
+    });
+    return checklists
+      .filter((c) => !!c.telegramChatId)
+      .map((c) => ({ id: c.id, title: c.title, telegramChatId: c.telegramChatId!, language: c.language }));
+  }
+
+  // ── generateFeedbackById — n8n path (no userId) ───────────────────────────
+  async generateFeedbackById(checklistId: string): Promise<ChecklistFeedbackEntity> {
+    const checklist = await this.checklistRepo.findOneOrFail({
+      where: { id: checklistId },
+      relations: ['items'],
+    });
+    return this.buildFeedback(checklist);
+  }
+
+  // ── sendChecklistToTelegram — one message with all tasks ─────────────────
+  async sendChecklistToTelegram(
+    userId: string,
+    checklistId: string,
+  ): Promise<{ sent: boolean; message: string }> {
+    const checklist = await this.findOne(userId, checklistId);
+
+    if (!checklist.telegramChatId) {
+      return {
+        sent: false,
+        message: 'Sin Telegram Chat ID. Edita la checklist y agrega tu Chat ID.',
+      };
+    }
+
+    const items = (checklist.items ?? []).sort((a, b) => a.order - b.order);
+    if (items.length === 0) {
+      return { sent: false, message: 'La checklist no tiene tareas.' };
+    }
+
+    const emoji = (s: string) =>
+      s === 'completed' ? '✅' : s === 'skipped' ? '⏭️' : '⬜';
+    const done = items.filter(i => i.status === 'completed').length;
+
+    const taskLines = items
+      .map((item, i) => `${emoji(item.status ?? 'pending')} *${i + 1}.* ${item.description}`)
+      .join('\n');
+
+    const text =
+      `📋 *${checklist.title}*\n` +
+      `🎯 _${checklist.objective}_\n\n` +
+      taskLines +
+      `\n\n_Progreso: ${done}/${items.length} completadas_`;
+
+    const botToken = this.configService.get<string>('TELEGRAM_BOT_TOKEN', '');
+    if (!botToken) {
+      return { sent: false, message: 'TELEGRAM_BOT_TOKEN no configurado en el servidor.' };
+    }
+
+    try {
+      await firstValueFrom(
+        this.httpService.post(
+          `https://api.telegram.org/bot${botToken}/sendMessage`,
+          { chat_id: checklist.telegramChatId, text, parse_mode: 'Markdown' },
+        ),
+      );
+      return { sent: true, message: '✅ Checklist enviada a Telegram' };
+    } catch (err) {
+      this.logger.warn(`Telegram sendMessage failed: ${String(err)}`);
+      return {
+        sent: false,
+        message: 'Error al enviar. Verifica tu Chat ID y que el bot esté activo.',
+      };
+    }
+  }
+
+  // ── buildFeedback — shared logic ──────────────────────────────────────────
+  private async buildFeedback(checklist: ChecklistEntity): Promise<ChecklistFeedbackEntity> {
+    const items = checklist.items ?? [];
+    const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const prevWeek   = new Date(); prevWeek.setDate(prevWeek.getDate() - 14);
+
+    const completedLastWeek = items.filter(
+      i => i.status === 'completed' && i.completedAt && new Date(i.completedAt) >= oneWeekAgo,
+    ).length;
+    const completedPrevWeek = items.filter(
+      i => i.status === 'completed' && i.completedAt &&
+           new Date(i.completedAt) >= prevWeek && new Date(i.completedAt) < oneWeekAgo,
+    ).length;
+
+    const trend = completedPrevWeek === 0 ? 'first week'
+      : completedLastWeek > completedPrevWeek
+      ? `+${completedLastWeek - completedPrevWeek} more than last week`
+      : completedLastWeek < completedPrevWeek
+      ? `-${completedPrevWeek - completedLastWeek} fewer than last week`
+      : 'same as last week';
+
+    const upcomingTasks = items
+      .filter(i => i.status === 'pending')
+      .slice(0, 3)
+      .map(i => i.description);
+
+    const { systemMessage, prompt } = buildFeedbackPrompt({
+      title: checklist.title, objective: checklist.objective,
+      startDate: checklist.startDate, endDate: checklist.endDate,
+      completedLastWeek, totalTasks: items.length, trend,
+      upcomingTasks, language: checklist.language,
+    });
+
+    const { text } = await withRetry(
+      () => generateText({ systemMessage, prompt, maxTokens: 250, temperature: 0.65 }),
+      2, 1500,
+    );
+
+    const now = new Date();
+    const weekNumber = Math.ceil(
+      (now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 604800000,
+    );
+
+    const feedback = this.feedbackRepo.create({
+      checklistId: checklist.id,
+      feedbackText: text.trim(),
+      weekNumber,
+      generatedAt: new Date(),
+    });
+    return this.feedbackRepo.save(feedback);
+  }
+}

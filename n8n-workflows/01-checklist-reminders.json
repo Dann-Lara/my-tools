@@ -1,0 +1,230 @@
+{
+  "name": "01 - Checklist Reminders (Daily)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BACKEND_PUBLIC_URL }}/v1/checklists/reminders/due",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "fetch-due-reminders",
+      "name": "Fetch Due Reminders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        304
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EfBrBbQ88fwJlS4R",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "has-telegram",
+              "leftValue": "={{ $json.telegramChatId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            },
+            {
+              "id": "f67a868b-3228-4484-aa5f-1b4ed5a80993",
+              "leftValue": "={{ $json.telegramChatId }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "has-telegram-id",
+      "name": "Has Telegram ID?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        704,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.telegramChatId }}",
+        "text": "=📋 *Reminder: {{ $json.checklistTitle }}*\n\n⬜ Task {{ $json.order + 1 }}/{{ $json.totalItems }}\n\n{{ $json.description }}\n\n💡 _{{ $json.hack }}_\n\n_Progress: {{ $json.completedItems }}/{{ $json.totalItems }} completed_",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "replyMarkup": "inlineKeyboard",
+          "inlineKeyboard": {
+            "rows": [
+              {
+                "row": {
+                  "buttons": [
+                    {
+                      "text": "✅ Complete",
+                      "callbackData": "={{ 'complete:' + $json.itemId }}"
+                    },
+                    {
+                      "text": "⏳ Postpone",
+                      "callbackData": "={{ 'postpone:' + $json.itemId }}"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "id": "send-telegram-reminder",
+      "name": "Send Telegram Reminder",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1056,
+        288
+      ],
+      "webhookId": "69f8883e-8597-4884-9bfb-267e7e588ef8",
+      "credentials": {
+        "telegramApi": {
+          "id": "8JyddEiApG6k1J3x",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.BACKEND_PUBLIC_URL }}/v1/checklists/{{ $('Has Telegram ID?').item.json.checklistId }}/items/{{ $('Has Telegram ID?').item.json.itemId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "mark-reminded"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "mark-reminder-sent",
+      "name": "Mark Reminder Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1568,
+        160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "EfBrBbQ88fwJlS4R",
+          "name": "Header Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Fetch Due Reminders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Due Reminders": {
+      "main": [
+        [
+          {
+            "node": "Has Telegram ID?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Telegram ID?": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send Telegram Reminder": {
+      "main": [
+        [
+          {
+            "node": "Mark Reminder Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "a7d94450-1164-47d0-9b0c-96b00d92eccc",
+  "meta": {
+    "instanceId": "a3dc4d10946df3773e07d793b69218d98d8da0756354ef8a04bf87e58d285846"
+  },
+  "id": "U6yrDwohQKPFg0ol",
+  "tags": []
+}
