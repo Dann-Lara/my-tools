@@ -6,7 +6,10 @@ import Link from 'next/link';
 import { useI18n } from '../../../../lib/i18n-context';
 import { useAuth } from '../../../../hooks/useAuth';
 import { DashboardLayout } from '../../../../components/ui/DashboardLayout';
+import { Spinner } from '../../../../components/ui/Spinner';
+import { Toast } from '../../../../components/ui/Toast';
 import { useFadeInUp, useStaggerIn } from '../../../../hooks/useAnime';
+import { USER_ROLE_STYLES, getHeaders } from '../../../../components/users/constants';
 
 const ADMIN_ROLES = ['superadmin', 'admin'];
 
@@ -49,19 +52,6 @@ const PERMISSION_MODULES = [
     ),
   },
 ] as const;
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function getHeaders(): Record<string, string> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('ailab_at') : null;
-  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-}
-
-
-const ROLE_STYLES: Record<string, string> = {
-  superadmin: 'text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-400/30 bg-yellow-50 dark:bg-yellow-400/5',
-  admin: 'text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-400/5',
-  client: 'text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40',
-};
 
 // ─── Toggle Switch ────────────────────────────────────────────────────────────
 function ToggleSwitch({
@@ -167,7 +157,7 @@ export default function UserDetailPage() {
   if (authLoading || !authUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <span className="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 border-t-sky-500 rounded-full animate-spin" />
+        <Spinner />
       </div>
     );
   }
@@ -187,7 +177,7 @@ export default function UserDetailPage() {
 
         {loading ? (
           <div className="flex items-center gap-3 font-mono text-[11px] text-slate-400">
-            <span className="w-4 h-4 border-2 border-slate-300 dark:border-slate-700 border-t-sky-500 rounded-full animate-spin" />
+            <Spinner />
             Cargando usuario...
           </div>
         ) : !detail ? (
@@ -209,7 +199,7 @@ export default function UserDetailPage() {
                     <h1 className="headline text-2xl text-slate-900 dark:text-white">{detail.name}</h1>
                     <p className="font-mono text-[11px] text-slate-400 mt-0.5">{detail.email}</p>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded border ${ROLE_STYLES[detail.role] ?? ''}`}>
+                      <span className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded border ${USER_ROLE_STYLES[detail.role]}`}>
                         {detail.role}
                       </span>
                       <span className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded border
@@ -283,16 +273,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Toast */}
-      {toast && (
-        <div className={`fixed bottom-6 right-6 z-[300] px-4 py-3 rounded-lg shadow-lg
-                         font-mono text-[11px] border transition-all
-                         ${toast.type === 'ok'
-                           ? 'bg-emerald-50 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/30'
-                           : 'bg-red-50 dark:bg-red-400/10 text-red-700 dark:text-red-400 border-red-200 dark:border-red-400/30'
-                         }`}>
-          {toast.msg}
-        </div>
-      )}
+      {toast && <Toast msg={toast.msg} type={toast.type} />}
     </DashboardLayout>
   );
 }
