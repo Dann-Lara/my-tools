@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useI18n } from '../../lib/i18n-context';
+import { PermissionGate } from '../ui/PermissionGate';
 
-export function AiSummarizer(): React.JSX.Element {
+function AiSummarizerInner(): React.JSX.Element {
   const { t } = useI18n();
-  const [text, setText]       = useState('');
-  const [result, setResult]   = useState('');
+  const [text, setText] = useState('');
+  const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,5 +66,13 @@ export function AiSummarizer(): React.JSX.Element {
         </div>
       )}
     </form>
+  );
+}
+
+export function AiSummarizer() {
+  return (
+    <PermissionGate module="ai">
+      <AiSummarizerInner />
+    </PermissionGate>
   );
 }

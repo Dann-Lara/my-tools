@@ -2,16 +2,17 @@
 
 import { useState } from 'react';
 import { useI18n } from '../../lib/i18n-context';
+import { PermissionGate } from '../ui/PermissionGate';
 import type { AiGenerateRequest, AiGenerateResponse } from '@ai-lab/shared';
 
-export function AiGenerator(): React.JSX.Element {
+function AiGeneratorInner(): React.JSX.Element {
   const { t } = useI18n();
-  const [prompt, setPrompt]           = useState('');
+  const [prompt, setPrompt] = useState('');
   const [systemMessage, setSystemMsg] = useState('');
-  const [temperature, setTemp]        = useState(0.7);
-  const [result, setResult]           = useState('');
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState('');
+  const [temperature, setTemp] = useState(0.7);
+  const [result, setResult] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -82,5 +83,13 @@ export function AiGenerator(): React.JSX.Element {
         </div>
       )}
     </form>
+  );
+}
+
+export function AiGenerator() {
+  return (
+    <PermissionGate module="ai">
+      <AiGeneratorInner />
+    </PermissionGate>
   );
 }

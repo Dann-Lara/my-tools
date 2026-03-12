@@ -53,13 +53,13 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
         return res.json() as Promise<PermissionsMap>;
       })
       .then((data) => {
-        setPermissions(data);
+        setPermissions({ ...data, ai: data.ai ?? (userRole === 'superadmin' || userRole === 'admin') });
         setReady(true);
       })
       .catch((err) => {
         const fallback = (userRole === 'superadmin' || userRole === 'admin')
-          ? { checklist: true, applications: true }
-          : {};
+          ? { checklist: true, applications: true, ai: true } as PermissionsMap
+          : {} as PermissionsMap;
         setPermissions(fallback);
         setReady(true);
       });

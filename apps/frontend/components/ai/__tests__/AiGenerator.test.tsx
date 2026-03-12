@@ -1,7 +1,14 @@
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
 import { AiGenerator } from '../AiGenerator';
+
+jest.mock('../../../lib/permissions-context', () => ({
+  usePermissions: () => ({
+    can: () => true,
+    ready: true,
+  }),
+}));
 
 global.fetch = jest.fn();
 

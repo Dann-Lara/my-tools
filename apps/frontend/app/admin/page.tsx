@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { DashboardLayout } from '../../components/ui/DashboardLayout';
+import { Spinner } from '../../components/ui/Spinner';
 import { AiGenerator } from '../../components/ai/AiGenerator';
 import { AiSummarizer } from '../../components/ai/AiSummarizer';
 import { useI18n } from '../../lib/i18n-context';
 import { useAuth } from '../../hooks/useAuth';
 import { checklistsApi, type Checklist } from '../../lib/checklists';
+import { CHECKLIST_STATUS_STYLES } from '../../components/checklists/constants';
 
 const ADMIN_ROLES = ['superadmin', 'admin'];
 
@@ -26,12 +28,6 @@ function ChecklistProgressCard({ checklist }: { checklist: Checklist }) {
   const total = checklist.items.length;
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-  const STATUS_COLOR: Record<string, string> = {
-    active:    'text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/30 bg-emerald-50 dark:bg-emerald-400/5',
-    paused:    'text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/5',
-    completed: 'text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-400/5',
-  };
-
   return (
     <Link href={`/checklists/${checklist.id}`}
       className="card p-4 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 block">
@@ -44,7 +40,7 @@ function ChecklistProgressCard({ checklist }: { checklist: Checklist }) {
             <p className="font-mono text-[9px] text-slate-400 uppercase mt-0.5">{checklist.category}</p>
           )}
         </div>
-        <span className={`font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${STATUS_COLOR[checklist.status] ?? ''}`}>
+        <span className={`font-mono text-[8px] uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${CHECKLIST_STATUS_STYLES[checklist.status as keyof typeof CHECKLIST_STATUS_STYLES]}`}>
           {checklist.status}
         </span>
       </div>
@@ -78,7 +74,7 @@ export default function AdminDashboard(): React.JSX.Element {
   if (loading || !user) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <span className="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 border-t-sky-500 rounded-full animate-spin" />
+        <Spinner />
       </div>
     );
   }
