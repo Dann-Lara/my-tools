@@ -2,6 +2,10 @@
 // Utility functions for Applications module
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { withRetry } from '@ai-lab/shared';
+
+export { withRetry };
+
 // LangChain treats {word} inside prompts as template variables and throws
 // "Missing value for input variable" when it finds any curly brace pair.
 // Escape every { and } in user-supplied content before sending to generateText.
@@ -56,19 +60,6 @@ export function extractJson<T>(text: string): T | null {
     }
   }
   return null;
-}
-
-// ── Retry with exponential backoff ────────────────────────────────────────────
-export async function withRetry<T>(fn: () => Promise<T>, retries = 2, baseMs = 2000): Promise<T> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      if (attempt === retries) throw err;
-      await new Promise((r) => setTimeout(r, baseMs * Math.pow(2, attempt)));
-    }
-  }
-  throw new Error('unreachable');
 }
 
 // ── Clean CV text ────────────────────────────────────────────────────────────

@@ -22,14 +22,22 @@ Gestionar el seguimiento de postulaciones laborales con asistencia de IA:
 ```
 src/modules/applications/
 ├── applications.controller.ts   # Endpoints REST
-├── applications.service.ts    # Lógica de negocio
-├── applications.module.ts     # Configuración del módulo
-├── applications.utils.ts     # Funciones utilitarias (esc, extractJson, withRetry, cleanCvText)
+├── applications.service.ts      # Lógica de negocio
+├── applications.module.ts       # Configuración del módulo
+├── applications.utils.ts        # Funciones utilitarias (esc, extractJson, withRetry, cleanCvText)
 ├── applications.service.spec.ts # Tests unitarios
+├── prompts/                     # Prompts de IA (extraídos para mantenibilidad)
+│   ├── index.ts
+│   ├── generateCv.prompts.ts
+│   ├── adaptCvToSpanish.prompts.ts
+│   ├── answerInterviewQuestions.prompts.ts
+│   ├── extractCvFromText.prompts.ts
+│   ├── evaluateBaseCV.prompts.ts
+│   └── generateFeedback.prompts.ts
 ├── entities/
-│   └── application.entity.ts   # BaseCvEntity, ApplicationEntity
+│   └── application.entity.ts    # BaseCvEntity, ApplicationEntity
 └── dto/
-    └── application.dto.ts      # DTOs de validación
+    └── application.dto.ts        # DTOs de validación
 ```
 
 ---

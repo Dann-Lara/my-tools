@@ -1,4 +1,5 @@
 import { TooManyRequestsException } from '@nestjs/common';
+import { withRetry } from '@my-tools/shared';
 import type { CreateChecklistParamsDto, RegenerateDraftDto } from './dto/checklist.dto';
 
 // ── Escape LangChain template variables in user-supplied strings ──────────────
@@ -115,23 +116,6 @@ export function parseAiJson(
   }
 
   return validateAiResponse(parsed);
-}
-
-// ── Retry helper with exponential backoff ────────────────────────────────────
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  retries = 2,
-  baseDelayMs = 2000,
-): Promise<T> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      if (attempt === retries) throw err;
-      await new Promise((r) => setTimeout(r, baseDelayMs * Math.pow(2, attempt)));
-    }
-  }
-  throw new Error('unreachable');
 }
 
 // ── Build prompts ────────────────────────────────────────────────────────────
