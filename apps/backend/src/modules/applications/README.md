@@ -24,6 +24,8 @@ src/modules/applications/
 ├── applications.controller.ts   # Endpoints REST
 ├── applications.service.ts    # Lógica de negocio
 ├── applications.module.ts     # Configuración del módulo
+├── applications.utils.ts     # Funciones utilitarias (esc, extractJson, withRetry, cleanCvText)
+├── applications.service.spec.ts # Tests unitarios
 ├── entities/
 │   └── application.entity.ts   # BaseCvEntity, ApplicationEntity
 └── dto/
@@ -219,9 +221,10 @@ No hay variables de entorno específicas de este módulo. Usa las de AI.
 
 ## 10. Historial de Cambios
 
-| Fecha      | Versión | Cambios             |
-| ---------- | ------- | ------------------- |
-| 2026-03-11 | 1.0.0   | Creación del módulo |
+| Fecha      | Versión | Cambios                                                                |
+| ---------- | ------- | ---------------------------------------------------------------------- |
+| 2026-03-11 | 1.0.1   | Optimización: eliminar función duplicada, extraer utils, agregar tests |
+| 2026-03-11 | 1.0.0   | Creación del módulo                                                    |
 
 ---
 
