@@ -1,5 +1,5 @@
 import { TooManyRequestsException } from '@nestjs/common';
-import { withRetry } from '@my-tools/shared';
+import { withRetry } from '@ai-lab/shared';
 import type { CreateChecklistParamsDto, RegenerateDraftDto } from './dto/checklist.dto';
 
 // ── Escape LangChain template variables in user-supplied strings ──────────────
