@@ -6,29 +6,16 @@ import Link from 'next/link';
 import { useI18n } from '../../../lib/i18n-context';
 import { useAuth } from '../../../hooks/useAuth';
 import { DashboardLayout } from '../../../components/ui/DashboardLayout';
+import { Spinner } from '../../../components/ui/Spinner';
 import { TaskCard } from '../../../components/checklists/TaskCard';
 import { ProgressRing, BarChart } from '../../../components/checklists/ProgressRing';
+import { CHECKLIST_STATUS_STYLES } from '../../../components/checklists/constants';
 import {
   IconChevronLeft, IconBrain, IconPlay, IconPause, IconTrash, IconSparkle,
 } from '../../../components/checklists/Icons';
 import { checklistsApi, type Checklist, type ProgressData } from '../../../lib/checklists';
 
 const USER_ROLES = ['superadmin', 'admin', 'client'];
-
-const STATUS_STYLES = {
-  active:    'text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-400/30 bg-emerald-50 dark:bg-emerald-400/5',
-  paused:    'text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-400/30 bg-amber-50 dark:bg-amber-400/5',
-  completed: 'text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-400/30 bg-sky-50 dark:bg-sky-400/5',
-};
-
-function Spinner({ size = 16 }: { size?: number }) {
-  return (
-    <svg className="animate-spin" width={size} height={size} viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2"/>
-      <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  );
-}
 
 export default function ChecklistDetailPage() {
   const { t } = useI18n();
@@ -155,7 +142,7 @@ export default function ChecklistDetailPage() {
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-3 flex-wrap">
-                <span className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 rounded border ${STATUS_STYLES[checklist.status]}`}
+                <span className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 rounded border ${CHECKLIST_STATUS_STYLES[checklist.status]}`}
                       suppressHydrationWarning>
                   {t.checklist[checklist.status]}
                 </span>

@@ -1,6 +1,6 @@
 # F016: Consolidar Componentes Duplicados del Frontend
 
-> Estado: PENDING_APPROVAL
+> Estado: COMPLETED
 > Fecha de creación: 2026-03-12
 > Última actualización: 2026-03-12
 

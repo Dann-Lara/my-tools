@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useI18n } from '../../../lib/i18n-context';
 import { useAuth } from '../../../hooks/useAuth';
 import { DashboardLayout } from '../../../components/ui/DashboardLayout';
+import { Spinner } from '../../../components/ui/Spinner';
 import { StepIndicator } from '../../../components/checklists/StepIndicator';
 import { IconChevronLeft } from '../../../components/checklists/Icons';
 import { checklistsApi, type ChecklistParams, type TaskDraft } from '../../../lib/checklists';
@@ -16,15 +17,6 @@ import { RegenModal } from '../../../components/checklists/new-wizard/RegenModal
 
 const USER_ROLES = ['superadmin', 'admin', 'client'];
 const today = new Date().toISOString().split('T')[0]!;
-
-function Spinner() {
-  return (
-    <svg className="animate-spin" width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2"/>
-      <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  );
-}
 
 export default function NewChecklistPage() {
   const { t } = useI18n();
