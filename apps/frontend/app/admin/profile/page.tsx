@@ -2,29 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../../components/ui/DashboardLayout';
+import { Spinner } from '../../../components/ui/Spinner';
 import { useAuth } from '../../../hooks/useAuth';
 import { useI18n } from '../../../lib/i18n-context';
+import { getHeaders } from '../../../components/users/constants';
 import Link from 'next/link';
 import { TelegramHelpModal } from '../../../components/ui/TelegramHelpModal';
 
 const ADMIN_ROLES = ['superadmin', 'admin'];
-
-function Spinner() {
-  return (
-    <svg className="animate-spin" width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2"/>
-      <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function getHeaders() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('ailab_at') : null;
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
 
 export default function AdminProfilePage() {
   const { t } = useI18n();
