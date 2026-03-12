@@ -60,7 +60,7 @@
 | F017 | Optimizar Frontend Checklists     | checklists   | COMPLETED        | Alta      |
 | F018 | Optimizar Frontend Applications   | applications | COMPLETED        | Alta      |
 | F019 | Agregar Tests Frontend           | frontend    | COMPLETED        | Alta      |
-| F020 | Optimizar Módulo Users            | users       | PENDING_APPROVAL | Alta      |
+| F020 | Optimizar Módulo Users            | users       | APPROVED          | Alta      |
 | F021 | Optimizar Módulo Auth             | auth        | PENDING_APPROVAL | Alta      |
 | F022 | Optimizar Módulo AI               | ai          | PENDING_APPROVAL | Alta      |
 | F023 | Optimizar Paquete ai-core         | ai-core     | PENDING_APPROVAL | Alta      |
