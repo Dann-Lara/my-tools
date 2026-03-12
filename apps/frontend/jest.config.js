@@ -1,8 +1,8 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: 'jsdom',
-  setupFilesAfterFramework: ['<rootDir>/jest.setup.ts'],
-  transform: { '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react' } }] },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  transform: { '^.+\\.tsx?$': ['ts-jest', { tsconfig: { jsx: 'react-jsx' } }] },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '@ai-lab/shared': '<rootDir>/../../packages/shared/src/index.ts',
