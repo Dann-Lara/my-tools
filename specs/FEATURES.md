@@ -55,7 +55,11 @@
 | F012 | Iniciar sesión como X (superadmin) | users        | PENDING_APPROVAL | Media     |
 | F013 | Optimización Applications          | applications | COMPLETED        | Alta      |
 | F014 | Optimización Checklists            | checklists   | COMPLETED        | Alta      |
-| F015 | Optimización Applications (Fase2)  | applications | DRAFT            | Alta      |
+| F015 | Optimización Applications (Fase2) | applications | COMPLETED        | Alta      |
+| F016 | Consolidar Componentes Duplicados | frontend    | PENDING_APPROVAL | Alta      |
+| F017 | Optimizar Frontend Checklists     | checklists   | PENDING_APPROVAL | Alta      |
+| F018 | Optimizar Frontend Applications   | applications | PENDING_APPROVAL | Alta      |
+| F019 | Agregar Tests Frontend            | frontend    | PENDING_APPROVAL | Alta      |
 
 ---
 
