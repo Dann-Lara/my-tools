@@ -178,6 +178,8 @@ async function handleSave() { ... }
 
 ## 9. Git Conventions
 
+> See also: [Commit Workflow](commit-workflow.md) for branch naming, testing rules, and PR creation.
+
 ```
 feat(checklists): add send-to-telegram endpoint
 fix(n8n): align workflow credentials to correct IDs
