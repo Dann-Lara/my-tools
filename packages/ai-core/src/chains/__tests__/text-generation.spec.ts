@@ -1,49 +1,72 @@
-import { generateText } from './text-generation';
-
-// Mock LangChain modules
-jest.mock('@langchain/openai', () => ({
-  ChatOpenAI: jest.fn().mockImplementation(() => ({
-    pipe: jest.fn().mockReturnThis(),
-  })),
+jest.mock('../../llm/executor', () => ({
+  executeWithFallback: jest.fn(),
 }));
 
-jest.mock('@langchain/core/prompts', () => ({
-  ChatPromptTemplate: {
-    fromMessages: jest.fn().mockReturnValue({
-      pipe: jest.fn().mockReturnValue({
-        pipe: jest.fn().mockReturnValue({
-          invoke: jest.fn().mockResolvedValue('Mocked AI response'),
-        }),
-      }),
-    }),
-  },
-}));
+import { generateText } from '../text-generation';
+import { executeWithFallback } from '../../llm/executor';
 
-jest.mock('@langchain/core/output_parsers', () => ({
-  StringOutputParser: jest.fn(),
-}));
-
-describe('generateText', () => {
+describe('text-generation', () => {
   beforeEach(() => {
-    process.env['OPENAI_API_KEY'] = 'sk-test-key';
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should return generated text with default options', async () => {
+  it('should generate text with default options', async () => {
+    (executeWithFallback as jest.Mock).mockResolvedValue({
+      text: 'Generated text response',
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+    });
+
     const result = await generateText({ prompt: 'Say hello' });
-    expect(result.text).toBe('Mocked AI response');
+
+    expect(result.text).toBe('Generated text response');
     expect(result.model).toBe('gpt-4o-mini');
+    expect(executeWithFallback).toHaveBeenCalledWith({
+      prompt: 'Say hello',
+      systemMessage: 'You are a helpful AI assistant.',
+      temperature: undefined,
+      maxTokens: 4096,
+    });
   });
 
   it('should use custom system message when provided', async () => {
+    (executeWithFallback as jest.Mock).mockResolvedValue({
+      text: 'Pirate response',
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+    });
+
     const result = await generateText({
       prompt: 'Hello',
       systemMessage: 'You are a pirate',
     });
-    expect(result).toBeDefined();
-    expect(result.text).toBeTruthy();
+
+    expect(result.text).toBe('Pirate response');
+    expect(executeWithFallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        systemMessage: 'You are a pirate',
+      })
+    );
+  });
+
+  it('should pass through custom temperature and maxTokens', async () => {
+    (executeWithFallback as jest.Mock).mockResolvedValue({
+      text: 'Test',
+      provider: 'openai',
+      model: 'gpt-4o-mini',
+    });
+
+    await generateText({
+      prompt: 'Test',
+      temperature: 0.5,
+      maxTokens: 500,
+    });
+
+    expect(executeWithFallback).toHaveBeenCalledWith(
+      expect.objectContaining({
+        temperature: 0.5,
+        maxTokens: 500,
+      })
+    );
   });
 });
