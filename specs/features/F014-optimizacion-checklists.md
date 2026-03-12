@@ -1,6 +1,6 @@
 # F014: Optimización del Módulo Checklists
 
-> Estado: DRAFT
+> Estado: IN_PROGRESS
 > Fecha de creación: 2026-03-11
 > Última actualización: 2026-03-11
 
