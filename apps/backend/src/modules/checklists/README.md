@@ -23,6 +23,8 @@ src/modules/checklists/
 ├── checklists.controller.ts   # Endpoints REST
 ├── checklists.service.ts     # Lógica de negocio
 ├── checklists.module.ts      # Configuración del módulo
+├── checklists.utils.ts       # Funciones utilitarias (esc, parseAiJson, prompts)
+├── checklists.service.spec.ts # Tests unitarios
 ├── entities/
 │   ├── checklist.entity.ts   # ChecklistEntity, ChecklistItemEntity, ChecklistFeedbackEntity
 └── dto/

@@ -54,6 +54,7 @@
 | F011 | Ahorro/Inversiones                 | savings      | DRAFT            | Alta      |
 | F012 | Iniciar sesión como X (superadmin) | users        | PENDING_APPROVAL | Media     |
 | F013 | Optimización Applications          | applications | APPROVED         | Alta      |
+| F014 | Optimización Checklists            | checklists   | DRAFT            | Alta      |
 
 ---
 
