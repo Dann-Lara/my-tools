@@ -51,7 +51,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // ── Forward to NestJS backend ─────────────────────────────────────────
-    return proxyToBackend(req, '/v1/applications/extract-cv', 'POST', { text: pdfText });
+    return proxyToBackend(req, '/v1/applications/extract-cv', 'POST', { pdfText });
   } catch (err) {
     console.error('[extract-cv] error:', err);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });

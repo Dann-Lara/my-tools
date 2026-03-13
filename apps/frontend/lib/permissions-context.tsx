@@ -81,8 +81,10 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   }, [userId, userRole]);
 
   function can(key: string): boolean {
-    const result = ready && permissions[key] === true;
-    return result;
+    if (userRole === 'superadmin' || userRole === 'admin') {
+      return true;
+    }
+    return ready && permissions[key] === true;
   }
 
   function invalidate() {
