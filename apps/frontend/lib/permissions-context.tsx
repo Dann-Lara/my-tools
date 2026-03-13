@@ -28,6 +28,11 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   const userRole = user.role;
   const fetchedFor = useRef('');
 
+  // Debug
+  if (typeof window !== 'undefined') {
+    console.log('[PermissionsProvider] userRole:', userRole, 'user:', user);
+  }
+
 
   function doFetch() {
     if (!userId) {
