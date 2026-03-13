@@ -66,10 +66,19 @@ export class UsersController {
   @ApiOperation({ summary: 'Get allowed modules for the current user' })
   async getMyPermissions(@CurrentUser() user: JwtUser): Promise<Record<string, boolean>> {
     const full = await this.usersService.findOne(user.userId);
-    const allowed = this.usersService.getAllowedModules(full);
     const allModules = ['checklist', 'applications', 'ai'];
     
-    // Convert array to map: { checklist: true, applications: false, ai: true }
+    // Superadmin and admin get full access to all modules
+    if (full.role === 'superadmin' || full.role === 'admin') {
+      const result: Record<string, boolean> = {};
+      for (const mod of allModules) {
+        result[mod] = true;
+      }
+      return result;
+    }
+    
+    // Clients get their allowedModules mapped to boolean
+    const allowed = this.usersService.getAllowedModules(full);
     const result: Record<string, boolean> = {};
     for (const mod of allModules) {
       result[mod] = allowed.includes(mod);
