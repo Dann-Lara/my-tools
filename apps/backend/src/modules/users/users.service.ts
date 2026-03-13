@@ -8,12 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 
-import {
-  UserEntity,
-  DEFAULT_ALLOWED_MODULES,
-  MODULE_KEYS,
-} from './user.entity';
 import type { CreateUserDto } from './dto/create-user.dto';
+import { UserEntity, DEFAULT_ALLOWED_MODULES, MODULE_KEYS } from './user.entity';
 import type { UserRole } from './user.entity';
 
 @Injectable()
@@ -24,7 +20,11 @@ export class UsersService {
   ) {}
 
   // ── Create ─────────────────────────────────────────────────────────────────
-  async create(dto: CreateUserDto, creatorId?: string, creatorRole?: UserRole): Promise<UserEntity> {
+  async create(
+    dto: CreateUserDto,
+    creatorId?: string,
+    creatorRole?: UserRole,
+  ): Promise<UserEntity> {
     const existing = await this.userRepo.findOneBy({ email: dto.email.toLowerCase() });
     if (existing) throw new ConflictException('Email already in use');
 
@@ -62,7 +62,16 @@ export class UsersService {
 
   // ── List (with hierarchical filtering) ─────────────────────────────────────
   async findAll(requestingUser?: { id: string; role: UserRole }): Promise<UserEntity[]> {
-    const selectFields = ['id', 'email', 'name', 'role', 'isActive', 'allowedModules', 'adminId', 'createdAt'] as const;
+    const selectFields = [
+      'id',
+      'email',
+      'name',
+      'role',
+      'isActive',
+      'allowedModules',
+      'adminId',
+      'createdAt',
+    ] as const;
 
     if (!requestingUser) {
       // Sin contexto de usuario → 返回空
@@ -92,13 +101,22 @@ export class UsersService {
 
   // ── Find one ────────────────────────────────────────────────────────────────
   async findOne(id: string, requestingUser?: { id: string; role: UserRole }): Promise<UserEntity> {
-    const selectFields = ['id', 'email', 'name', 'role', 'isActive', 'allowedModules', 'adminId', 'createdAt'] as const;
-    
+    const selectFields = [
+      'id',
+      'email',
+      'name',
+      'role',
+      'isActive',
+      'allowedModules',
+      'adminId',
+      'createdAt',
+    ] as const;
+
     const user = await this.userRepo.findOne({
       where: { id },
       select: [...selectFields],
     });
-    
+
     if (!user) throw new NotFoundException(`User ${id} not found`);
 
     // Verificar acceso si hay contexto de usuario
@@ -121,13 +139,11 @@ export class UsersService {
 
   // ── Get allowed modules for a user ─────────────────────────────────────────
   getAllowedModules(user: UserEntity): string[] {
-    // superadmin y admin siempre tienen acceso a todos los módulos
-    if (user.role === 'superadmin' || user.role === 'admin') {
+    if (user.role === 'superadmin') {
       return [...MODULE_KEYS];
     }
-    // client usa su allowedModules, con fallback a defaults
-    return user.allowedModules && user.allowedModules.length > 0 
-      ? user.allowedModules 
+    return user.allowedModules && user.allowedModules.length > 0
+      ? user.allowedModules
       : [...DEFAULT_ALLOWED_MODULES];
   }
 
@@ -160,7 +176,7 @@ export class UsersService {
       updated = current.includes(key) ? current : [...current, key];
     } else {
       // Remover
-      updated = current.filter(k => k !== key);
+      updated = current.filter((k) => k !== key);
     }
 
     await this.userRepo.update(targetUserId, { allowedModules: updated });
@@ -183,7 +199,7 @@ export class UsersService {
     }
 
     // Validar que todas las keys existen en MODULE_KEYS
-    const invalidKeys = modules.filter(k => !(MODULE_KEYS as readonly string[]).includes(k));
+    const invalidKeys = modules.filter((k) => !(MODULE_KEYS as readonly string[]).includes(k));
     if (invalidKeys.length > 0) {
       throw new ForbiddenException(`Unknown module keys: ${invalidKeys.join(', ')}`);
     }
@@ -196,7 +212,16 @@ export class UsersService {
   async findByEmail(email: string): Promise<UserEntity | null> {
     return this.userRepo.findOne({
       where: { email: email.toLowerCase() },
-      select: ['id', 'email', 'name', 'role', 'passwordHash', 'isActive', 'allowedModules', 'adminId'],
+      select: [
+        'id',
+        'email',
+        'name',
+        'role',
+        'passwordHash',
+        'isActive',
+        'allowedModules',
+        'adminId',
+      ],
     });
   }
 
@@ -210,13 +235,20 @@ export class UsersService {
   }
 
   // ── Profile update ─────────────────────────────────────────────────────────
-  async updateProfile(id: string, dto: { name?: string; telegramChatId?: string }): Promise<UserEntity> {
+  async updateProfile(
+    id: string,
+    dto: { name?: string; telegramChatId?: string },
+  ): Promise<UserEntity> {
     await this.userRepo.update(id, dto);
     return this.findOne(id);
   }
 
   // ── Active toggle ──────────────────────────────────────────────────────────
-  async setActive(id: string, isActive: boolean, requestingUser?: { id: string; role: UserRole }): Promise<UserEntity> {
+  async setActive(
+    id: string,
+    isActive: boolean,
+    requestingUser?: { id: string; role: UserRole },
+  ): Promise<UserEntity> {
     const targetUser = await this.findOne(id);
 
     // Verificar acceso
@@ -243,9 +275,11 @@ export class UsersService {
 
   // ── Seed superadmin, admin, and client ──────────────────────────────────────
   async ensureSuperAdmin(): Promise<void> {
-    const superadminEmail = (process.env['SUPERADMIN_EMAIL'] ?? 'superadmin@mytools.dev').toLowerCase();
+    const superadminEmail = (
+      process.env['SUPERADMIN_EMAIL'] ?? 'superadmin@mytools.dev'
+    ).toLowerCase();
     const superadminPassword = process.env['SUPERADMIN_PASSWORD'] ?? 'SuperAdmin123!';
-    
+
     const existingSuperadmin = await this.userRepo.findOneBy({ role: 'superadmin' as UserRole });
     if (!existingSuperadmin) {
       const passwordHash = await bcrypt.hash(superadminPassword, 12);
