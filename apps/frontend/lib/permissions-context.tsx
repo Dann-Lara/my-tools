@@ -54,13 +54,17 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
       })
       .then((data) => {
         // Backend now returns { checklist: true, applications: false, ai: true }
+        console.log('[DEBUG Permissions] Fetched permissions:', data);
+        console.log('[DEBUG Permissions] User role:', userRole);
         setPermissions(data);
         setReady(true);
       })
       .catch((err) => {
+        console.error('[DEBUG Permissions] Error fetching:', err);
         const fallback = (userRole === 'superadmin' || userRole === 'admin')
           ? { checklist: true, applications: true, ai: true } as PermissionsMap
           : {} as PermissionsMap;
+        console.log('[DEBUG Permissions] Using fallback:', fallback);
         setPermissions(fallback);
         setReady(true);
       });
@@ -83,8 +87,9 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   // Single function: uses real permissions from backend
   // Backend already handles superadmin (returns all true), admin/client use their allowedModules
   function hasPermission(key: string): boolean {
-    if (!ready) return false;
-    return permissions[key] === true;
+    const result = ready && permissions[key] === true;
+    console.log(`[DEBUG Permissions] hasPermission('${key}'): ready=${ready}, permissions=${JSON.stringify(permissions)}, result=${result}`);
+    return result;
   }
 
   function invalidate() {
