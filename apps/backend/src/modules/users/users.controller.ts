@@ -58,15 +58,23 @@ export class UsersController {
 
   /**
    * GET /v1/users/me/permissions
-   * Returns the allowed modules for the current user.
-   * Superadmin/admin always get all modules.
-   * Clients get their allowedModules (merged with defaults).
+   * Returns the allowed modules for the current user as a map.
+   * Superadmin/admin always get all modules (all true).
+   * Clients get their allowedModules mapped to boolean.
    */
   @Get('me/permissions')
   @ApiOperation({ summary: 'Get allowed modules for the current user' })
-  async getMyPermissions(@CurrentUser() user: JwtUser): Promise<string[]> {
+  async getMyPermissions(@CurrentUser() user: JwtUser): Promise<Record<string, boolean>> {
     const full = await this.usersService.findOne(user.userId);
-    return this.usersService.getAllowedModules(full);
+    const allowed = this.usersService.getAllowedModules(full);
+    const allModules = ['checklist', 'applications', 'ai'];
+    
+    // Convert array to map: { checklist: true, applications: false, ai: true }
+    const result: Record<string, boolean> = {};
+    for (const mod of allModules) {
+      result[mod] = allowed.includes(mod);
+    }
+    return result;
   }
 
   // ── Admin — user management ────────────────────────────────────────────────

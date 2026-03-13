@@ -53,7 +53,8 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
         return res.json() as Promise<PermissionsMap>;
       })
       .then((data) => {
-        setPermissions({ ...data, ai: data.ai ?? (userRole === 'superadmin' || userRole === 'admin') });
+        // Backend now returns { checklist: true, applications: false, ai: true }
+        setPermissions(data);
         setReady(true);
       })
       .catch((err) => {

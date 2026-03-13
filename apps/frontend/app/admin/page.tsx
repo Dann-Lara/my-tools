@@ -6,6 +6,7 @@ import { DashboardLayout } from '../../components/ui/DashboardLayout';
 import { Spinner } from '../../components/ui/Spinner';
 import { useI18n } from '../../lib/i18n-context';
 import { useAuth } from '../../hooks/useAuth';
+import { usePermissions } from '../../lib/permissions-context';
 import { checklistsApi, type Checklist } from '../../lib/checklists';
 import { CHECKLIST_STATUS_STYLES } from '../../components/checklists/constants';
 import { type Application, getHeaders } from '../../components/applications';
@@ -71,6 +72,7 @@ function StatsCard({ label, value, color, subtext }: { label: string; value: str
 export default function AdminDashboard(): React.JSX.Element {
   const { t } = useI18n();
   const { user, loading, logout } = useAuth(ADMIN_ROLES);
+  const { can } = usePermissions();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'system'>('overview');
@@ -152,27 +154,37 @@ export default function AdminDashboard(): React.JSX.Element {
           <>
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-              <StatsCard label="Checklists" value={checklists.length} color="text-sky-600 dark:text-sky-400" subtext={`${activeChecklists.length} activos`} />
-              <StatsCard label="Tareas" value={completedItems} color="text-emerald-600 dark:text-emerald-400" subtext={`de ${allItems.length}`} />
-              <StatsCard label="Aplicaciones" value={apps.length} color="text-violet-600 dark:text-violet-400" subtext={`${pendingApps} pendientes`} />
-              <StatsCard label="Aceptados" value={acceptedApps} color="text-green-600 dark:text-green-400" subtext={`${rejectedApps} rechazados`} />
+              {can('checklist') && (
+                <>
+                  <StatsCard label="Checklists" value={checklists.length} color="text-sky-600 dark:text-sky-400" subtext={`${activeChecklists.length} activos`} />
+                  <StatsCard label="Tareas" value={completedItems} color="text-emerald-600 dark:text-emerald-400" subtext={`de ${allItems.length}`} />
+                </>
+              )}
+              {can('applications') && (
+                <>
+                  <StatsCard label="Aplicaciones" value={apps.length} color="text-violet-600 dark:text-violet-400" subtext={`${pendingApps} pendientes`} />
+                  <StatsCard label="Aceptados" value={acceptedApps} color="text-green-600 dark:text-green-400" subtext={`${rejectedApps} rechazados`} />
+                </>
+              )}
             </div>
 
             {/* Quick nav cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-              <Link href="/checklists"
-                className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
-                <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-400/10 border border-sky-200 dark:border-sky-400/20 flex items-center justify-center text-sky-500 dark:text-sky-400 shrink-0">
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                    <path d="M3 9l4.5 4.5 7.5-7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-mono text-[12px] font-semibold text-slate-800 dark:text-slate-200" suppressHydrationWarning>{t.checklist.myChecklists}</p>
-                  <p className="font-mono text-[9px] text-slate-400 mt-0.5">{checklists.length} total · {activeChecklists.length} activos</p>
-                </div>
-                <span className="ml-auto font-mono text-[10px] text-slate-300 dark:text-slate-700 group-hover:text-sky-400 transition-colors">→</span>
-              </Link>
+              {can('checklist') && (
+                <Link href="/checklists"
+                  className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-400/10 border border-sky-200 dark:border-sky-400/20 flex items-center justify-center text-sky-500 dark:text-sky-400 shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <path d="M3 9l4.5 4.5 7.5-7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[12px] font-semibold text-slate-800 dark:text-slate-200" suppressHydrationWarning>{t.checklist.myChecklists}</p>
+                    <p className="font-mono text-[9px] text-slate-400 mt-0.5">{checklists.length} total · {activeChecklists.length} activos</p>
+                  </div>
+                  <span className="ml-auto font-mono text-[10px] text-slate-300 dark:text-slate-700 group-hover:text-sky-400 transition-colors">→</span>
+                </Link>
+              )}
 
               {(user.role === 'superadmin' || user.role === 'admin') && (
                 <Link href="/admin/users"
@@ -191,38 +203,42 @@ export default function AdminDashboard(): React.JSX.Element {
                 </Link>
               )}
 
-              <Link href={`/admin/applications` as any}
-                className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
-                <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-400/10 border border-violet-200 dark:border-violet-400/20 flex items-center justify-center text-violet-500 dark:text-violet-400 shrink-0">
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                    <rect x="2" y="4" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M6 9l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-mono text-[12px] font-semibold text-slate-800 dark:text-slate-200" suppressHydrationWarning>{t.applications?.tabList ?? 'Postulaciones'}</p>
-                  <p className="font-mono text-[9px] text-slate-400 mt-0.5">{apps.length} total · {pendingApps} pendientes</p>
-                </div>
-                <span className="ml-auto font-mono text-[10px] text-slate-300 dark:text-slate-700 group-hover:text-violet-400 transition-colors">→</span>
-              </Link>
+              {can('applications') && (
+                <Link href={`/admin/applications` as any}
+                  className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-400/10 border border-violet-200 dark:border-violet-400/20 flex items-center justify-center text-violet-500 dark:text-violet-400 shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                      <rect x="2" y="4" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                      <path d="M6 9l2 2 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[12px] font-semibold text-slate-800 dark:text-slate-200" suppressHydrationWarning>{t.applications?.tabList ?? 'Postulaciones'}</p>
+                    <p className="font-mono text-[9px] text-slate-400 mt-0.5">{apps.length} total · {pendingApps} pendientes</p>
+                  </div>
+                  <span className="ml-auto font-mono text-[10px] text-slate-300 dark:text-slate-700 group-hover:text-violet-400 transition-colors">→</span>
+                </Link>
+              )}
 
-              <Link href="/admin/ai"
-                className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-400/10 border border-emerald-200 dark:border-emerald-400/20 flex items-center justify-center text-emerald-500 dark:text-emerald-400 shrink-0">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.54 15.54l2.83 2.83M5.64 18.36l2.83-2.83M15.54 8.46l2.83-2.83"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-mono text-[12px] font-semibold text-slate-800 dark:text-slate-200">AI Tools</p>
-                  <p className="font-mono text-[9px] text-slate-400 mt-0.5">Generador y resumidor</p>
-                </div>
-                <span className="ml-auto font-mono text-[10px] text-slate-300 dark:text-slate-700 group-hover:text-emerald-400 transition-colors">→</span>
-              </Link>
+              {can('ai') && (
+                <Link href="/admin/ai"
+                  className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-400/10 border border-emerald-200 dark:border-emerald-400/20 flex items-center justify-center text-emerald-500 dark:text-emerald-400 shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.54 15.54l2.83 2.83M5.64 18.36l2.83-2.83M15.54 8.46l2.83-2.83"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-mono text-[12px] font-semibold text-slate-800 dark:text-slate-200">AI Tools</p>
+                    <p className="font-mono text-[9px] text-slate-400 mt-0.5">Generador y resumidor</p>
+                  </div>
+                  <span className="ml-auto font-mono text-[10px] text-slate-300 dark:text-slate-700 group-hover:text-emerald-400 transition-colors">→</span>
+                </Link>
+              )}
             </div>
 
             {/* Checklist progress section */}
-            {checklists.length > 0 && (
+            {can('checklist') && checklists.length > 0 && (
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-4">
                   <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400" suppressHydrationWarning>{t.dashboard.checklistProgress}</p>

@@ -85,13 +85,13 @@ export default function AdminUsersPage() {
               {isSuperAdmin ? `${users.length} usuarios` : `${users.length} mis clientes`}
             </p>
           </div>
-          {isSuperAdmin && (
+          {user.role === 'superadmin' || user.role === 'admin' ? (
             <button onClick={() => { setCreateModal(true); void loadAdmins(); }}
               className="btn-primary flex items-center gap-2 py-3 px-6 self-start" suppressHydrationWarning>
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
               {t.users.createUser}
             </button>
-          )}
+          ) : null}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

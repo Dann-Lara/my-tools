@@ -155,7 +155,9 @@ export function Sidebar({ variant, user }: SidebarProps) {
 
   function canAccess(item: NavItem): boolean {
     if (item.adminOnly && !isAdmin) return false;
-    if (isAdmin) return true;
+    // Solo superadmin tiene acceso total a todos los módulos
+    if (isSuperAdmin) return true;
+    // Admin también depende de permisos (excepto para users que ya se maneja arriba)
     if (!permsReady) {
       return !item.permission;
     }
