@@ -8,7 +8,6 @@ export type PermissionsMap = Record<string, boolean>;
 interface PermissionsContextValue {
   permissions: PermissionsMap;
   ready: boolean;
-  can: (key: string) => boolean;
   hasPermission: (key: string) => boolean;
   invalidate: () => void;
 }
@@ -16,7 +15,6 @@ interface PermissionsContextValue {
 export const PermissionsContext = createContext<PermissionsContextValue>({
   permissions: {},
   ready: false,
-  can: () => false,
   hasPermission: () => false,
   invalidate: () => {},
 });
@@ -82,15 +80,11 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, userRole]);
 
-  function can(key: string): boolean {
-    if (userRole === 'superadmin' || userRole === 'admin') {
-      return true;
-    }
-    return ready && permissions[key] === true;
-  }
-
+  // Single function: uses real permissions from backend
+  // Backend already handles superadmin (returns all true), admin/client use their allowedModules
   function hasPermission(key: string): boolean {
-    return ready && permissions[key] === true;
+    if (!ready) return false;
+    return permissions[key] === true;
   }
 
   function invalidate() {
@@ -99,7 +93,7 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   }
 
   return (
-    <PermissionsContext.Provider value={{ permissions, ready, can, hasPermission, invalidate }}>
+    <PermissionsContext.Provider value={{ permissions, ready, hasPermission, invalidate }}>
       {children}
     </PermissionsContext.Provider>
   );

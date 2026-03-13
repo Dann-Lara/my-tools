@@ -5,7 +5,7 @@ import { AiGenerator } from '../AiGenerator';
 
 jest.mock('../../../lib/permissions-context', () => ({
   usePermissions: () => ({
-    can: () => true,
+    hasPermission: () => true,
     ready: true,
   }),
 }));

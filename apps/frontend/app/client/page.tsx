@@ -18,7 +18,7 @@ export default function ClientDashboard(): React.JSX.Element {
   const { t } = useI18n();
   const pathname = usePathname();
   const { user, loading, logout } = useAuth(CLIENT_ROLES);
-  const { can, hasPermission } = usePermissions();
+  const { hasPermission } = usePermissions();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
 

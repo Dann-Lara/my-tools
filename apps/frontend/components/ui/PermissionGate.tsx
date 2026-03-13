@@ -50,10 +50,10 @@ interface PermissionGateProps {
 }
 
 export function PermissionGate({ module, children }: PermissionGateProps) {
-  const { can, ready } = usePermissions();
+  const { hasPermission, ready } = usePermissions();
 
 
   if (!ready) return <Spinner />;
-  if (!can(module)) return <LockScreen />;
+  if (!hasPermission(module)) return <LockScreen />;
   return <>{children}</>;
 }

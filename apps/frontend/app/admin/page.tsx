@@ -74,7 +74,7 @@ export default function AdminDashboard(): React.JSX.Element {
   const { t } = useI18n();
   const pathname = usePathname();
   const { user, loading, logout } = useAuth(ADMIN_ROLES);
-  const { can, hasPermission } = usePermissions();
+  const { hasPermission } = usePermissions();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'system'>('overview');
@@ -172,7 +172,7 @@ export default function AdminDashboard(): React.JSX.Element {
 
             {/* Quick nav cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
-              {can('checklist') && (
+              {hasPermission('checklist') && (
                 <Link href="/checklists"
                   className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
                   <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-400/10 border border-sky-200 dark:border-sky-400/20 flex items-center justify-center text-sky-500 dark:text-sky-400 shrink-0">
@@ -205,7 +205,7 @@ export default function AdminDashboard(): React.JSX.Element {
                 </Link>
               )}
 
-              {can('applications') && (
+              {hasPermission('applications') && (
                 <Link href={`/admin/applications` as any}
                   className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
                   <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-400/10 border border-violet-200 dark:border-violet-400/20 flex items-center justify-center text-violet-500 dark:text-violet-400 shrink-0">
@@ -222,7 +222,7 @@ export default function AdminDashboard(): React.JSX.Element {
                 </Link>
               )}
 
-              {can('ai') && (
+              {hasPermission('ai') && (
                 <Link href="/admin/ai"
                   className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
                   <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-400/10 border border-emerald-200 dark:border-emerald-400/20 flex items-center justify-center text-emerald-500 dark:text-emerald-400 shrink-0">
@@ -240,7 +240,7 @@ export default function AdminDashboard(): React.JSX.Element {
             </div>
 
             {/* Checklist progress section */}
-            {can('checklist') && checklists.length > 0 && (
+            {hasPermission('checklist') && checklists.length > 0 && (
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-4">
                   <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400" suppressHydrationWarning>{t.dashboard.checklistProgress}</p>
