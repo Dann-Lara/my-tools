@@ -10,11 +10,11 @@ import { Repository } from 'typeorm';
 
 import {
   UserEntity,
-  DEFAULT_PERMISSIONS,
+  DEFAULT_ALLOWED_MODULES,
   MODULE_KEYS,
-  type PermissionsMap,
 } from './user.entity';
 import type { CreateUserDto } from './dto/create-user.dto';
+import type { UserRole } from './user.entity';
 
 @Injectable()
 export class UsersService {
@@ -24,13 +24,28 @@ export class UsersService {
   ) {}
 
   // ── Create ─────────────────────────────────────────────────────────────────
-  async create(dto: CreateUserDto, creatorRole?: string): Promise<UserEntity> {
+  async create(dto: CreateUserDto, creatorId?: string, creatorRole?: UserRole): Promise<UserEntity> {
     const existing = await this.userRepo.findOneBy({ email: dto.email.toLowerCase() });
     if (existing) throw new ConflictException('Email already in use');
 
     const role = dto.role ?? 'client';
-    if (creatorRole && creatorRole !== 'superadmin' && role !== 'client') {
+
+    // Validar creación según rol del creador
+    if (creatorRole === 'admin' && role !== 'client') {
       throw new ForbiddenException('You can only create client accounts');
+    }
+    if (creatorRole && creatorRole !== 'superadmin' && creatorRole !== 'admin') {
+      throw new ForbiddenException('You cannot create users');
+    }
+
+    // Determinar adminId
+    let adminId: string | null = null;
+    if (creatorRole === 'admin') {
+      // Admin crea cliente → asignar su propio ID
+      adminId = creatorId ?? null;
+    } else if (creatorRole === 'superadmin' && dto.adminId) {
+      // Superadmin puede asignar admin específico
+      adminId = dto.adminId;
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -39,80 +54,158 @@ export class UsersService {
       name: dto.name,
       passwordHash,
       role,
-      permissions: { ...DEFAULT_PERMISSIONS },
+      adminId,
+      allowedModules: [...DEFAULT_ALLOWED_MODULES],
     });
     return this.userRepo.save(user);
   }
 
-  // ── List ───────────────────────────────────────────────────────────────────
-  async findAll(): Promise<UserEntity[]> {
-    return this.userRepo.find({
-      select: ['id', 'email', 'name', 'role', 'isActive', 'permissions', 'createdAt'],
-      order: { createdAt: 'DESC' },
-    });
+  // ── List (with hierarchical filtering) ─────────────────────────────────────
+  async findAll(requestingUser?: { id: string; role: UserRole }): Promise<UserEntity[]> {
+    const selectFields = ['id', 'email', 'name', 'role', 'isActive', 'allowedModules', 'adminId', 'createdAt'] as const;
+
+    if (!requestingUser) {
+      // Sin contexto de usuario → 返回空
+      return [];
+    }
+
+    if (requestingUser.role === 'superadmin') {
+      // Superadmin ve todos
+      return this.userRepo.find({
+        select: [...selectFields],
+        order: { createdAt: 'DESC' },
+      });
+    }
+
+    if (requestingUser.role === 'admin') {
+      // Admin ve solo sus clientes
+      return this.userRepo.find({
+        where: { adminId: requestingUser.id },
+        select: [...selectFields],
+        order: { createdAt: 'DESC' },
+      });
+    }
+
+    // Client no puede ver usuarios
+    return [];
   }
 
-  // ── Find one — always includes permissions ─────────────────────────────────
-  async findOne(id: string): Promise<UserEntity> {
+  // ── Find one ────────────────────────────────────────────────────────────────
+  async findOne(id: string, requestingUser?: { id: string; role: UserRole }): Promise<UserEntity> {
+    const selectFields = ['id', 'email', 'name', 'role', 'isActive', 'allowedModules', 'adminId', 'createdAt'] as const;
+    
     const user = await this.userRepo.findOne({
       where: { id },
-      select: ['id', 'email', 'name', 'role', 'isActive', 'permissions', 'createdAt'],
+      select: [...selectFields],
     });
+    
     if (!user) throw new NotFoundException(`User ${id} not found`);
-    // Ensure permissions is always a complete map (fill missing keys with defaults)
-    user.permissions = this.resolvePermissions(user);
+
+    // Verificar acceso si hay contexto de usuario
+    if (requestingUser) {
+      if (requestingUser.role === 'superadmin') {
+        // OK - acceso total
+      } else if (requestingUser.role === 'admin') {
+        // Solo puede ver sus propios clientes
+        if (user.adminId !== requestingUser.id) {
+          throw new ForbiddenException('You can only view your own clients');
+        }
+      } else {
+        // Client no puede ver otros usuarios
+        throw new ForbiddenException('You cannot view other users');
+      }
+    }
+
     return user;
   }
 
-  // ── Get effective permissions for a user ──────────────────────────────────
-  getEffectivePermissions(user: UserEntity): PermissionsMap {
-    // Privileged roles always get full access — never read the DB column
+  // ── Get allowed modules for a user ─────────────────────────────────────────
+  getAllowedModules(user: UserEntity): string[] {
+    // superadmin y admin siempre tienen acceso a todos los módulos
     if (user.role === 'superadmin' || user.role === 'admin') {
-      return Object.fromEntries(MODULE_KEYS.map(k => [k, true])) as PermissionsMap;
+      return [...MODULE_KEYS];
     }
-    return this.resolvePermissions(user);
+    // client usa su allowedModules, con fallback a defaults
+    return user.allowedModules && user.allowedModules.length > 0 
+      ? user.allowedModules 
+      : [...DEFAULT_ALLOWED_MODULES];
   }
 
-  private resolvePermissions(user: UserEntity): PermissionsMap {
-    // Merge stored partial permissions over the defaults
-    // → new module keys automatically get their default value
-    return { ...DEFAULT_PERMISSIONS, ...(user.permissions ?? {}) } as PermissionsMap;
-  }
-
-  // ── Update a single permission (superadmin only) ───────────────────────────
-  async setPermission(
+  // ── Update a single module permission ──────────────────────────────────────
+  async setModulePermission(
     targetUserId: string,
     key: string,
-    value: boolean,
-  ): Promise<PermissionsMap> {
-    const user = await this.findOne(targetUserId);
-    const current = this.resolvePermissions(user);
+    granted: boolean,
+    requestingUser?: { id: string; role: UserRole },
+  ): Promise<string[]> {
+    const targetUser = await this.findOne(targetUserId, requestingUser);
 
-    if (!(MODULE_KEYS as readonly string[]).includes(key)) {
-      throw new ForbiddenException(`Unknown permission key: ${key}`);
+    // Verificar que el usuario puede modificar permisos
+    if (requestingUser?.role === 'admin') {
+      if (targetUser.adminId !== requestingUser.id) {
+        throw new ForbiddenException('You can only manage your own clients');
+      }
     }
 
-    const updated = { ...current, [key]: value };
-    await this.userRepo.update(targetUserId, { permissions: updated });
+    // Validar que la key existe en MODULE_KEYS
+    if (!(MODULE_KEYS as readonly string[]).includes(key)) {
+      throw new ForbiddenException(`Unknown module key: ${key}`);
+    }
+
+    const current = this.getAllowedModules(targetUser);
+    let updated: string[];
+
+    if (granted) {
+      // Agregar si no existe
+      updated = current.includes(key) ? current : [...current, key];
+    } else {
+      // Remover
+      updated = current.filter(k => k !== key);
+    }
+
+    await this.userRepo.update(targetUserId, { allowedModules: updated });
     return updated;
   }
 
-  // ── Bulk replace permissions ───────────────────────────────────────────────
-  async setAllPermissions(
+  // ── Bulk replace modules ───────────────────────────────────────────────────
+  async setAllModules(
     targetUserId: string,
-    permissions: Partial<PermissionsMap>,
-  ): Promise<PermissionsMap> {
-    await this.findOne(targetUserId); // ensures user exists
-    const merged = { ...DEFAULT_PERMISSIONS, ...permissions } as PermissionsMap;
-    await this.userRepo.update(targetUserId, { permissions: merged });
-    return merged;
+    modules: string[],
+    requestingUser?: { id: string; role: UserRole },
+  ): Promise<string[]> {
+    const targetUser = await this.findOne(targetUserId, requestingUser);
+
+    // Verificar que el usuario puede modificar permisos
+    if (requestingUser?.role === 'admin') {
+      if (targetUser.adminId !== requestingUser.id) {
+        throw new ForbiddenException('You can only manage your own clients');
+      }
+    }
+
+    // Validar que todas las keys existen en MODULE_KEYS
+    const invalidKeys = modules.filter(k => !(MODULE_KEYS as readonly string[]).includes(k));
+    if (invalidKeys.length > 0) {
+      throw new ForbiddenException(`Unknown module keys: ${invalidKeys.join(', ')}`);
+    }
+
+    await this.userRepo.update(targetUserId, { allowedModules: modules });
+    return modules;
   }
 
   // ── Find by email ──────────────────────────────────────────────────────────
   async findByEmail(email: string): Promise<UserEntity | null> {
     return this.userRepo.findOne({
       where: { email: email.toLowerCase() },
-      select: ['id', 'email', 'name', 'role', 'passwordHash', 'isActive', 'permissions'],
+      select: ['id', 'email', 'name', 'role', 'passwordHash', 'isActive', 'allowedModules', 'adminId'],
+    });
+  }
+
+  // ── Find admins (for superadmin to assign) ─────────────────────────────────
+  async findAdmins(): Promise<Pick<UserEntity, 'id' | 'name' | 'email'>[]> {
+    return this.userRepo.find({
+      where: { role: 'admin' as UserRole },
+      select: ['id', 'name', 'email'],
+      order: { name: 'ASC' },
     });
   }
 
@@ -123,22 +216,34 @@ export class UsersService {
   }
 
   // ── Active toggle ──────────────────────────────────────────────────────────
-  async setActive(id: string, isActive: boolean): Promise<UserEntity> {
+  async setActive(id: string, isActive: boolean, requestingUser?: { id: string; role: UserRole }): Promise<UserEntity> {
+    const targetUser = await this.findOne(id);
+
+    // Verificar acceso
+    if (requestingUser?.role === 'admin') {
+      if (targetUser.adminId !== requestingUser.id) {
+        throw new ForbiddenException('You can only manage your own clients');
+      }
+    }
+    if (requestingUser?.role === 'client') {
+      throw new ForbiddenException('You cannot deactivate users');
+    }
+
     await this.userRepo.update(id, { isActive });
-    return this.findOne(id);
+    return this.findOne(id, requestingUser);
   }
 
   // ── Telegram list ──────────────────────────────────────────────────────────
   async findAllWithTelegram(): Promise<UserEntity[]> {
     return this.userRepo.find({
-      where: { role: 'superadmin' },
+      where: { role: 'superadmin' as UserRole },
       select: ['id', 'email', 'name', 'role', 'telegramChatId'],
     });
   }
 
   // ── Seed superadmin ────────────────────────────────────────────────────────
   async ensureSuperAdmin(): Promise<void> {
-    const existing = await this.userRepo.findOneBy({ role: 'superadmin' });
+    const existing = await this.userRepo.findOneBy({ role: 'superadmin' as UserRole });
     if (existing) return;
 
     const passwordHash = await bcrypt.hash(process.env['SUPERADMIN_PASSWORD'] ?? 'SuperAdmin123!', 12);
@@ -147,8 +252,8 @@ export class UsersService {
         email: (process.env['SUPERADMIN_EMAIL'] ?? 'superadmin@ailab.dev').toLowerCase(),
         name: 'Super Admin',
         passwordHash,
-        role: 'superadmin',
-        permissions: Object.fromEntries(MODULE_KEYS.map(k => [k, true])) as PermissionsMap,
+        role: 'superadmin' as UserRole,
+        allowedModules: [...MODULE_KEYS],
       }),
     );
   }

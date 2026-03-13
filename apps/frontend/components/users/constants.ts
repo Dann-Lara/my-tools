@@ -4,7 +4,15 @@ export interface User {
   name: string;
   role: 'superadmin' | 'admin' | 'client';
   isActive: boolean;
+  allowedModules?: string[];
+  adminId?: string | null;
   createdAt: string;
+}
+
+export interface AdminOption {
+  id: string;
+  name: string;
+  email: string;
 }
 
 export type UserRole = User['role'];

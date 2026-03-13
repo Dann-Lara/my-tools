@@ -17,14 +17,22 @@ export default function AdminUsersPage() {
 
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterAdmin, setFilterAdmin] = useState<string>('all');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [createModal, setCreateModal] = useState(false);
-  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'client' as User['role'] });
+  const [createForm, setCreateForm] = useState({ 
+    name: '', 
+    email: '', 
+    password: '', 
+    role: 'client' as User['role'],
+    adminId: '' 
+  });
   const [createError, setCreateError] = useState('');
   const [createSuccess, setCreateSuccess] = useState('');
   const [confirmToggle, setConfirmToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
 
-  const { users, loading, load, toggleUser, createUser, counts } = useUsers({ authLoading, user });
+  const isSuperAdmin = user?.role === 'superadmin';
+  const { users, admins, loading, load, loadAdmins, toggleUser, createUser } = useUsers({ authLoading, user });
 
   async function handleToggle(id: string, isActive: boolean) {
     setActionLoading(id);
@@ -36,11 +44,15 @@ export default function AdminUsersPage() {
   async function handleCreate() {
     setCreateError('');
     setActionLoading('create');
-    const result = await createUser(createForm);
+    const data = {
+      ...createForm,
+      adminId: createForm.adminId || undefined,
+    };
+    const result = await createUser(data);
     setActionLoading(null);
     if (result.success) {
       setCreateSuccess(t.users.userCreated);
-      setCreateForm({ name: '', email: '', password: '', role: 'client' });
+      setCreateForm({ name: '', email: '', password: '', role: 'client', adminId: '' });
       setTimeout(() => { setCreateModal(false); setCreateSuccess(''); }, 1500);
     } else {
       setCreateError(result.error ?? t.common.error);
@@ -52,7 +64,8 @@ export default function AdminUsersPage() {
       u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase());
     const matchRole = filterRole === 'all' || u.role === filterRole;
-    return matchSearch && matchRole;
+    const matchAdmin = filterAdmin === 'all' || u.adminId === filterAdmin;
+    return matchSearch && matchRole && matchAdmin;
   });
 
   if (authLoading || !user) return null;
@@ -63,17 +76,17 @@ export default function AdminUsersPage() {
         <div className="py-10 border-b border-slate-200 dark:border-slate-800/60 mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <p className="font-mono text-[10px] text-slate-400 uppercase tracking-[0.4em] mb-3">
-              AI Lab — Admin
+              {isSuperAdmin ? 'AI Lab — Superadmin' : 'AI Lab — Admin'}
             </p>
             <h1 className="headline text-5xl md:text-7xl text-slate-900 dark:text-white" suppressHydrationWarning>
               {t.users.title}
             </h1>
             <p className="font-mono text-[11px] text-slate-500 mt-2">
-              {counts.total} usuarios · {counts.active} activos
+              {isSuperAdmin ? `${users.length} usuarios` : `${users.length} mis clientes`}
             </p>
           </div>
-          {user.role === 'superadmin' && (
-            <button onClick={() => setCreateModal(true)}
+          {isSuperAdmin && (
+            <button onClick={() => { setCreateModal(true); void loadAdmins(); }}
               className="btn-primary flex items-center gap-2 py-3 px-6 self-start" suppressHydrationWarning>
               <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
               {t.users.createUser}
@@ -83,10 +96,10 @@ export default function AdminUsersPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: t.users.superadmin, count: counts.superadmin, color: 'text-yellow-600 dark:text-yellow-400' },
-            { label: t.users.admin, count: counts.admin, color: 'text-sky-600 dark:text-sky-400' },
-            { label: t.users.client, count: counts.client, color: 'text-slate-600 dark:text-slate-300' },
-            { label: t.users.active, count: counts.active, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: isSuperAdmin ? t.users.superadmin : 'Total', count: users.length, color: 'text-slate-600 dark:text-slate-300' },
+            { label: t.users.admin, count: users.filter(u => u.role === 'admin').length, color: 'text-sky-600 dark:text-sky-400' },
+            { label: t.users.client, count: users.filter(u => u.role === 'client').length, color: 'text-slate-600 dark:text-slate-300' },
+            { label: t.users.active, count: users.filter(u => u.isActive).length, color: 'text-emerald-600 dark:text-emerald-400' },
           ].map(({ label, count, color }) => (
             <div key={label} className="card p-4 text-center">
               <p className={`font-mono text-2xl font-bold ${color}`}>{count}</p>
@@ -98,13 +111,22 @@ export default function AdminUsersPage() {
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <input type="search" className="input flex-1" placeholder={t.users.search}
             value={search} onChange={(e) => setSearch(e.target.value)} />
-          <select className="input w-full sm:w-44" value={filterRole}
+          <select className="input w-full sm:w-36" value={filterRole}
             onChange={(e) => setFilterRole(e.target.value)}>
             <option value="all" suppressHydrationWarning>{t.users.allRoles}</option>
-            <option value="superadmin" suppressHydrationWarning>{t.users.superadmin}</option>
-            <option value="admin" suppressHydrationWarning>{t.users.admin}</option>
+            {isSuperAdmin && <option value="superadmin" suppressHydrationWarning>{t.users.superadmin}</option>}
+            {isSuperAdmin && <option value="admin" suppressHydrationWarning>{t.users.admin}</option>}
             <option value="client" suppressHydrationWarning>{t.users.client}</option>
           </select>
+          {isSuperAdmin && (
+            <select className="input w-full sm:w-44" value={filterAdmin}
+              onChange={(e) => setFilterAdmin(e.target.value)}>
+              <option value="all" suppressHydrationWarning>Todos los admins</option>
+              {admins.map(a => (
+                <option key={a.id} value={a.id} suppressHydrationWarning>{a.name}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         {loading ? (
@@ -116,7 +138,7 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200 dark:border-slate-800">
-                  {[t.users.name, t.users.email, t.users.role, t.users.status, t.users.createdAt, t.users.actions, 'Detalle'].map((h) => (
+                  {[t.users.name, t.users.email, t.users.role, isSuperAdmin ? 'Admin' : '', t.users.status, t.users.createdAt, t.users.actions, 'Detalle'].filter(Boolean).map((h) => (
                     <th key={h} className="text-left px-4 py-3 font-mono text-[9px] uppercase tracking-widest text-slate-400">
                       {h}
                     </th>
@@ -126,7 +148,7 @@ export default function AdminUsersPage() {
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center font-mono text-[11px] text-slate-400">
+                    <td colSpan={8} className="px-4 py-12 text-center font-mono text-[11px] text-slate-400">
                       {t.users.noUsers}
                     </td>
                   </tr>
@@ -143,6 +165,13 @@ export default function AdminUsersPage() {
                         {u.role}
                       </span>
                     </td>
+                    {isSuperAdmin && (
+                      <td className="px-4 py-3">
+                        <p className="font-mono text-[10px] text-slate-400">
+                          {u.adminId ? admins.find(a => a.id === u.adminId)?.name || 'Admin' : '-'}
+                        </p>
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <span className={`font-mono text-[9px] uppercase tracking-wider px-2 py-0.5 rounded border
                         ${u.isActive
@@ -158,7 +187,7 @@ export default function AdminUsersPage() {
                       </p>
                     </td>
                     <td className="px-4 py-3">
-                      {u.role !== 'superadmin' && user.role === 'superadmin' && (
+                      {u.role !== 'superadmin' && isSuperAdmin && (
                         <button
                           onClick={() => setConfirmToggle({ id: u.id, name: u.name, active: u.isActive })}
                           disabled={actionLoading === u.id}
@@ -229,11 +258,22 @@ export default function AdminUsersPage() {
                   </div>
                   <div>
                     <label className="label" suppressHydrationWarning>{t.users.role}</label>
-                    <select className="input" value={createForm.role} onChange={(e) => setCreateForm({ ...createForm, role: e.target.value as User['role'] })}>
+                    <select className="input" value={createForm.role} onChange={(e) => setCreateForm({ ...createForm, role: e.target.value as User['role'], adminId: '' })}>
                       <option value="client" suppressHydrationWarning>{t.users.client}</option>
-                      <option value="admin" suppressHydrationWarning>{t.users.admin}</option>
+                      {isSuperAdmin && <option value="admin" suppressHydrationWarning>{t.users.admin}</option>}
                     </select>
                   </div>
+                  {isSuperAdmin && createForm.role === 'client' && (
+                    <div>
+                      <label className="label" suppressHydrationWarning>Asignar admin (opcional)</label>
+                      <select className="input" value={createForm.adminId} onChange={(e) => setCreateForm({ ...createForm, adminId: e.target.value })}>
+                        <option value="" suppressHydrationWarning>Seleccionar admin...</option>
+                        {admins.map(a => (
+                          <option key={a.id} value={a.id} suppressHydrationWarning>{a.name} ({a.email})</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 pt-2">
                   <button onClick={() => void handleCreate()} disabled={!!actionLoading} className="btn-primary flex-1 flex items-center justify-center gap-2" suppressHydrationWarning>

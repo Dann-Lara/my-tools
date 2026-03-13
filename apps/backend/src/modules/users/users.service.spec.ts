@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UserEntity, DEFAULT_PERMISSIONS, MODULE_KEYS } from './user.entity';
+import { UserEntity, DEFAULT_ALLOWED_MODULES, MODULE_KEYS } from './user.entity';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt', () => ({
@@ -28,7 +28,8 @@ describe('UsersService', () => {
     passwordHash: 'hashed_password',
     role: 'client',
     isActive: true,
-    permissions: { checklist: true, applications: true },
+    allowedModules: ['checklist', 'applications', 'ai'],
+    adminId: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -61,11 +62,15 @@ describe('UsersService', () => {
     it('should create a new user', async () => {
       mockRepo.findOneBy.mockResolvedValue(null);
 
-      const result = await service.create({
-        email: 'new@example.com',
-        name: 'New User',
-        password: 'password123',
-      });
+      const result = await service.create(
+        {
+          email: 'new@example.com',
+          name: 'New User',
+          password: 'password123',
+        },
+        undefined,
+        undefined,
+      );
 
       expect(result.email).toBe('new@example.com');
       expect(bcrypt.hash).toHaveBeenCalledWith('password123', 12);
@@ -75,15 +80,19 @@ describe('UsersService', () => {
       mockRepo.findOneBy.mockResolvedValue(mockUser);
 
       await expect(
-        service.create({
-          email: 'test@example.com',
-          name: 'Test',
-          password: 'password',
-        }),
+        service.create(
+          {
+            email: 'test@example.com',
+            name: 'Test',
+            password: 'password',
+          },
+          undefined,
+          undefined,
+        ),
       ).rejects.toThrow(ConflictException);
     });
 
-    it('should throw ForbiddenException if non-admin tries to create admin', async () => {
+    it('should throw ForbiddenException if non-admin/superadmin tries to create user', async () => {
       mockRepo.findOneBy.mockResolvedValue(null);
 
       await expect(
@@ -94,12 +103,13 @@ describe('UsersService', () => {
             password: 'password',
             role: 'admin',
           },
+          'user-1',
           'client',
         ),
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should allow admin to create client', async () => {
+    it('should allow admin to create client with adminId', async () => {
       mockRepo.findOneBy.mockResolvedValue(null);
 
       const result = await service.create(
@@ -109,30 +119,64 @@ describe('UsersService', () => {
           password: 'password',
           role: 'client',
         },
+        'admin-1',
         'admin',
       );
 
       expect(result.role).toBe('client');
+      expect(result.adminId).toBe('admin-1');
+    });
+
+    it('should allow superadmin to create admin without adminId', async () => {
+      mockRepo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.create(
+        {
+          email: 'newadmin@example.com',
+          name: 'New Admin',
+          password: 'password',
+          role: 'admin',
+        },
+        undefined,
+        'superadmin',
+      );
+
+      expect(result.role).toBe('admin');
+      expect(result.adminId).toBeNull();
     });
   });
 
   describe('findAll', () => {
-    it('should return all users', async () => {
+    it('should return all users for superadmin', async () => {
       mockRepo.find.mockResolvedValue([mockUser]);
 
-      const result = await service.findAll();
+      const result = await service.findAll({ id: 'superadmin-1', role: 'superadmin' });
 
       expect(result).toHaveLength(1);
-      expect(mockRepo.find).toHaveBeenCalledWith({
-        select: ['id', 'email', 'name', 'role', 'isActive', 'permissions', 'createdAt'],
-        order: { createdAt: 'DESC' },
-      });
+    });
+
+    it('should return only own clients for admin', async () => {
+      mockRepo.find.mockResolvedValue([mockUser]);
+
+      const result = await service.findAll({ id: 'admin-1', role: 'admin' });
+
+      expect(mockRepo.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { adminId: 'admin-1' },
+        }),
+      );
+    });
+
+    it('should return empty array for client', async () => {
+      const result = await service.findAll({ id: 'client-1', role: 'client' });
+
+      expect(result).toHaveLength(0);
     });
   });
 
   describe('findOne', () => {
     it('should return a user by id', async () => {
-      mockRepo.findOne.mockResolvedValue({ ...mockUser, permissions: { checklist: true } });
+      mockRepo.findOne.mockResolvedValue(mockUser);
 
       const result = await service.findOne('user-1');
 
@@ -146,32 +190,37 @@ describe('UsersService', () => {
     });
   });
 
-  describe('getEffectivePermissions', () => {
-    it('should return full permissions for superadmin', () => {
-      const superadmin = { ...mockUser, role: 'superadmin', permissions: {} } as UserEntity;
+  describe('getAllowedModules', () => {
+    it('should return all modules for superadmin', () => {
+      const superadmin = { ...mockUser, role: 'superadmin' } as UserEntity;
 
-      const result = service.getEffectivePermissions(superadmin);
+      const result = service.getAllowedModules(superadmin);
 
-      expect(result.checklist).toBe(true);
-      expect(result.applications).toBe(true);
+      expect(result).toEqual(['checklist', 'applications', 'ai']);
     });
 
-    it('should return full permissions for admin', () => {
-      const admin = { ...mockUser, role: 'admin', permissions: {} } as UserEntity;
+    it('should return all modules for admin', () => {
+      const admin = { ...mockUser, role: 'admin' } as UserEntity;
 
-      const result = service.getEffectivePermissions(admin);
+      const result = service.getAllowedModules(admin);
 
-      expect(result.checklist).toBe(true);
-      expect(result.applications).toBe(true);
+      expect(result).toEqual(['checklist', 'applications', 'ai']);
     });
 
-    it('should return stored permissions for client', () => {
-      const client = { ...mockUser, role: 'client', permissions: { checklist: true, applications: false } } as UserEntity;
+    it('should return stored allowedModules for client', () => {
+      const client = { ...mockUser, role: 'client', allowedModules: ['checklist'] } as UserEntity;
 
-      const result = service.getEffectivePermissions(client);
+      const result = service.getAllowedModules(client);
 
-      expect(result.checklist).toBe(true);
-      expect(result.applications).toBe(false);
+      expect(result).toEqual(['checklist']);
+    });
+
+    it('should return defaults if allowedModules is empty for client', () => {
+      const client = { ...mockUser, role: 'client', allowedModules: [] } as UserEntity;
+
+      const result = service.getAllowedModules(client);
+
+      expect(result).toEqual(DEFAULT_ALLOWED_MODULES);
     });
   });
 });

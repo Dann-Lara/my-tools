@@ -20,12 +20,9 @@ interface UserDetail {
   name: string;
   role: 'superadmin' | 'admin' | 'client';
   isActive: boolean;
+  allowedModules?: string[];
+  adminId?: string | null;
   createdAt: string;
-  permissions: {
-    checklist: boolean;
-    applications: boolean;
-    ai: boolean;
-  };
 }
 
 // ─── Permission modules config ────────────────────────────────────────────────
@@ -119,8 +116,8 @@ export default function UserDetailPage() {
     try {
       const res = await fetch(`/api/users/${userId}`, { headers: getHeaders() });
       const data = await res.json() as UserDetail;
-      // Backend always returns a complete permissions map (merged with defaults)
-      if (!data.permissions) data.permissions = { checklist: true, applications: true, ai: true };
+      // Backend returns allowedModules array - client role uses it, admin/superadmin have all
+      if (!data.allowedModules) data.allowedModules = ['checklist', 'applications', 'ai'];
       setDetail(data);
     } catch {
       setDetail(null);
@@ -147,12 +144,12 @@ export default function UserDetailPage() {
       const res = await fetch(`/api/users/${detail.id}/permissions`, {
         method: 'PATCH',
         headers: getHeaders(),
-        body: JSON.stringify({ key: permKey, value: !current }),
+        body: JSON.stringify({ key: permKey, granted: !current }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const updated = await res.json() as Record<string, boolean>;
-      // Update local state immediately with the server response
-      setDetail(prev => prev ? { ...prev, permissions: { ...prev.permissions, ...updated } } : prev);
+      const updated = await res.json() as string[];
+      // Update local state with the allowedModules array
+      setDetail(prev => prev ? { ...prev, allowedModules: updated } : prev);
       showToast(
         `${permKey === 'ai' ? 'AI Tools' : permKey === 'checklist' ? 'Checklists' : 'Postulaciones'} ${!current ? 'habilitado' : 'deshabilitado'}`,
         'ok'
@@ -244,7 +241,7 @@ export default function UserDetailPage() {
 
             <div ref={cardsRef} className="grid gap-4 sm:grid-cols-2">
               {PERMISSION_MODULES.map(mod => {
-                const enabled = detail.permissions?.[mod.key as keyof typeof detail.permissions] !== false;
+                const enabled = detail.allowedModules?.includes(mod.key) ?? false;
                 return (
                   <div key={mod.key}
                     className={`card p-5 transition-all duration-200

@@ -7,6 +7,8 @@ import { Throttle } from '@nestjs/throttler';
 
 import { CurrentUser, type JwtUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { RequireModulePermission } from '../auth/decorators/module-permission.decorator';
 import { ApplicationsService } from './applications.service';
 import {
   CreateApplicationDto, EvaluateCvDto, PatchApplicationDto,
@@ -15,8 +17,9 @@ import {
 
 @ApiTags('Applications')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller({ path: 'applications', version: '1' })
+@UseGuards(JwtAuthGuard, PermissionGuard)
+@RequireModulePermission('applications')
 export class ApplicationsController {
   constructor(private readonly svc: ApplicationsService) {}
 

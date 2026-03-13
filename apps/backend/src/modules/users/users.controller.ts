@@ -10,14 +10,18 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser, type JwtUser } from '../auth/decorators/current-user.decorator';
-import type { PermissionsMap } from './user.entity';
+import type { UserRole } from './user.entity';
 
 class ToggleActiveDto { isActive!: boolean; }
 class UpdateProfileDto { name?: string; telegramChatId?: string; }
 
 class SetPermissionDto {
   @IsString() key!: string;
-  @IsBoolean() value!: boolean;
+  @IsBoolean() granted!: boolean;
+}
+
+class SetModulesDto {
+  @IsString({ each: true }) modules!: string[];
 }
 
 @ApiTags('Users')
@@ -27,37 +31,42 @@ class SetPermissionDto {
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  private getRequestingUser(req: { user: JwtUser }): { id: string; role: UserRole } {
+    return {
+      id: req.user.userId,
+      role: req.user.role as UserRole,
+    };
+  }
+
   // ── Own profile ────────────────────────────────────────────────────────────
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
-  getMe(@Request() req: { user: { sub: string } }) {
-    return this.usersService.findOne(req.user.sub);
+  getMe(@Request() req: { user: JwtUser }) {
+    return this.usersService.findOne(req.user.userId);
   }
 
   @Patch('me')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update own profile (name, telegramChatId)' })
   updateMe(
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: JwtUser },
     @Body() dto: UpdateProfileDto,
   ) {
-    return this.usersService.updateProfile(req.user.sub, dto);
+    return this.usersService.updateProfile(req.user.userId, dto);
   }
 
   /**
    * GET /v1/users/me/permissions
-   * Returns the effective permissions for the current user.
-   * Superadmin/admin always get all modules = true.
-   * Clients get their stored permissions (merged with defaults).
-   * This is the endpoint the frontend calls on every page load.
+   * Returns the allowed modules for the current user.
+   * Superadmin/admin always get all modules.
+   * Clients get their allowedModules (merged with defaults).
    */
   @Get('me/permissions')
-  @ApiOperation({ summary: 'Get effective module permissions for the current user' })
-  async getMyPermissions(@CurrentUser() user: JwtUser): Promise<PermissionsMap> {
+  @ApiOperation({ summary: 'Get allowed modules for the current user' })
+  async getMyPermissions(@CurrentUser() user: JwtUser): Promise<string[]> {
     const full = await this.usersService.findOne(user.userId);
-    const result = this.usersService.getEffectivePermissions(full);
-    return result;
+    return this.usersService.getAllowedModules(full);
   }
 
   // ── Admin — user management ────────────────────────────────────────────────
@@ -65,17 +74,30 @@ export class UsersController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles('superadmin', 'admin')
-  @ApiOperation({ summary: 'List all users (admin)' })
-  findAll() {
-    return this.usersService.findAll();
+  @ApiOperation({ summary: 'List users (admin sees only their clients, superadmin sees all)' })
+  findAll(@Request() req: { user: JwtUser }) {
+    const requestingUser = this.getRequestingUser(req);
+    return this.usersService.findAll(requestingUser);
+  }
+
+  @Get('admins')
+  @UseGuards(RolesGuard)
+  @Roles('superadmin')
+  @ApiOperation({ summary: 'List all admins (for superadmin to assign)' })
+  findAdmins() {
+    return this.usersService.findAdmins();
   }
 
   @Get(':id')
   @UseGuards(RolesGuard)
   @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'Get user by ID with their permissions (admin)' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.usersService.findOne(id);
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: { user: JwtUser },
+  ) {
+    const requestingUser = this.getRequestingUser(req);
+    return this.usersService.findOne(id, requestingUser);
   }
 
   @Patch(':id/active')
@@ -86,25 +108,49 @@ export class UsersController {
   toggleActive(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ToggleActiveDto,
+    @Request() req: { user: JwtUser },
   ) {
-    return this.usersService.setActive(id, dto.isActive);
+    const requestingUser = this.getRequestingUser(req);
+    return this.usersService.setActive(id, dto.isActive, requestingUser);
   }
 
   /**
    * PATCH /v1/users/:id/permissions
    * Set a single module permission for a user.
-   * Body: { key: "applications", value: false }
+   * Body: { key: "applications", granted: false }
    * Only superadmin can change permissions.
+   * Admin can only change permissions for their own clients.
    */
   @Patch(':id/permissions')
   @UseGuards(RolesGuard)
-  @Roles('superadmin')
+  @Roles('superadmin', 'admin')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Set a module permission for a user (superadmin)' })
+  @ApiOperation({ summary: 'Set a module permission for a user' })
   setPermission(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SetPermissionDto,
-  ): Promise<PermissionsMap> {
-    return this.usersService.setPermission(id, dto.key, dto.value);
+    @Request() req: { user: JwtUser },
+  ): Promise<string[]> {
+    const requestingUser = this.getRequestingUser(req);
+    return this.usersService.setModulePermission(id, dto.key, dto.granted, requestingUser);
+  }
+
+  /**
+   * PATCH /v1/users/:id/modules
+   * Replace all module permissions for a user.
+   * Body: { modules: ["checklist", "ai"] }
+   */
+  @Patch(':id/modules')
+  @UseGuards(RolesGuard)
+  @Roles('superadmin', 'admin')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Set all module permissions for a user' })
+  setAllModules(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetModulesDto,
+    @Request() req: { user: JwtUser },
+  ): Promise<string[]> {
+    const requestingUser = this.getRequestingUser(req);
+    return this.usersService.setAllModules(id, dto.modules, requestingUser);
   }
 }

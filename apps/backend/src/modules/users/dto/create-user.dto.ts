@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   MinLength,
@@ -26,8 +27,14 @@ export class CreateUserDto {
   })
   password!: string;
 
-  // Only settable by admin/superadmin — defaults to 'client' if not provided
+  // Only settable by superadmin — defaults to 'client' if not provided
   @IsOptional()
   @IsEnum(['superadmin', 'admin', 'client'] as const)
   role?: UserRole;
+
+  // Solo superadmin puede asignar un admin específico
+  // Si un admin crea un cliente, se asigna automáticamente
+  @IsOptional()
+  @IsUUID()
+  adminId?: string;
 }

@@ -1,12 +1,18 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { RequireModulePermission } from '../auth/decorators/module-permission.decorator';
 import { AiService } from './ai.service';
 import { GenerateDto } from './dto/generate.dto';
 import { SummarizeDto } from './dto/summarize.dto';
 
 @ApiTags('AI')
+@ApiBearerAuth()
 @Controller({ path: 'ai', version: '1' })
+@UseGuards(JwtAuthGuard, PermissionGuard)
+@RequireModulePermission('ai')
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 

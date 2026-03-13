@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../lib/i18n-context';
-import { type User, getHeaders } from '../components/users/constants';
+import { type User, type AdminOption, getHeaders } from '../components/users/constants';
 
 interface UseUsersOptions {
   authLoading: boolean;
@@ -11,10 +11,13 @@ interface UseUsersOptions {
 
 interface UseUsersReturn {
   users: User[];
+  admins: AdminOption[];
   loading: boolean;
   load: () => Promise<void>;
+  loadAdmins: () => Promise<void>;
   toggleUser: (id: string, isActive: boolean) => Promise<void>;
-  createUser: (data: { name: string; email: string; password: string; role: User['role'] }) => Promise<{ success: boolean; error?: string }>;
+  createUser: (data: { name: string; email: string; password: string; role: User['role']; adminId?: string }) => Promise<{ success: boolean; error?: string }>;
+  setPermission: (userId: string, key: string, granted: boolean) => Promise<void>;
   counts: {
     total: number;
     active: number;
@@ -28,6 +31,7 @@ export function useUsers({ authLoading, user }: UseUsersOptions): UseUsersReturn
   const { t } = useI18n();
 
   const [users, setUsers] = useState<User[]>([]);
+  const [admins, setAdmins] = useState<AdminOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -43,15 +47,28 @@ export function useUsers({ authLoading, user }: UseUsersOptions): UseUsersReturn
     }
   }, []);
 
+  const loadAdmins = useCallback(async () => {
+    try {
+      const res = await fetch('/api/users/admins', { headers: getHeaders() });
+      if (res.ok) {
+        const data = (await res.json()) as AdminOption[];
+        setAdmins(data);
+      }
+    } catch {
+      setAdmins([]);
+    }
+  }, []);
+
   useEffect(() => {
     if (!authLoading) {
       void load();
+      void loadAdmins();
     }
-  }, [authLoading, load]);
+  }, [authLoading, load, loadAdmins]);
 
   async function toggleUser(id: string, isActive: boolean) {
     try {
-      await fetch(`/api/users/${id}`, {
+      await fetch(`/api/users/${id}/active`, {
         method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify({ isActive }),
@@ -62,7 +79,7 @@ export function useUsers({ authLoading, user }: UseUsersOptions): UseUsersReturn
     }
   }
 
-  async function createUser(data: { name: string; email: string; password: string; role: User['role'] }) {
+  async function createUser(data: { name: string; email: string; password: string; role: User['role']; adminId?: string }) {
     if (!data.name || !data.email || !data.password) {
       return { success: false, error: t.checklist.errorRequiredFields };
     }
@@ -83,6 +100,24 @@ export function useUsers({ authLoading, user }: UseUsersOptions): UseUsersReturn
     }
   }
 
+  async function setPermission(userId: string, key: string, granted: boolean) {
+    try {
+      const res = await fetch(`/api/users/${userId}/permissions`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ key, granted }),
+      });
+      if (res.ok) {
+        const modules = (await res.json()) as string[];
+        setUsers(prev => prev.map(u => 
+          u.id === userId ? { ...u, allowedModules: modules } : u
+        ));
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   const counts = {
     total: users.length,
     active: users.filter(u => u.isActive).length,
@@ -93,10 +128,13 @@ export function useUsers({ authLoading, user }: UseUsersOptions): UseUsersReturn
 
   return {
     users,
+    admins,
     loading,
     load,
+    loadAdmins,
     toggleUser,
     createUser,
+    setPermission,
     counts,
   };
 }

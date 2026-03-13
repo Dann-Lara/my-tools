@@ -13,7 +13,7 @@ export interface NavMessages {
   home: string; dashboard: string; features: string; stack: string;
   docs: string; login: string; signup: string; logout: string;
   adminPanel: string; clientPanel: string; users: string;
-  checklist: string; profile: string; applications: string;
+  checklist: string; profile: string; applications: string; ai: string;
 }
 
 export interface FooterMessages {
@@ -36,7 +36,7 @@ export const commonES = {
     home: 'Inicio', dashboard: 'Panel', features: 'Funciones',
     stack: 'Stack', docs: 'Docs', login: 'Entrar', signup: 'Registrarse',
     logout: 'Salir', adminPanel: 'Panel Admin', clientPanel: 'Panel Cliente',
-    users: 'Usuarios', checklist: 'Checklists', profile: 'Perfil', applications: 'Postulaciones',
+    users: 'Usuarios', checklist: 'Checklists', profile: 'Perfil', applications: 'Postulaciones', ai: 'AI',
   },
   footer: {
     description: 'Monorepo fullstack con IA, auth robusto y automatización. Listo para producción.',
@@ -60,7 +60,7 @@ export const commonEN = {
     home: 'Home', dashboard: 'Dashboard', features: 'Features',
     stack: 'Stack', docs: 'Docs', login: 'Sign In', signup: 'Sign Up',
     logout: 'Sign Out', adminPanel: 'Admin Panel', clientPanel: 'Client Panel',
-    users: 'Users', checklist: 'Checklists', profile: 'Profile', applications: 'Applications',
+    users: 'Users', checklist: 'Checklists', profile: 'Profile', applications: 'Applications', ai: 'AI',
   },
   footer: {
     description: 'Fullstack monorepo with AI, robust auth and automation. Production-ready.',

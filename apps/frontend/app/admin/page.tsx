@@ -191,7 +191,7 @@ export default function AdminDashboard(): React.JSX.Element {
                 </Link>
               )}
 
-              <Link href="/admin/applications"
+              <Link href={`/admin/applications` as any}
                 className="card p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-center gap-4 group">
                 <div className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-400/10 border border-violet-200 dark:border-violet-400/20 flex items-center justify-center text-violet-500 dark:text-violet-400 shrink-0">
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">

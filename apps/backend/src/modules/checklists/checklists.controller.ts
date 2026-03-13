@@ -9,6 +9,8 @@ import { Throttle } from '@nestjs/throttler';
 import { CurrentUser, type JwtUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtOrWebhookSecretGuard } from '../auth/guards/jwt-or-webhook.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+import { RequireModulePermission } from '../auth/decorators/module-permission.decorator';
 import { ChecklistsService } from './checklists.service';
 import {
   CreateChecklistParamsDto, ConfirmChecklistDto, RegenerateDraftDto,
@@ -18,6 +20,8 @@ import {
 @ApiTags('Checklists')
 @ApiBearerAuth()
 @Controller({ path: 'checklists', version: '1' })
+@UseGuards(JwtAuthGuard, PermissionGuard)
+@RequireModulePermission('checklist')
 export class ChecklistsController {
   constructor(
     private readonly svc: ChecklistsService,
@@ -29,7 +33,6 @@ export class ChecklistsController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Generate AI draft tasks from questionnaire params' })
-  @UseGuards(JwtAuthGuard)
   generateDraft(@CurrentUser() user: JwtUser, @Body() dto: CreateChecklistParamsDto) {
     return this.svc.generateDraft(user.userId, dto);
   }
@@ -38,14 +41,12 @@ export class ChecklistsController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Regenerate draft with user feedback' })
-  @UseGuards(JwtAuthGuard)
   regenerateDraft(@CurrentUser() user: JwtUser, @Body() dto: RegenerateDraftDto) {
     return this.svc.regenerateDraft(user.userId, dto);
   }
 
   @Post('confirm')
   @ApiOperation({ summary: 'Save confirmed checklist to DB' })
-  @UseGuards(JwtAuthGuard)
   confirm(@CurrentUser() user: JwtUser, @Body() dto: ConfirmChecklistDto) {
     return this.svc.confirm(user.userId, dto);
   }
@@ -77,14 +78,12 @@ export class ChecklistsController {
   // ── CRUD ──────────────────────────────────────────────────────────────────
   @Get()
   @ApiOperation({ summary: 'List user checklists' })
-  @UseGuards(JwtAuthGuard)
   findAll(@CurrentUser() user: JwtUser) {
     return this.svc.findAll(user.userId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get checklist detail with items' })
-  @UseGuards(JwtAuthGuard)
   findOne(@CurrentUser() user: JwtUser, @Param('id') id: string) {
     return this.svc.findOne(user.userId, id);
   }
@@ -104,14 +103,12 @@ export class ChecklistsController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete checklist' })
-  @UseGuards(JwtAuthGuard)
   remove(@CurrentUser() user: JwtUser, @Param('id') id: string) {
     return this.svc.remove(user.userId, id);
   }
 
   @Get(':id/progress')
   @ApiOperation({ summary: 'Progress data for dashboard charts' })
-  @UseGuards(JwtAuthGuard)
   getProgress(@CurrentUser() user: JwtUser, @Param('id') id: string) {
     return this.svc.getProgress(user.userId, id);
   }

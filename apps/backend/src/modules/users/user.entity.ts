@@ -2,6 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,18 +14,19 @@ export type UserRole = 'superadmin' | 'admin' | 'client';
 /**
  * Module permission keys.
  * Add a new key here when a new module is created.
- * The value is the default — true = enabled for all, false = disabled by default.
- *
- * Superadmin and admin always have access to every module regardless of this map.
+ * 
+ * superadmin: tiene acceso a todos los módulos automáticamente
+ * admin/client: acceso según allowedModules
  */
-export const MODULE_KEYS = ['checklist', 'applications'] as const;
+export const MODULE_KEYS = ['checklist', 'applications', 'ai'] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
-export type PermissionsMap = Record<ModuleKey, boolean>;
 
-export const DEFAULT_PERMISSIONS: PermissionsMap = {
-  checklist:    true,
-  applications: true,
-};
+/**
+ * Módulos permitidos para usuarios no-superadmin.
+ * Array de strings - cada string es una key de módulo.
+ * Si está vacío o null, no tiene acceso a ningún módulo.
+ */
+export const DEFAULT_ALLOWED_MODULES: ModuleKey[] = ['checklist', 'applications', 'ai'];
 
 @Entity('users')
 export class UserEntity {
@@ -48,12 +52,31 @@ export class UserEntity {
   telegramChatId?: string;
 
   /**
-   * Module-level permissions.  Stored as JSONB.
-   * Null / missing = use DEFAULT_PERMISSIONS (all enabled).
-   * Superadmin and admin always bypass this field entirely.
+   * Relación jerárquica: el admin que creó este usuario.
+   * Solo aplica para clientes (clients).
+   * Un admin puede tener múltiples clientes.
    */
-  @Column({ type: 'jsonb', nullable: true })
-  permissions?: Partial<PermissionsMap> | null;
+  @Column({ nullable: true, type: 'uuid' })
+  adminId?: string | null;
+
+  @ManyToOne(() => UserEntity, { nullable: true })
+  @JoinColumn({ name: 'adminId' })
+  admin?: UserEntity;
+
+  @OneToMany(() => UserEntity, (user) => user.admin)
+  clients?: UserEntity[];
+
+  /**
+   * Módulos permitidos para este usuario.
+   * - superadmin: tiene acceso a todos los módulos automáticamente (este campo se ignora)
+   - admin: tiene acceso a todos los módulos automáticamente (este campo se ignora)
+   - client: este campo define qué módulos puede acceder
+   * 
+   * Ejemplo: ['checklist', 'applications', 'ai']
+   * Si está vacío o null, el cliente no tiene acceso a ningún módulo.
+   */
+  @Column({ type: 'varchar', array: true, default: ['checklist', 'applications', 'ai'] })
+  allowedModules!: string[];
 
   @CreateDateColumn()
   createdAt!: Date;
