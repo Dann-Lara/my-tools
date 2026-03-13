@@ -188,7 +188,7 @@ if ($dockerAvailable) {
     # Create database if not exists
     Write-Step "Creating database if not exists..."
     $dbName = "mytools"
-    docker compose exec -T postgres psql -U admin -c "CREATE DATABASE $dbName;" 2>&1 | Out-Null
+    docker compose exec -T postgres psql -U admin -d postgres -c "CREATE DATABASE $dbName;" 2>&1 | Out-Null
     Write-Success "Database $dbName ready"
 
     # Run migrations

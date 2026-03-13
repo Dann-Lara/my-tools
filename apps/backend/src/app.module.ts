@@ -4,11 +4,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AiModule } from './modules/ai/ai.module';
+import { ApplicationsModule } from './modules/applications/applications.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ChecklistsModule } from './modules/checklists/checklists.module';
 import { UsersModule } from './modules/users/users.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
-import { ChecklistsModule } from './modules/checklists/checklists.module';
-import { ApplicationsModule } from './modules/applications/applications.module';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // .env loading strategy
@@ -56,7 +56,7 @@ import { ApplicationsModule } from './modules/applications/applications.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => [
         {
-          ttl:   config.get<number>('THROTTLE_TTL',   60000),
+          ttl: config.get<number>('THROTTLE_TTL', 60000),
           limit: config.get<number>('THROTTLE_LIMIT', 100),
         },
       ],
@@ -87,11 +87,11 @@ function getDatabaseUrl(config: ConfigService): string {
   const url = config.get<string>('DATABASE_URL');
   if (url) return url;
 
-  const user = config.get<string>('DB_USER')     ?? 'admin';
+  const user = config.get<string>('DB_USER') ?? 'admin';
   const pass = config.get<string>('DB_PASSWORD') ?? 'secret';
-  const host = config.get<string>('DB_HOST')     ?? 'localhost';
-  const port = config.get<string>('DB_PORT')     ?? '5432';
-  const name = config.get<string>('DB_NAME')     ?? 'ailab';
+  const host = config.get<string>('DB_HOST') ?? 'localhost';
+  const port = config.get<string>('DB_PORT') ?? '5432';
+  const name = config.get<string>('DB_NAME') ?? 'mytools';
 
   return `postgresql://${user}:${pass}@${host}:${port}/${name}`;
 }

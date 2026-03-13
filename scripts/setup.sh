@@ -103,7 +103,7 @@ echo -e "${GREEN}  [OK] PostgreSQL ready${NC}"
 
 # Create database if not exists
 echo -e "\n${YELLOW}>> Creating database if not exists...${NC}"
-docker compose exec -T postgres psql -U admin -c "CREATE DATABASE mytools;" 2>/dev/null || true
+docker compose exec -T postgres psql -U admin -d postgres -c "CREATE DATABASE mytools;" 2>/dev/null || true
 echo -e "${GREEN}  [OK] Database mytools ready${NC}"
 
 # 6. MIGRATIONS

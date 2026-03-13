@@ -117,7 +117,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
 
       # ── Database & Cache (internal Docker DNS) ────────────────────────────
-      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD:-secret}@postgres:5432/${DB_NAME:-ailab}
+      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD:-secret}@postgres:5432/${DB_NAME:-mytools}
       REDIS_URL: redis://redis:6379
 
       # ── Auth ──────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
 
       # ── Superadmin seed ───────────────────────────────────────────────────
-      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-superadmin@ailab.dev}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-superadmin@mytools.dev}
       SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-SuperAdmin123!}
 
       # ── AI providers ──────────────────────────────────────────────────────
