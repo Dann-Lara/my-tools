@@ -1,10 +1,7 @@
 import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
+  BadRequestException, ForbiddenException, Injectable,
+  InternalServerErrorException, Logger, NotFoundException,
+  TooManyRequestsException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual } from 'typeorm';
@@ -13,42 +10,143 @@ import { firstValueFrom } from 'rxjs';
 import { generateText } from '@ai-lab/ai-core';
 
 import {
-  ChecklistEntity,
-  ChecklistItemEntity,
-  ChecklistFeedbackEntity,
+  ChecklistEntity, ChecklistItemEntity, ChecklistFeedbackEntity,
 } from './entities/checklist.entity';
 import type {
-  CreateChecklistParamsDto,
-  ChecklistItemDraftDto,
-  ConfirmChecklistDto,
-  RegenerateDraftDto,
-  PatchItemDto,
-  PatchChecklistDto,
+  CreateChecklistParamsDto, ChecklistItemDraftDto,
+  ConfirmChecklistDto, RegenerateDraftDto, PatchItemDto, PatchChecklistDto,
 } from './dto/checklist.dto';
 import { ConfigService } from '@nestjs/config';
-import {
-  esc,
-  checkRateLimit,
-  parseAiJson,
-  withRetry,
-  buildGenerationPrompt,
-  buildRegenerationPrompt,
-  buildFeedbackPrompt,
-} from './checklists.utils';
 
-@Controller()
+// ── Escape LangChain template variables in user-supplied strings ──────────────
+// LangChain ChatPromptTemplate treats {word} as a template variable and throws
+// "Missing value for input variable" if the braces don't match a known variable.
+// Escape { } from user-provided data before interpolating into prompts.
+function esc(text: string): string {
+  return (text ?? '').replace(/\{/g, '(').replace(/\}/g, ')');
+}
+
+
+// ── Simple in-memory rate limiter per user (resets on restart) ──────────────
+const generationCounts = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(userId: string, maxPerHour = 10): void {
+  const now = Date.now();
+  const entry = generationCounts.get(userId);
+  if (!entry || entry.resetAt < now) {
+    generationCounts.set(userId, { count: 1, resetAt: now + 3_600_000 });
+    return;
+  }
+  if (entry.count >= maxPerHour) {
+    throw new TooManyRequestsException('AI generation limit reached. Try again later.');
+  }
+  entry.count++;
+}
+
+// ── AI response schema validation ───────────────────────────────────────────
+interface AiItem {
   description: string;
   frequency: string;
   estimatedDuration: number;
   hack: string;
   customFrequencyDays?: number;
 }
-interface AiDraft {
-  items: AiItem[];
-  rationale?: string;
+interface AiDraft { items: AiItem[]; rationale?: string; }
+
+function validateAiResponse(raw: unknown): AiDraft {
+  if (!raw || typeof raw !== 'object') throw new Error('Not an object');
+  const obj = raw as Record<string, unknown>;
+  if (!Array.isArray(obj['items']) || obj['items'].length === 0)
+    throw new Error('Missing or empty items array');
+
+  const validFreqs = new Set(['once', 'daily', 'weekly', 'custom']);
+  for (const item of obj['items'] as unknown[]) {
+    const i = item as Record<string, unknown>;
+    if (typeof i['description'] !== 'string' || !i['description'])
+      throw new Error('Item missing description');
+    if (typeof i['frequency'] !== 'string' || !validFreqs.has(i['frequency'] as string))
+      throw new Error(`Invalid frequency: ${String(i['frequency'])}`);
+    if (typeof i['estimatedDuration'] !== 'number' || (i['estimatedDuration'] as number) < 1)
+      throw new Error('Invalid estimatedDuration');
+    if (typeof i['hack'] !== 'string' || !i['hack'])
+      throw new Error('Item missing hack');
+  }
+  return obj as unknown as AiDraft;
 }
 
-@Controller()
+// ── Parse AI JSON — robust parser handles Gemini/LLM quirks ─────────────────
+function parseAiJson(
+  text: string,
+  logger?: { warn: (m: string) => void; debug: (m: string) => void },
+): AiDraft {
+  // Log full raw AI response — critical for debugging truncation / format issues
+  if (logger) {
+    logger.debug(`AI raw response (${text.length} chars, maxTokens=4000):\n${text}`);
+  } else {
+    console.log(`[AI-Debug] Raw (${text.length} chars):\n${text}`);
+  }
+
+  // Strip markdown fences: ```json...``` or ```...```
+  const cleaned = text
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim();
+
+  const objStart = cleaned.indexOf('{');
+  const arrStart = cleaned.indexOf('[');
+
+  if (objStart === -1 && arrStart === -1) {
+    const msg = `No JSON structure in AI response. Full text: ${text}`;
+    if (logger) logger.warn(msg); else console.warn('[AI-Debug]', msg);
+    throw new Error('No JSON object found in AI response');
+  }
+
+  let jsonStr: string;
+
+  // If object comes before array (or no array), use object directly
+  if (objStart !== -1 && (arrStart === -1 || objStart < arrStart)) {
+    const end = cleaned.lastIndexOf('}');
+    if (end === -1) throw new Error('Malformed JSON: missing closing }');
+    jsonStr = cleaned.slice(objStart, end + 1);
+  } else {
+    // AI returned a bare array — wrap it into the expected shape
+    const warnMsg = 'AI returned bare array — wrapping as {"items":[...]}';
+    if (logger) logger.warn(warnMsg); else console.warn('[AI-Debug]', warnMsg);
+    const end = cleaned.lastIndexOf(']');
+    if (end === -1) throw new Error('Malformed JSON: missing closing ]');
+    jsonStr = `{"items":${cleaned.slice(arrStart, end + 1)}}`;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (e) {
+    const msg = `JSON.parse failed on: ${jsonStr.slice(0, 400)}`;
+    if (logger) logger.warn(msg); else console.warn('[AI-Debug]', msg);
+    throw new Error(`JSON parse error: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  return validateAiResponse(parsed);
+}
+
+// ── Retry helper with exponential backoff ────────────────────────────────────
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = 2,
+  baseDelayMs = 2000,
+): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try { return await fn(); }
+    catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise((r) => setTimeout(r, baseDelayMs * Math.pow(2, attempt)));
+    }
+  }
+  throw new Error('unreachable');
+}
+
+// ── Build prompts ────────────────────────────────────────────────────────────
+function buildGenerationPrompt(p: CreateChecklistParamsDto): string {
   const lang = p.language ?? 'es';
   return `Productivity expert. Output ONLY valid JSON — start with { end with } — no markdown, no text outside JSON.
 
@@ -74,19 +172,20 @@ Required JSON schema (no extra fields, no comments):
 {"items":[{"description":"string","frequency":"daily","estimatedDuration":15,"hack":"string"}],"rationale":"string"}`;
 }
 
-@Controller()
-  title: string;
-  objective: string;
-  startDate: string;
-  endDate: string;
-  completedLastWeek: number;
-  totalTasks: number;
-  trend: string;
-  upcomingTasks: string[];
-  language: string;
+function buildRegenerationPrompt(p: CreateChecklistParamsDto, feedback: string): string {
+  return `${buildGenerationPrompt(p)}
+
+User feedback: "${esc(feedback)}"
+
+Apply feedback. Output ONLY the revised JSON — same schema, no extra text.`;
+}
+
+function buildFeedbackPrompt(data: {
+  title: string; objective: string; startDate: string; endDate: string;
+  completedLastWeek: number; totalTasks: number; trend: string;
+  upcomingTasks: string[]; language: string;
 }): { systemMessage: string; prompt: string } {
-  const lang =
-    data.language === 'es' ? 'Spanish' : data.language === 'en' ? 'English' : data.language;
+  const lang = data.language === 'es' ? 'Spanish' : data.language === 'en' ? 'English' : data.language;
   const upcoming = data.upcomingTasks.length > 0 ? data.upcomingTasks.join(', ') : 'none';
   return {
     systemMessage:
@@ -132,17 +231,10 @@ export class ChecklistsService {
 
     const prompt = buildGenerationPrompt(params);
 
-    const draft = await withRetry(
-      async () => {
-        const { text } = await generateText({ prompt, maxTokens: 4000, temperature: 0.6 });
-        return parseAiJson(text, {
-          warn: (m) => this.logger.warn(m),
-          debug: (m) => this.logger.debug(m),
-        });
-      },
-      2,
-      2000,
-    );
+    const draft = await withRetry(async () => {
+      const { text } = await generateText({ prompt, maxTokens: 4000, temperature: 0.6 });
+      return parseAiJson(text, { warn: (m) => this.logger.warn(m), debug: (m) => this.logger.debug(m) });
+    }, 2, 2000);
 
     const items: ChecklistItemDraftDto[] = draft.items.map((item, idx) => ({
       order: idx,
@@ -164,17 +256,10 @@ export class ChecklistsService {
     checkRateLimit(userId);
     const prompt = buildRegenerationPrompt(dto.parameters, dto.feedback);
 
-    const draft = await withRetry(
-      async () => {
-        const { text } = await generateText({ prompt, maxTokens: 4000, temperature: 0.6 });
-        return parseAiJson(text, {
-          warn: (m) => this.logger.warn(m),
-          debug: (m) => this.logger.debug(m),
-        });
-      },
-      2,
-      2000,
-    );
+    const draft = await withRetry(async () => {
+      const { text } = await generateText({ prompt, maxTokens: 4000, temperature: 0.6 });
+      return parseAiJson(text, { warn: (m) => this.logger.warn(m), debug: (m) => this.logger.debug(m) });
+    }, 2, 2000);
 
     const items: ChecklistItemDraftDto[] = draft.items.map((item, idx) => ({
       order: idx,
@@ -253,11 +338,7 @@ export class ChecklistsService {
   }
 
   // ── Patch checklist ────────────────────────────────────────────────────────
-  async patchChecklist(
-    userId: string,
-    id: string,
-    dto: PatchChecklistDto,
-  ): Promise<ChecklistEntity> {
+  async patchChecklist(userId: string, id: string, dto: PatchChecklistDto): Promise<ChecklistEntity> {
     const checklist = await this.findOne(userId, id);
     if (dto.status) checklist.status = dto.status;
     if (dto.title) checklist.title = dto.title;
@@ -281,12 +362,7 @@ export class ChecklistsService {
   }
 
   // ── Patch item (complete / postpone / skip) ────────────────────────────────
-  async patchItem(
-    userId: string,
-    checklistId: string,
-    itemId: string,
-    dto: PatchItemDto,
-  ): Promise<ChecklistItemEntity> {
+  async patchItem(userId: string, checklistId: string, itemId: string, dto: PatchItemDto): Promise<ChecklistItemEntity> {
     const checklist = await this.findOne(userId, checklistId);
     const item = checklist.items?.find((i) => i.id === itemId);
     if (!item) throw new NotFoundException('Item not found');
@@ -295,13 +371,9 @@ export class ChecklistsService {
       item.status = 'completed';
       item.completedAt = new Date();
     } else if (dto.action === 'postpone') {
-      const due = dto.dueDate
-        ? new Date(dto.dueDate)
-        : (() => {
-            const d = new Date();
-            d.setDate(d.getDate() + 1);
-            return d;
-          })();
+      const due = dto.dueDate ? new Date(dto.dueDate) : (() => {
+        const d = new Date(); d.setDate(d.getDate() + 1); return d;
+      })();
       item.dueDate = due;
       item.reminderSent = false;
     } else if (dto.action === 'skip') {
@@ -312,18 +384,10 @@ export class ChecklistsService {
   }
 
   // ── Progress data for dashboard ────────────────────────────────────────────
-  async getProgress(
-    userId: string,
-    checklistId: string,
-  ): Promise<{
-    total: number;
-    completed: number;
-    skipped: number;
-    pending: number;
-    completionRate: number;
-    dailyData: Array<{ date: string; count: number }>;
-    estimatedTotalMinutes: number;
-    completedMinutes: number;
+  async getProgress(userId: string, checklistId: string): Promise<{
+    total: number; completed: number; skipped: number; pending: number;
+    completionRate: number; dailyData: Array<{ date: string; count: number }>;
+    estimatedTotalMinutes: number; completedMinutes: number;
   }> {
     const checklist = await this.findOne(userId, checklistId);
     const items = checklist.items ?? [];
@@ -357,14 +421,9 @@ export class ChecklistsService {
       .reduce((s, i) => s + i.estimatedDuration, 0);
 
     return {
-      total,
-      completed,
-      skipped,
-      pending,
+      total, completed, skipped, pending,
       completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
-      dailyData,
-      estimatedTotalMinutes,
-      completedMinutes,
+      dailyData, estimatedTotalMinutes, completedMinutes,
     };
   }
 
@@ -422,34 +481,26 @@ export class ChecklistsService {
    *
    * Only items with reminderSent=false are returned (prevents duplicate sends).
    */
-  async getDueReminders(): Promise<
-    Array<{
-      itemId: string;
-      checklistId: string;
-      checklistTitle: string;
-      description: string;
-      hack: string;
-      telegramChatId: string;
-      order: number;
-      totalItems: number;
-      completedItems: number;
-    }>
-  > {
+  async getDueReminders(): Promise<Array<{
+    itemId: string;
+    checklistId: string;
+    checklistTitle: string;
+    description: string;
+    hack: string;
+    telegramChatId: string;
+    order: number;
+    totalItems: number;
+    completedItems: number;
+  }>> {
     const checklists = await this.checklistRepo.find({
       where: { status: 'active' },
       relations: ['items'],
     });
 
     const results: Array<{
-      itemId: string;
-      checklistId: string;
-      checklistTitle: string;
-      description: string;
-      hack: string;
-      telegramChatId: string;
-      order: number;
-      totalItems: number;
-      completedItems: number;
+      itemId: string; checklistId: string; checklistTitle: string;
+      description: string; hack: string; telegramChatId: string;
+      order: number; totalItems: number; completedItems: number;
     }> = [];
 
     for (const checklist of checklists) {
@@ -457,7 +508,7 @@ export class ChecklistsService {
 
       const sorted = (checklist.items ?? []).sort((a, b) => a.order - b.order);
       const totalItems = sorted.length;
-      const completedItems = sorted.filter((i) => i.status === 'completed').length;
+      const completedItems = sorted.filter(i => i.status === 'completed').length;
 
       for (const item of sorted) {
         if (item.status === 'completed' || item.status === 'skipped') {
@@ -487,21 +538,14 @@ export class ChecklistsService {
   }
 
   // ── getActiveWithTelegram — n8n weekly feedback list ─────────────────────
-  async getActiveWithTelegram(): Promise<
-    Array<{ id: string; title: string; telegramChatId: string; language: string }>
-  > {
+  async getActiveWithTelegram(): Promise<Array<{ id: string; title: string; telegramChatId: string; language: string }>> {
     const checklists = await this.checklistRepo.find({
       where: { status: 'active' },
       select: ['id', 'title', 'telegramChatId', 'language'],
     });
     return checklists
       .filter((c) => !!c.telegramChatId)
-      .map((c) => ({
-        id: c.id,
-        title: c.title,
-        telegramChatId: c.telegramChatId!,
-        language: c.language,
-      }));
+      .map((c) => ({ id: c.id, title: c.title, telegramChatId: c.telegramChatId!, language: c.language }));
   }
 
   // ── generateFeedbackById — n8n path (no userId) ───────────────────────────
@@ -532,8 +576,9 @@ export class ChecklistsService {
       return { sent: false, message: 'La checklist no tiene tareas.' };
     }
 
-    const emoji = (s: string) => (s === 'completed' ? '✅' : s === 'skipped' ? '⏭️' : '⬜');
-    const done = items.filter((i) => i.status === 'completed').length;
+    const emoji = (s: string) =>
+      s === 'completed' ? '✅' : s === 'skipped' ? '⏭️' : '⬜';
+    const done = items.filter(i => i.status === 'completed').length;
 
     const taskLines = items
       .map((item, i) => `${emoji(item.status ?? 'pending')} *${i + 1}.* ${item.description}`)
@@ -552,11 +597,10 @@ export class ChecklistsService {
 
     try {
       await firstValueFrom(
-        this.httpService.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          chat_id: checklist.telegramChatId,
-          text,
-          parse_mode: 'Markdown',
-        }),
+        this.httpService.post(
+          `https://api.telegram.org/bot${botToken}/sendMessage`,
+          { chat_id: checklist.telegramChatId, text, parse_mode: 'Markdown' },
+        ),
       );
       return { sent: true, message: '✅ Checklist enviada a Telegram' };
     } catch (err) {
@@ -571,52 +615,39 @@ export class ChecklistsService {
   // ── buildFeedback — shared logic ──────────────────────────────────────────
   private async buildFeedback(checklist: ChecklistEntity): Promise<ChecklistFeedbackEntity> {
     const items = checklist.items ?? [];
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    const prevWeek = new Date();
-    prevWeek.setDate(prevWeek.getDate() - 14);
+    const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const prevWeek   = new Date(); prevWeek.setDate(prevWeek.getDate() - 14);
 
     const completedLastWeek = items.filter(
-      (i) => i.status === 'completed' && i.completedAt && new Date(i.completedAt) >= oneWeekAgo,
+      i => i.status === 'completed' && i.completedAt && new Date(i.completedAt) >= oneWeekAgo,
     ).length;
     const completedPrevWeek = items.filter(
-      (i) =>
-        i.status === 'completed' &&
-        i.completedAt &&
-        new Date(i.completedAt) >= prevWeek &&
-        new Date(i.completedAt) < oneWeekAgo,
+      i => i.status === 'completed' && i.completedAt &&
+           new Date(i.completedAt) >= prevWeek && new Date(i.completedAt) < oneWeekAgo,
     ).length;
 
-    const trend =
-      completedPrevWeek === 0
-        ? 'first week'
-        : completedLastWeek > completedPrevWeek
-          ? `+${completedLastWeek - completedPrevWeek} more than last week`
-          : completedLastWeek < completedPrevWeek
-            ? `-${completedPrevWeek - completedLastWeek} fewer than last week`
-            : 'same as last week';
+    const trend = completedPrevWeek === 0 ? 'first week'
+      : completedLastWeek > completedPrevWeek
+      ? `+${completedLastWeek - completedPrevWeek} more than last week`
+      : completedLastWeek < completedPrevWeek
+      ? `-${completedPrevWeek - completedLastWeek} fewer than last week`
+      : 'same as last week';
 
     const upcomingTasks = items
-      .filter((i) => i.status === 'pending')
+      .filter(i => i.status === 'pending')
       .slice(0, 3)
-      .map((i) => i.description);
+      .map(i => i.description);
 
     const { systemMessage, prompt } = buildFeedbackPrompt({
-      title: checklist.title,
-      objective: checklist.objective,
-      startDate: checklist.startDate,
-      endDate: checklist.endDate,
-      completedLastWeek,
-      totalTasks: items.length,
-      trend,
-      upcomingTasks,
-      language: checklist.language,
+      title: checklist.title, objective: checklist.objective,
+      startDate: checklist.startDate, endDate: checklist.endDate,
+      completedLastWeek, totalTasks: items.length, trend,
+      upcomingTasks, language: checklist.language,
     });
 
     const { text } = await withRetry(
       () => generateText({ systemMessage, prompt, maxTokens: 250, temperature: 0.65 }),
-      2,
-      1500,
+      2, 1500,
     );
 
     const now = new Date();

@@ -8,7 +8,7 @@ module.exports = {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   moduleNameMapper: {
-    '@ai-lab/shared': '<rootDir>/../../packages/shared/src/index.ts',
-    '@ai-lab/ai-core': '<rootDir>/../../packages/ai-core/src/index.ts',
+    '@ai-lab/shared': '<rootDir>/../../../packages/shared/src/index.ts',
+    '@ai-lab/ai-core': '<rootDir>/../../../packages/ai-core/src/index.ts',
   },
 };

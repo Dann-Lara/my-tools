@@ -67,8 +67,9 @@ export function cleanCvText(raw: string): string {
   return raw
     .replace(/```[a-z]*\n?/gi, '')
     .replace(/```/g, '')
+    .replace(/`([^`]+)`/g, '$1')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/^#{1,4}\s+/gm, '')
+    .replace(/#{1,4}\s+/g, '')
     .trim();
 }
