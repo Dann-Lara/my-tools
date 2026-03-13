@@ -20,7 +20,7 @@ services:
   # ── PostgreSQL ──────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: ${COMPOSE_PROJECT_NAME:-ailab}_postgres
+    container_name: ${COMPOSE_PROJECT_NAME:-my-tools}_postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB:       ${DB_NAME:-ailab}
@@ -40,7 +40,7 @@ services:
   # ── Redis ───────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: ${COMPOSE_PROJECT_NAME:-ailab}_redis
+    container_name: ${COMPOSE_PROJECT_NAME:-my-tools}_redis
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
@@ -56,7 +56,7 @@ services:
   # ── n8n ─────────────────────────────────────────────────────────────────────
   n8n:
     image: n8nio/n8n:latest
-    container_name: ${COMPOSE_PROJECT_NAME:-ailab}_n8n
+    container_name: ${COMPOSE_PROJECT_NAME:-my-tools}_n8n
     restart: unless-stopped
     ports:
       - "${N8N_PORT:-5678}:5678"
@@ -108,7 +108,7 @@ services:
     build:
       context: .
       dockerfile: docker/backend.Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-ailab}_backend
+    container_name: ${COMPOSE_PROJECT_NAME:-my-tools}_backend
     restart: unless-stopped
     ports:
       - "${BACKEND_PORT:-3001}:3001"
@@ -168,7 +168,7 @@ services:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME:-ailab}_frontend
+    container_name: ${COMPOSE_PROJECT_NAME:-my-tools}_frontend
     restart: unless-stopped
     ports:
       - "${FRONTEND_PORT:-3000}:3000"

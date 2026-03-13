@@ -241,20 +241,55 @@ export class UsersService {
     });
   }
 
-  // ── Seed superadmin ────────────────────────────────────────────────────────
+  // ── Seed superadmin, admin, and client ──────────────────────────────────────
   async ensureSuperAdmin(): Promise<void> {
-    const existing = await this.userRepo.findOneBy({ role: 'superadmin' as UserRole });
-    if (existing) return;
+    const superadminEmail = (process.env['SUPERADMIN_EMAIL'] ?? 'superadmin@mytools.dev').toLowerCase();
+    const superadminPassword = process.env['SUPERADMIN_PASSWORD'] ?? 'SuperAdmin123!';
+    
+    const existingSuperadmin = await this.userRepo.findOneBy({ role: 'superadmin' as UserRole });
+    if (!existingSuperadmin) {
+      const passwordHash = await bcrypt.hash(superadminPassword, 12);
+      await this.userRepo.save(
+        this.userRepo.create({
+          email: superadminEmail,
+          name: 'Super Admin',
+          passwordHash,
+          role: 'superadmin' as UserRole,
+          allowedModules: [...MODULE_KEYS],
+        }),
+      );
+    }
 
-    const passwordHash = await bcrypt.hash(process.env['SUPERADMIN_PASSWORD'] ?? 'SuperAdmin123!', 12);
-    await this.userRepo.save(
-      this.userRepo.create({
-        email: (process.env['SUPERADMIN_EMAIL'] ?? 'superadmin@ailab.dev').toLowerCase(),
-        name: 'Super Admin',
-        passwordHash,
-        role: 'superadmin' as UserRole,
-        allowedModules: [...MODULE_KEYS],
-      }),
-    );
+    const adminEmail = 'admin@mytools.dev';
+    const existingAdmin = await this.userRepo.findOneBy({ email: adminEmail });
+    if (!existingAdmin) {
+      const passwordHash = await bcrypt.hash('Admin123!', 12);
+      await this.userRepo.save(
+        this.userRepo.create({
+          email: adminEmail,
+          name: 'Admin',
+          passwordHash,
+          role: 'admin' as UserRole,
+          allowedModules: [...MODULE_KEYS],
+        }),
+      );
+    }
+
+    const clientEmail = 'client@mytools.dev';
+    const existingClient = await this.userRepo.findOneBy({ email: clientEmail });
+    if (!existingClient) {
+      const admin = await this.userRepo.findOneBy({ role: 'admin' as UserRole });
+      const passwordHash = await bcrypt.hash('Client123!', 12);
+      await this.userRepo.save(
+        this.userRepo.create({
+          email: clientEmail,
+          name: 'Client',
+          passwordHash,
+          role: 'client' as UserRole,
+          allowedModules: [...DEFAULT_ALLOWED_MODULES],
+          adminId: admin?.id ?? null,
+        }),
+      );
+    }
   }
 }

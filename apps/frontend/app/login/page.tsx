@@ -147,14 +147,37 @@ export default function LoginPage(): React.JSX.Element {
               </Link>
             </p>
             <div className="h-px bg-slate-200 dark:bg-slate-800" />
-            {/* Dev hint */}
-            <div className="p-3.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-              <p className="font-mono text-[9px] text-slate-400 uppercase tracking-widest mb-2">Superadmin (dev)</p>
-              <button type="button"
-                onClick={() => { setEmail('superadmin@ailab.dev'); setPassword('SuperAdmin123!'); }}
-                className="font-mono text-[10px] text-sky-600 dark:text-sky-600 hover:text-sky-500 dark:hover:text-sky-400 transition-colors">
-                superadmin@ailab.dev → click to fill
-              </button>
+            {/* Dev hints - Quick login buttons */}
+            <div className="grid grid-cols-1 gap-2">
+              {/* Superadmin */}
+              <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                <p className="font-mono text-[9px] text-yellow-600 dark:text-yellow-400 uppercase tracking-widest mb-1">Superadmin</p>
+                <button type="button"
+                  onClick={() => { setEmail('superadmin@mytools.dev'); setPassword('SuperAdmin123!'); }}
+                  className="font-mono text-[10px] text-yellow-700 dark:text-yellow-300 hover:text-yellow-600 dark:hover:text-yellow-200 transition-colors">
+                  superadmin@mytools.dev
+                </button>
+              </div>
+
+              {/* Admin */}
+              <div className="p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+                <p className="font-mono text-[9px] text-sky-600 dark:text-sky-400 uppercase tracking-widest mb-1">Admin</p>
+                <button type="button"
+                  onClick={() => { setEmail('admin@mytools.dev'); setPassword('Admin123!'); }}
+                  className="font-mono text-[10px] text-sky-700 dark:text-sky-300 hover:text-sky-600 dark:hover:text-sky-200 transition-colors">
+                  admin@mytools.dev
+                </button>
+              </div>
+
+              {/* Client */}
+              <div className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                <p className="font-mono text-[9px] text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Cliente</p>
+                <button type="button"
+                  onClick={() => { setEmail('client@mytools.dev'); setPassword('Client123!'); }}
+                  className="font-mono text-[10px] text-emerald-700 dark:text-emerald-300 hover:text-emerald-600 dark:hover:text-emerald-200 transition-colors">
+                  client@mytools.dev
+                </button>
+              </div>
             </div>
           </div>
         </div>

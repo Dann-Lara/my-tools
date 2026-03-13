@@ -11,9 +11,9 @@
     "type-check": "tsc --noEmit",
     "test": "jest --passWithNoTests",
     "test:e2e": "jest --config test/jest-e2e.json --passWithNoTests",
-    "db:migrate": "npx ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts",
-    "db:migrate:revert": "npx ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
-    "db:migrate:generate": "npx ts-node -r tsconfig-paths/register node_modules/typeorm/cli.js migration:generate -d src/database/data-source.ts",
+    "db:migrate": "npx typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
+    "db:migrate:revert": "npx typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
+    "db:migrate:generate": "npx typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
     "db:seed": "npx ts-node -r tsconfig-paths/register scripts/seed.ts",
     "dev:nest": "nest start --watch"
   },
