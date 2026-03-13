@@ -80,21 +80,11 @@ export default function AdminDashboard(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<'overview' | 'system'>('overview');
 
   useEffect(() => {
-    console.log('[DEBUG AdminDashboard] pathname changed, loading:', loading, 'user:', !!user);
     if (!loading && user) {
-      console.log('[DEBUG AdminDashboard] Fetching data...');
-      checklistsApi.list()
-        .then(data => {
-          console.log('[DEBUG AdminDashboard] checklists fetched:', data.length);
-          setChecklists(data);
-        })
-        .catch(() => {});
+      checklistsApi.list().then(setChecklists).catch(() => {});
       fetch('/api/applications', { headers: getHeaders() })
         .then(res => res.json())
-        .then(data => {
-          console.log('[DEBUG AdminDashboard] applications fetched:', Array.isArray(data) ? data.length : 0);
-          setApps(Array.isArray(data) ? data : []);
-        })
+        .then(data => setApps(Array.isArray(data) ? data : []))
         .catch(() => {});
     }
   }, [loading, user, pathname]);
@@ -164,9 +154,6 @@ export default function AdminDashboard(): React.JSX.Element {
 
         {activeTab === 'overview' && (
           <>
-            {/* DEBUG */}
-            {console.log('[DEBUG AdminDashboard render] checklists:', checklists.length, 'apps:', apps.length)}
-            
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
               {hasPermission('checklist') && (
