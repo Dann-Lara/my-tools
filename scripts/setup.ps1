@@ -185,6 +185,12 @@ if ($dockerAvailable) {
     }
     Write-Success "PostgreSQL is ready"
 
+    # Create database if not exists
+    Write-Step "Creating database if not exists..."
+    $dbName = "mytools"
+    docker compose exec -T postgres psql -U admin -c "CREATE DATABASE $dbName;" 2>&1 | Out-Null
+    Write-Success "Database $dbName ready"
+
     # Run migrations
     Write-Step "Running database migrations..."
     npm run db:migrate

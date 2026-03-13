@@ -101,7 +101,12 @@ done
 [ "$RETRIES" -eq 0 ] && echo -e "${RED}[ERROR] PostgreSQL timed out${NC}" && exit 1
 echo -e "${GREEN}  [OK] PostgreSQL ready${NC}"
 
-#  6. MIGRATIONS 
+# Create database if not exists
+echo -e "\n${YELLOW}>> Creating database if not exists...${NC}"
+docker compose exec -T postgres psql -U admin -c "CREATE DATABASE mytools;" 2>/dev/null || true
+echo -e "${GREEN}  [OK] Database mytools ready${NC}"
+
+# 6. MIGRATIONS
 MIGRATION_DIR="apps/backend/src/database/migrations"
 if [ -d "$MIGRATION_DIR" ] && [ -n "$(ls -A "$MIGRATION_DIR" 2>/dev/null)" ]; then
   echo -e "\n${YELLOW}>> Running database migrations...${NC}"
