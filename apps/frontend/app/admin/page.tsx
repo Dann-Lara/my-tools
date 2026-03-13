@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { DashboardLayout } from '../../components/ui/DashboardLayout';
 import { Spinner } from '../../components/ui/Spinner';
 import { useI18n } from '../../lib/i18n-context';
@@ -71,6 +72,7 @@ function StatsCard({ label, value, color, subtext }: { label: string; value: str
 
 export default function AdminDashboard(): React.JSX.Element {
   const { t } = useI18n();
+  const pathname = usePathname();
   const { user, loading, logout } = useAuth(ADMIN_ROLES);
   const { can } = usePermissions();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
@@ -85,7 +87,7 @@ export default function AdminDashboard(): React.JSX.Element {
         .then(data => setApps(Array.isArray(data) ? data : []))
         .catch(() => {});
     }
-  }, [loading, user]);
+  }, [loading, user, pathname]);
 
   if (loading || !user) {
     return (

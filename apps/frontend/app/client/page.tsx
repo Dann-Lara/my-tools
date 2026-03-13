@@ -1,17 +1,36 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { DashboardLayout } from '../../components/ui/DashboardLayout';
 import { AiGenerator } from '../../components/ai/AiGenerator';
 import { AiSummarizer } from '../../components/ai/AiSummarizer';
 import { useI18n } from '../../lib/i18n-context';
 import { useAuth } from '../../hooks/useAuth';
+import { usePermissions } from '../../lib/permissions-context';
+import { checklistsApi, type Checklist } from '../../lib/checklists';
+import { type Application, getHeaders } from '../../components/applications';
 
 // Static outside component — prevents infinite loop from new array ref
 const CLIENT_ROLES = ['client'];
 
 export default function ClientDashboard(): React.JSX.Element {
   const { t } = useI18n();
+  const pathname = usePathname();
   const { user, loading, logout } = useAuth(CLIENT_ROLES);
+  const { can } = usePermissions();
+  const [checklists, setChecklists] = useState<Checklist[]>([]);
+  const [apps, setApps] = useState<Application[]>([]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      checklistsApi.list().then(setChecklists).catch(() => {});
+      fetch('/api/applications', { headers: getHeaders() })
+        .then(res => res.json())
+        .then(data => setApps(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    }
+  }, [loading, user, pathname]);
 
   if (loading || !user) {
     return (
