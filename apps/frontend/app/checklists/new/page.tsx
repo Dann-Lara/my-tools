@@ -114,6 +114,7 @@ export default function NewChecklistPage() {
     try {
       const saved = await checklistsApi.confirm(params, tasks);
       await animateStep(() => setStep(3));
+      router.refresh();
       setTimeout(() => router.push(`/checklists/${saved.id}`), 1600);
     } catch (e) {
       setError(e instanceof Error ? e.message : t.common.error);

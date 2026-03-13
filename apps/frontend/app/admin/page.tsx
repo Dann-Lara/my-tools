@@ -74,7 +74,7 @@ export default function AdminDashboard(): React.JSX.Element {
   const { t } = useI18n();
   const pathname = usePathname();
   const { user, loading, logout } = useAuth(ADMIN_ROLES);
-  const { can } = usePermissions();
+  const { can, hasPermission } = usePermissions();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'system'>('overview');
@@ -156,13 +156,13 @@ export default function AdminDashboard(): React.JSX.Element {
           <>
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-              {can('checklist') && (
+              {hasPermission('checklist') && (
                 <>
                   <StatsCard label="Checklists" value={checklists.length} color="text-sky-600 dark:text-sky-400" subtext={`${activeChecklists.length} activos`} />
                   <StatsCard label="Tareas" value={completedItems} color="text-emerald-600 dark:text-emerald-400" subtext={`de ${allItems.length}`} />
                 </>
               )}
-              {can('applications') && (
+              {hasPermission('applications') && (
                 <>
                   <StatsCard label="Aplicaciones" value={apps.length} color="text-violet-600 dark:text-violet-400" subtext={`${pendingApps} pendientes`} />
                   <StatsCard label="Aceptados" value={acceptedApps} color="text-green-600 dark:text-green-400" subtext={`${rejectedApps} rechazados`} />

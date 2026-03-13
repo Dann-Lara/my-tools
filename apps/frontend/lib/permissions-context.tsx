@@ -9,6 +9,7 @@ interface PermissionsContextValue {
   permissions: PermissionsMap;
   ready: boolean;
   can: (key: string) => boolean;
+  hasPermission: (key: string) => boolean;
   invalidate: () => void;
 }
 
@@ -16,6 +17,7 @@ export const PermissionsContext = createContext<PermissionsContextValue>({
   permissions: {},
   ready: false,
   can: () => false,
+  hasPermission: () => false,
   invalidate: () => {},
 });
 
@@ -87,13 +89,17 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
     return ready && permissions[key] === true;
   }
 
+  function hasPermission(key: string): boolean {
+    return ready && permissions[key] === true;
+  }
+
   function invalidate() {
     fetchedFor.current = '';
     doFetch();
   }
 
   return (
-    <PermissionsContext.Provider value={{ permissions, ready, can, invalidate }}>
+    <PermissionsContext.Provider value={{ permissions, ready, can, hasPermission, invalidate }}>
       {children}
     </PermissionsContext.Provider>
   );

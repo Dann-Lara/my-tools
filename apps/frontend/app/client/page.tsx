@@ -18,7 +18,7 @@ export default function ClientDashboard(): React.JSX.Element {
   const { t } = useI18n();
   const pathname = usePathname();
   const { user, loading, logout } = useAuth(CLIENT_ROLES);
-  const { can } = usePermissions();
+  const { can, hasPermission } = usePermissions();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
 
@@ -74,6 +74,7 @@ export default function ClientDashboard(): React.JSX.Element {
         </div>
 
         {/* Checklist shortcut */}
+        {hasPermission('checklist') && (
         <div className="mb-6 p-4 rounded-xl border border-sky-200 dark:border-sky-400/20
                         bg-sky-50 dark:bg-sky-400/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -85,24 +86,10 @@ export default function ClientDashboard(): React.JSX.Element {
           </div>
           <a href="/checklists" className="btn-primary text-[10px] py-2 px-4">Ver →</a>
         </div>
-
-        {/* Welcome info */}
-        <div className="mb-8 p-5 rounded-xl border border-emerald-200 dark:border-emerald-500/20
-                        bg-emerald-50 dark:bg-emerald-500/5">
-          <div className="flex items-start gap-4">
-            <span className="text-2xl mt-0.5">🤖</span>
-            <div>
-              <p className="font-mono text-sm text-emerald-700 dark:text-emerald-300 font-bold mb-1">
-                AI Tools ready
-              </p>
-              <p className="font-mono text-[11px] text-slate-500 leading-relaxed">
-                Generate text and summarize content with GPT-4o-mini, powered by LangChain.
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* AI Tools */}
+        {hasPermission('ai') && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="card p-6">
             <h3 className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
@@ -123,6 +110,7 @@ export default function ClientDashboard(): React.JSX.Element {
             <AiSummarizer />
           </div>
         </div>
+        )}
       </div>
     </DashboardLayout>
   );
