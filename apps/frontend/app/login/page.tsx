@@ -18,7 +18,7 @@ export default function LoginPage(): React.JSX.Element {
   useEffect(() => {
     const token = getAccessToken();
     const user  = getStoredUser();
-    if (token && user) router.replace(getDashboardPath(user.role));
+    if (token && user) router.replace(getDashboardPath(user.role) as any);
   }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -28,7 +28,7 @@ export default function LoginPage(): React.JSX.Element {
     try {
       const tokens = await login(email, password);
       saveTokens(tokens);
-      router.replace(getDashboardPath(tokens.user.role));
+      router.replace(getDashboardPath(tokens.user.role) as any);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.common.error);
     } finally { setLoading(false); }

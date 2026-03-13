@@ -11,7 +11,7 @@ export default function DashboardRedirect(): null {
     const token = getAccessToken();
     const user  = getStoredUser();
     if (token && user) {
-      router.replace(getDashboardPath(user.role));
+      router.replace(getDashboardPath(user.role) as any);
     } else {
       router.replace('/login');
     }

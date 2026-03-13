@@ -206,7 +206,7 @@ export function Sidebar({ variant, user }: SidebarProps) {
             {visibleItems.map(item => (
               <li key={item.key}>
                 <Link
-                  href={item.href}
+                  href={item.href as any}
                   onClick={() => setOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg
                               font-mono text-[11px] uppercase tracking-[0.2em]

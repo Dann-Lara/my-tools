@@ -10,6 +10,15 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { proxyToBackend } from '../../../../lib/api-proxy';
 
+type PdfParseResult = {
+  numpages: number;
+  numrender: number;
+  info: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+  text: string;
+  version: string;
+};
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const { pdfBase64 } = await req.json() as { pdfBase64: string };
@@ -21,10 +30,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // ── Extract text from PDF server-side ──────────────────────────────────
     let pdfText = '';
     try {
-      // pdf-parse must be imported this way to avoid issues in Next.js edge
-      const { default: pdfParse } = await import('pdf-parse/lib/pdf-parse.js');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require('pdf-parse');
       const buffer = Buffer.from(pdfBase64, 'base64');
-      const result = await pdfParse(buffer);
+      const result = await pdfParse(buffer) as PdfParseResult;
       pdfText = (result.text ?? '').trim();
     } catch (pdfErr) {
       console.error('[extract-cv] pdf-parse error:', pdfErr);
@@ -41,23 +50,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // ── Forward extracted text to NestJS backend → AI ──────────────────────
-    // Build a new request-like object with the pdfText payload
-    const newBody = JSON.stringify({ pdfText });
-    const modifiedReq = new Request(req.url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(req.headers.get('authorization')
-          ? { Authorization: req.headers.get('authorization')! }
-          : {}),
-      },
-      body: newBody,
-    });
-
-    return proxyToBackend(modifiedReq as unknown as NextRequest, '/v1/applications/extract-cv', 'POST');
+    // ── Forward to NestJS backend ─────────────────────────────────────────
+    return proxyToBackend(req, '/v1/applications/extract-cv', 'POST', { text: pdfText });
   } catch (err) {
-    console.error('[extract-cv] Unexpected error:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('[extract-cv] error:', err);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

@@ -28,7 +28,7 @@ export function useAuth(requiredRoles?: string[]) {
 
     if (rolesKey && !rolesKey.split(',').includes(stored.role)) {
       setLoading(false);
-      router.replace(getDashboardPath(stored.role));
+      router.replace(getDashboardPath(stored.role) as any);
       return;
     }
 

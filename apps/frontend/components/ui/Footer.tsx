@@ -65,7 +65,7 @@ export function Footer(): React.JSX.Element {
                 { href: '/signup', label: t.nav.signup },
               ].map(({ href, label }) => (
                 <li key={href}>
-                  <Link href={href}
+                  <Link href={href as any}
                     className="font-mono text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-500
                                hover:text-sky-600 dark:hover:text-sky-400 flex items-center gap-2 group transition-colors">
                     <span className="w-0 group-hover:w-3 h-px bg-sky-400 transition-all" />

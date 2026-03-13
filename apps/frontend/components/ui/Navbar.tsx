@@ -44,7 +44,7 @@ export function Navbar({ variant = 'public', title }: NavbarProps): React.JSX.El
   const [scrolled, setScrolled] = useState(false);
 
   const isDash = variant === 'admin' || variant === 'client';
-  const profileHref = variant === 'admin' ? '/admin/profile' : '/client/profile';
+  const profileHref = (variant === 'admin' ? '/admin/profile' : '/client/profile') as any;
 
   useEffect(() => {
     setMounted(true);
