@@ -62,7 +62,7 @@ export function useUsers({ authLoading, user }: UseUsersOptions): UseUsersReturn
   useEffect(() => {
     if (!authLoading) {
       void load();
-      void loadAdmins();
+      void loadAdmins(); // Load admins for displaying in table
     }
   }, [authLoading, load, loadAdmins]);
 

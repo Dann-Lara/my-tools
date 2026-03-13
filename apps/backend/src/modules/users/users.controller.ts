@@ -90,7 +90,7 @@ export class UsersController {
 
   @Get('admins')
   @UseGuards(RolesGuard)
-  @Roles('superadmin')
+  @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'List all admins (for superadmin to assign)' })
   findAdmins() {
     return this.usersService.findAdmins();
