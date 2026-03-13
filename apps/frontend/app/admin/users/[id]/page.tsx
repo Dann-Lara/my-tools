@@ -24,6 +24,7 @@ interface UserDetail {
   permissions: {
     checklist: boolean;
     applications: boolean;
+    ai: boolean;
   };
 }
 
@@ -48,6 +49,16 @@ const PERMISSION_MODULES = [
         <rect x="2" y="7" width="20" height="14" rx="2"/>
         <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
         <line x1="12" y1="12" x2="12" y2="12.01"/>
+      </svg>
+    ),
+  },
+  {
+    key: 'ai',
+    label: 'AI Tools',
+    description: 'Acceso al generador de texto y resumidor de documentos con IA',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.54 15.54l2.83 2.83M5.64 18.36l2.83-2.83M15.54 8.46l2.83-2.83"/>
       </svg>
     ),
   },
@@ -109,7 +120,7 @@ export default function UserDetailPage() {
       const res = await fetch(`/api/users/${userId}`, { headers: getHeaders() });
       const data = await res.json() as UserDetail;
       // Backend always returns a complete permissions map (merged with defaults)
-      if (!data.permissions) data.permissions = { checklist: true, applications: true };
+      if (!data.permissions) data.permissions = { checklist: true, applications: true, ai: true };
       setDetail(data);
     } catch {
       setDetail(null);
@@ -143,7 +154,7 @@ export default function UserDetailPage() {
       // Update local state immediately with the server response
       setDetail(prev => prev ? { ...prev, permissions: { ...prev.permissions, ...updated } } : prev);
       showToast(
-        `${permKey === 'checklist' ? 'Checklists' : 'Postulaciones'} ${!current ? 'habilitado' : 'deshabilitado'}`,
+        `${permKey === 'ai' ? 'AI Tools' : permKey === 'checklist' ? 'Checklists' : 'Postulaciones'} ${!current ? 'habilitado' : 'deshabilitado'}`,
         'ok'
       );
     } catch {
@@ -164,7 +175,7 @@ export default function UserDetailPage() {
 
   return (
     <DashboardLayout variant="admin" user={authUser} title={t.nav.users}>
-      <div className="max-w-4xl mx-auto px-6 md:px-10 py-10">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-10">
 
         {/* Back */}
         <Link
