@@ -24,14 +24,8 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   const [permissions, setPermissions] = useState<PermissionsMap>({});
   const [ready, setReady] = useState(false);
 
-  const userId   = user.userId;
-  const userRole = user.role;
+  const userId = user.userId;
   const fetchedFor = useRef('');
-
-  // Debug
-  if (typeof window !== 'undefined') {
-    console.log('[PermissionsProvider] userRole:', userRole, 'user:', user);
-  }
 
 
   function doFetch() {
@@ -65,7 +59,8 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
       .catch((err) => {
         console.error('[Permissions] Error fetching:', err);
         // On error, superadmin/admin get full access, client gets nothing
-        const fallback = (userRole === 'superadmin' || userRole === 'admin')
+        const currentRole = user?.role;
+        const fallback = (currentRole === 'superadmin' || currentRole === 'admin')
           ? { checklist: true, applications: true, ai: true } as PermissionsMap
           : {} as PermissionsMap;
         setPermissions(fallback);
@@ -85,14 +80,16 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
     }
     doFetch();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, userRole]);
+  }, [userId]);
 
   // Single function: uses real permissions from backend
   // Superadmin always has access (backend returns all true anyway)
   // Admin and client depend on their allowedModules from the backend
   function hasPermission(key: string): boolean {
+    // Use current user.role directly, not the captured constant
+    const currentRole = user?.role;
     // Superadmin always has full access
-    if (userRole === 'superadmin') {
+    if (currentRole === 'superadmin') {
       return true;
     }
     // Admin and client depend on permissions fetch

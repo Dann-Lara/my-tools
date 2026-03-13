@@ -79,11 +79,6 @@ export default function AdminDashboard(): React.JSX.Element {
   const [apps, setApps] = useState<Application[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'system'>('overview');
 
-  // Debug: log user role and permissions
-  if (typeof window !== 'undefined') {
-    console.log('[AdminDashboard] user.role:', user?.role, 'hasPermission(checklist):', hasPermission('checklist'), 'hasPermission(applications):', hasPermission('applications'));
-  }
-
   useEffect(() => {
     if (!loading && user) {
       checklistsApi.list().then(setChecklists).catch(() => {});
