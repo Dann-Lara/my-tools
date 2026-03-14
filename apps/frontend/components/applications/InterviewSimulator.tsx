@@ -64,9 +64,6 @@ export function InterviewSimulator({ application, baseCV, onUpdate, t }: Props) 
         headers: getHeaders(),
         body: JSON.stringify({
           applicationId: application.id,
-          cvText: baseCV || application.cvGeneratedEn || application.cvGeneratedEs || '',
-          jobDescription: application.jobOffer,
-          position: application.position,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
