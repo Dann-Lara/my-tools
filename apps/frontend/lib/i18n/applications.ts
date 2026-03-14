@@ -206,6 +206,20 @@ export const applicationsES = {
     // Access denied
     accessDenied: 'No tienes acceso al módulo de Postulaciones.',
     accessDeniedDesc: 'Contacta a tu administrador para habilitar este módulo.',
+
+    // Detail page
+    detailTitle: 'Detalle de Postulación',
+    detailBack: '← Volver al listado',
+    detailCompany: 'Empresa',
+    detailPosition: 'Puesto',
+    detailStatus: 'Estado',
+    detailAppliedAt: 'Fecha de postulación',
+    detailJobOffer: 'Oferta de Trabajo',
+    detailGeneratedCV: 'CV Generado',
+    detailNoCV: 'No hay CV generado',
+    detailDownloadES: 'Descargar PDF (ES)',
+    detailDownloadEN: 'Descargar PDF (EN)',
+    detailInterview: 'Entrevista Simulada',
   },
 } as const;
 
@@ -399,5 +413,19 @@ export const applicationsEN = {
 
     accessDenied: 'You do not have access to the Applications module.',
     accessDeniedDesc: 'Contact your administrator to enable this module.',
+
+    // Detail page
+    detailTitle: 'Application Detail',
+    detailBack: '← Back to list',
+    detailCompany: 'Company',
+    detailPosition: 'Position',
+    detailStatus: 'Status',
+    detailAppliedAt: 'Application date',
+    detailJobOffer: 'Job Offer',
+    detailGeneratedCV: 'Generated CV',
+    detailNoCV: 'No CV generated',
+    detailDownloadES: 'Download PDF (ES)',
+    detailDownloadEN: 'Download PDF (EN)',
+    detailInterview: 'Simulated Interview',
   },
 } as const;

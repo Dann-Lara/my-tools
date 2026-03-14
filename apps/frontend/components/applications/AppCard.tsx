@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Application, AppStatus, getHeaders } from './types';
 import { AtsRing, IconDownload, IconSave, IconSpark, Spinner } from './icons';
 
@@ -148,6 +150,7 @@ export function AppCard({
   t: { applications: Record<string, string> };
 }) {
   const ta = t.applications;
+  const router = useRouter();
 
   const [expanded, setExpanded] = useState(false);
   const [cvLang, setCvLang] = useState<'es' | 'en'>('es');
@@ -352,6 +355,15 @@ export function AppCard({
                   <IconChevron open={showQA} />
                 </button>
               )}
+
+              <Link
+                href={`/client/applications/${app.id}` as const}
+                className="font-mono text-[10px] flex items-center gap-1.5 text-sky-600 dark:text-sky-400
+                           border border-sky-200 dark:border-sky-400/30 rounded px-2 py-0.5
+                           hover:bg-sky-50 dark:hover:bg-sky-400/10 transition-all"
+              >
+                {ta.detailTitle ?? 'Ver detalle'}
+              </Link>
 
               {/* Delete */}
               {!confirmDel ? (
