@@ -10,6 +10,7 @@ export const applicationsES = {
     // Tabs
     tabList: 'Listado',
     tabNew: '+ Nueva postulación',
+    newAppSubtitle: 'Crea una nueva postulación con CV 100% optimizado para ATS',
     tabBaseCV: 'CV Base',
     tabDashboard: 'Dashboard IA',
 
@@ -120,6 +121,8 @@ export const applicationsES = {
 
     baseCVTitle: 'CV Base Global',
     baseCVDesc: 'Fuente para generar CVs 100% ATS. Los campos con * son requeridos para crear postulaciones.',
+    baseCVPageTitle: 'Mi CV Base',
+    baseCVPageSubtitle: 'Configura tu currículum base para generar aplicaciones optimizadas',
 
     // Base CV form fields
     fieldFullName: 'Nombre completo *',
@@ -231,6 +234,7 @@ export const applicationsEN = {
 
     tabList: 'List',
     tabNew: '+ New application',
+    newAppSubtitle: 'Create a new application with 100% ATS-optimized CV',
     tabBaseCV: 'Base CV',
     tabDashboard: 'AI Dashboard',
 
@@ -332,6 +336,8 @@ export const applicationsEN = {
 
     baseCVTitle: 'Global Base CV',
     baseCVDesc: 'Source for generating 100% ATS CVs. Fields marked with * are required to create applications.',
+    baseCVPageTitle: 'My Base CV',
+    baseCVPageSubtitle: 'Configure your base resume to generate optimized applications',
 
     fieldFullName: 'Full name *',
     fieldEmail: 'Professional email *',

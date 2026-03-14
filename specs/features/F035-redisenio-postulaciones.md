@@ -1,8 +1,9 @@
 # F035: Rediseño del Módulo de Postulaciones
 
-> Estado: APPROVED
+> Estado: SUPERSEDED by F036
 > Fecha de creación: 2026-03-14
 > Última actualización: 2026-03-14
+> Replaced by: F036 (UX/UI Refactor with separation of pages and anime.js animations)
 
 ---
 
@@ -583,3 +584,16 @@ Requisitos:
 | ---------- | ------- | ---------------- | ----- |
 | 2026-03-14 | 1.0.0   | Creación inicial | —     |
 | 2026-03-14 | 1.0.1   | Implementación completada | —     |
+
+---
+
+## Nota de Supersedencia
+
+**Este spec ha sido reemplazado por F036**. F036 introduce:
+- Separación completa de páginas (no más tabs)
+- AppCard minimalista
+- Animaciones con anime.js
+- Wizard de creación de 3 pasos
+
+Ver F036 para la implementación actual.
+
