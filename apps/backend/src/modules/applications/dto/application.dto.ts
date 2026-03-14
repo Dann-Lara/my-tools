@@ -28,6 +28,10 @@ export class CreateApplicationDto {
   @ApiProperty() @IsString() @MinLength(1) @MaxLength(200) position!: string;
   @ApiProperty() @IsString() @MinLength(10) jobOffer!: string;
 
+  @ApiPropertyOptional() @IsOptional() @IsString() location?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() salary?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() sourceUrl?: string;
+
   @ApiPropertyOptional()
   @IsOptional() @IsInt() @Min(0) @Max(100) atsScore?: number;
 
