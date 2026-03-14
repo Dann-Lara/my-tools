@@ -55,19 +55,21 @@
 | F012 | Iniciar sesión como X (superadmin) | users        | PENDING_APPROVAL | Media     |
 | F013 | Optimización Applications          | applications | COMPLETED        | Alta      |
 | F014 | Optimización Checklists            | checklists   | COMPLETED        | Alta      |
-| F015 | Optimización Applications (Fase2) | applications | COMPLETED        | Alta      |
-| F016 | Consolidar Componentes Duplicados | frontend    | COMPLETED        | Alta      |
-| F017 | Optimizar Frontend Checklists     | checklists   | COMPLETED        | Alta      |
-| F018 | Optimizar Frontend Applications   | applications | COMPLETED        | Alta      |
-| F019 | Agregar Tests Frontend           | frontend    | COMPLETED        | Alta      |
-| F020 | Optimizar Módulo Users            | users       | APPROVED          | Alta      |
-| F021 | Optimizar Módulo Auth             | auth        | PENDING_APPROVAL | Alta      |
-| F022 | Optimizar Módulo AI               | ai          | PENDING_APPROVAL | Alta      |
-| F023 | Optimizar Paquete ai-core         | ai-core     | PENDING_APPROVAL | Alta      |
-| F024 | Optimizar Configuración Docker    | docker      | PENDING_APPROVAL | Media     |
-| F025 | Tests para Módulo Users           | users       | PENDING_APPROVAL | Alta      |
-| F026 | Tests para Módulo Auth            | auth        | PENDING_APPROVAL | Alta      |
-| F027 | Tests para Applications Frontend  | applications | PENDING_APPROVAL | Alta      |
+| F015 | Optimización Applications (Fase2)  | applications | COMPLETED        | Alta      |
+| F016 | Consolidar Componentes Duplicados  | frontend     | COMPLETED        | Alta      |
+| F017 | Optimizar Frontend Checklists      | checklists   | COMPLETED        | Alta      |
+| F018 | Optimizar Frontend Applications    | applications | COMPLETED        | Alta      |
+| F019 | Agregar Tests Frontend             | frontend     | COMPLETED        | Alta      |
+| F020 | Optimizar Módulo Users             | users        | APPROVED         | Alta      |
+| F021 | Optimizar Módulo Auth              | auth         | PENDING_APPROVAL | Alta      |
+| F022 | Optimizar Módulo AI                | ai           | PENDING_APPROVAL | Alta      |
+| F023 | Optimizar Paquete ai-core          | ai-core      | PENDING_APPROVAL | Alta      |
+| F024 | Optimizar Configuración Docker     | docker       | PENDING_APPROVAL | Media     |
+| F025 | Tests para Módulo Users            | users        | PENDING_APPROVAL | Alta      |
+| F026 | Tests para Módulo Auth             | auth         | PENDING_APPROVAL | Alta      |
+| F027 | Tests para Applications Frontend   | applications | PENDING_APPROVAL | Alta      |
+| F034 | Dashboard Permisos y Actualización | frontend     | APPROVED         | Alta      |
+| F035 | Rediseño Módulo Postulaciones      | applications | DRAFT            | Alta      |
 
 ---
 

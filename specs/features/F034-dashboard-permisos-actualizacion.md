@@ -1,7 +1,8 @@
 # F034: Dashboard - Permisos y Actualización de Datos
 
-> Estado: APPROVED
+> Estado: APPROVED (v2.0)
 > Fecha de creación: 2026-03-13
+> Última actualización: 2026-03-13
 
 ---
 
@@ -15,25 +16,31 @@
 
 ---
 
-## Problemas Identificados
-
-| # | Problema | Severidad | Ubicación |
-|---|----------|-----------|-----------|
-| 1 | Dashboard no se actualiza después de crear checklist/application | HIGH | `checklists/new/page.tsx` |
-| 2 | Métricas visibles para usuarios sin permisos de módulo | HIGH | `admin/page.tsx`, `client/page.tsx` |
-| 3 | Inconsistencia entre `can()` y `hasPermission()` | MEDIUM | `permissions-context.tsx` |
-
----
-
-## Regla de Permisos
+## Regla de Permisos (CORREGIDA v2.0)
 
 **"No se ve lo que no tiene permiso"**
 
 | Rol | Acceso a módulos |
 |-----|-----------------|
-| **superadmin** | Ve todos los módulos (backend retorna todos como `true`) |
-| **admin** | Solo módulos que el superadmin le permitió |
-| **client** | Solo módulos que el admin le permitió |
+| **superadmin** | Ve todos los módulos (acceso total). Asigna permisos a admins. |
+| **admin** | Solo módulos que el superadmin le permitió. Gestiona sus clientes. |
+| **client** | Solo módulos que el admin le permitió. |
+
+### Jerarquía de Permisos
+
+```
+superadmin
+    ├── Asigna módulos a admin (checklist, applications, ai)
+    │
+    └── admin (con permisos asignados)
+            ├── Asigna módulos a sus clientes
+            └── client (con permisos asignados)
+```
+
+**Nota**: Un admin sin permisos de un módulo (ej: `applications`) NO verá:
+- El módulo en el sidebar
+- Métricas relacionadas en el dashboard
+- Acceso al endpoint del módulo
 
 ---
 
@@ -42,27 +49,30 @@
 ### 1. Unificación de Funciones de Permisos
 
 ```typescript
-// permissions-context.tsx - ANTES (inconsistente)
-function can(key: string): boolean {
-  if (userRole === 'superadmin' || userRole === 'admin') return true; // Siempre true
-  return ready && permissions[key] === true;
-}
-
+// permissions-context.tsx - Lógica correcta de permisos
 function hasPermission(key: string): boolean {
-  return ready && permissions[key] === true;
-}
-
-// DESPUÉS (unificado)
-function hasPermission(key: string): boolean {
-  if (!ready) return false;
-  return permissions[key] === true;
+  const currentRole = user?.role;
+  
+  // Superadmin siempre tiene acceso total
+  if (currentRole === 'superadmin') {
+    return true;
+  }
+  
+  // Admin y Client dependen de sus permisos del backend
+  const result = ready && permissions[key] === true;
+  return result;
 }
 ```
 
-**Cambio clave**: El backend ya retorna los permisos correctos para cada rol:
-- Superadmin: `{ checklist: true, applications: true, ai: true }`
-- Admin con permisos: `{ checklist: true, applications: false, ai: true }`
-- Client con permisos: `{ checklist: true, applications: false, ai: false }`
+**Cambio clave**: 
+- Superadmin: Acceso total sin verificar permisos
+- Admin: Depende de `allowedModules` que el superadmin le asignó
+- Client: Depende de `allowedModules` que el admin le asignó
+
+El backend retorna los permisos correctos para cada rol:
+- Superadmin: `{ checklist: true, applications: true, ai: true }` (hardcoded)
+- Admin (solo checklist): `{ checklist: true, applications: false, ai: false }`
+- Client (solo ai): `{ checklist: false, applications: false, ai: true }`
 
 ### 2. Actualización del Dashboard
 
@@ -83,6 +93,9 @@ setTimeout(() => router.push(`/checklists/${saved.id}`), 1600);
 {hasPermission('applications') && (
   // StatsCard de aplicaciones
 )}
+{hasPermission('ai') && (
+  // AI Tools
+)}
 ```
 
 **client/page.tsx**:
@@ -102,6 +115,24 @@ setTimeout(() => router.push(`/checklists/${saved.id}`), 1600);
 const { hasPermission, ready } = usePermissions();
 if (!ready) return <Spinner />;
 if (!hasPermission(module)) return <LockScreen />;
+```
+
+### 5. Sidebar Filtrado por Permisos
+
+```typescript
+// Sidebar.tsx - CanAccess logic
+function canAccess(item: NavItem): boolean {
+  if (item.adminOnly && !isAdmin) return false;
+  if (isSuperAdmin) return true;  // Superadmin ve todo
+  if (!permsReady) {
+    return !item.permission;  // Wait for permissions
+  }
+  if (item.permission) {
+    const allowed = permissions[item.permission] === true;
+    return allowed;
+  }
+  return true;
+}
 ```
 
 ---
@@ -148,3 +179,4 @@ if (!hasPermission(module)) return <LockScreen />;
 | Fecha | Versión | Cambio | Autor |
 |-------|---------|--------|-------|
 | 2026-03-13 | 1.0.0 | Creación inicial | — |
+| 2026-03-13 | 2.0.0 | Corregida lógica de permisos: admin también depende de allowedModules | — |

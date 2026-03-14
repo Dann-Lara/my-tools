@@ -70,8 +70,8 @@ export class UsersController {
   /**
    * GET /v1/users/me/permissions
    * Returns the allowed modules for the current user as a map.
-   * Superadmin/admin always get all modules (all true).
-   * Clients get their allowedModules mapped to boolean.
+   * Superadmin gets all modules (all true).
+   * Admin and client get their allowedModules mapped to boolean.
    */
   @Get('me/permissions')
   @ApiOperation({ summary: 'Get allowed modules for the current user' })
@@ -80,7 +80,6 @@ export class UsersController {
     const allModules = ['checklist', 'applications', 'ai'];
 
     // Superadmin gets full access to all modules
-    // Admin and client get their allowedModules mapped to boolean
     if (full.role === 'superadmin') {
       const result: Record<string, boolean> = {};
       for (const mod of allModules) {
@@ -89,7 +88,7 @@ export class UsersController {
       return result;
     }
 
-    // Clients get their allowedModules mapped to boolean
+    // Admin and client get their allowedModules mapped to boolean
     const allowed = this.usersService.getAllowedModules(full);
     const result: Record<string, boolean> = {};
     for (const mod of allModules) {
