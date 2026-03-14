@@ -1,19 +1,33 @@
 import {
-  Body, Controller, Get, HttpCode, HttpStatus,
-  Param, ParseUUIDPipe, Patch, Request, UseGuards,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IsBoolean, IsString } from 'class-validator';
 
-import { UsersService } from './users.service';
+import { CurrentUser, type JwtUser } from '../auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { CurrentUser, type JwtUser } from '../auth/decorators/current-user.decorator';
-import type { UserRole } from './user.entity';
 
-class ToggleActiveDto { isActive!: boolean; }
-class UpdateProfileDto { name?: string; telegramChatId?: string; }
+import type { UserRole } from './user.entity';
+import { UsersService } from './users.service';
+
+class ToggleActiveDto {
+  isActive!: boolean;
+}
+class UpdateProfileDto {
+  name?: string;
+  telegramChatId?: string;
+}
 
 class SetPermissionDto {
   @IsString() key!: string;
@@ -49,10 +63,7 @@ export class UsersController {
   @Patch('me')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update own profile (name, telegramChatId)' })
-  updateMe(
-    @Request() req: { user: JwtUser },
-    @Body() dto: UpdateProfileDto,
-  ) {
+  updateMe(@Request() req: { user: JwtUser }, @Body() dto: UpdateProfileDto) {
     return this.usersService.updateProfile(req.user.userId, dto);
   }
 
@@ -67,16 +78,17 @@ export class UsersController {
   async getMyPermissions(@CurrentUser() user: JwtUser): Promise<Record<string, boolean>> {
     const full = await this.usersService.findOne(user.userId);
     const allModules = ['checklist', 'applications', 'ai'];
-    
-    // Superadmin and admin get full access to all modules
-    if (full.role === 'superadmin' || full.role === 'admin') {
+
+    // Superadmin gets full access to all modules
+    // Admin and client get their allowedModules mapped to boolean
+    if (full.role === 'superadmin') {
       const result: Record<string, boolean> = {};
       for (const mod of allModules) {
         result[mod] = true;
       }
       return result;
     }
-    
+
     // Clients get their allowedModules mapped to boolean
     const allowed = this.usersService.getAllowedModules(full);
     const result: Record<string, boolean> = {};
@@ -109,10 +121,7 @@ export class UsersController {
   @UseGuards(RolesGuard)
   @Roles('superadmin', 'admin')
   @ApiOperation({ summary: 'Get user by ID with their permissions (admin)' })
-  findOne(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Request() req: { user: JwtUser },
-  ) {
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Request() req: { user: JwtUser }) {
     const requestingUser = this.getRequestingUser(req);
     return this.usersService.findOne(id, requestingUser);
   }

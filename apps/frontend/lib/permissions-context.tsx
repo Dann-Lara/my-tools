@@ -88,8 +88,8 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   function hasPermission(key: string): boolean {
     // Use current user.role directly, not the captured constant
     const currentRole = user?.role;
-    // Superadmin and admin always have full access
-    if (currentRole === 'superadmin' || currentRole === 'admin') {
+    // Superadmin always has full access
+    if (currentRole === 'superadmin') {
       return true;
     }
     // Client depends on permissions fetch
