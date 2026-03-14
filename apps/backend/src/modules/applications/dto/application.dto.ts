@@ -1,5 +1,5 @@
 import {
-  IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsString,
+  IsArray, IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString,
   Max, MaxLength, Min, MinLength,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -62,6 +62,7 @@ export class PatchApplicationDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) appliedFrom?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() interviewQuestions?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() interviewAnswers?: string;
+  @ApiPropertyOptional() @IsOptional() @IsDateString() interviewGeneratedAt?: string;
 }
 
 // ── Generate CV (AI) ──────────────────────────────────────────────────────────

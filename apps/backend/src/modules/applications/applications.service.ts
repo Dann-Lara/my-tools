@@ -136,6 +136,7 @@ export class ApplicationsService {
     if (dto.appliedFrom !== undefined) app.appliedFrom = dto.appliedFrom;
     if (dto.interviewQuestions !== undefined) app.interviewQuestions = dto.interviewQuestions;
     if (dto.interviewAnswers !== undefined) app.interviewAnswers = dto.interviewAnswers;
+    if (dto.interviewGeneratedAt !== undefined) app.interviewGeneratedAt = new Date(dto.interviewGeneratedAt);
     return this.appRepo.save(app);
   }
 
