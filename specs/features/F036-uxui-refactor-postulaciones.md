@@ -37,12 +37,9 @@ Rediseño completo del módulo de postulaciones con separación de páginas, dis
 
 ## 1. Listado de Postulaciones (`/client/applications`)
 
-### Diseño Actual (Problema)
-- Mismos tabs que el resto de funcionalidades
-- AppCard con 8+ botones visibles
-- Sin jerarquía visual clara
+### Flujo del CV Base
 
-### Diseño Propuesto (Innovación)
+El CV base solo es requerido la **primera vez**. Una vez creado, el usuario puede editarlo cuando desee.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -50,10 +47,14 @@ Rediseño completo del módulo de postulaciones con separación de páginas, dis
 ├─────────────────────────────────────────────────────────────────────────────┤
 │              │                                                                     │
 │  📋 Checkls  │  ┌─────────────────────────────────────────────────────────┐ │
-│              │  │ 🔍 Buscar...                              [Filtros ▼] │ │
+│              │  │ [🎯 Nueva Postulación]  [✏️ Editar CV Base]            │ │
 │  💼 Postul.  │  └─────────────────────────────────────────────────────────┘ │
 │              │                                                                     │
 │  🤖 AI       │  ┌─────────────────────────────────────────────────────────┐ │
+│              │  │ 🔍 Buscar...                              [Filtros ▼] │ │
+│              │  └─────────────────────────────────────────────────────────┘ │
+│              │                                                                     │
+│              │  ┌─────────────────────────────────────────────────────────┐ │
 │              │  │ 📋 Todas (5) │ ⏳ Pendientes (2) │ ✅ Aceptados (1)   │ │
 │              │  └─────────────────────────────────────────────────────────┘ │
 │              │                                                                     │
@@ -67,6 +68,23 @@ Rediseño completo del módulo de postulaciones con separación de páginas, dis
 │              │                                                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Banner de CV Base (si NO existe)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ⚠️  Necesitas un CV base para crear postulaciones                         │
+│                                                                             │
+│     [Crear mi CV Base]                                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Lógica de Navegación
+
+| Scenario | Botón "Nueva Postulación" | Botón "Editar CV Base" |
+|----------|---------------------------|------------------------|
+| NO existe CV base | ❌ Oculto | ✅ Visible (crear) |
+| YA existe CV base | ✅ Visible | ✅ Visible (editar) |
 
 ### AppCard Minimalista (Nueva)
 
@@ -210,21 +228,65 @@ const stepRef = useFadeInUp({ duration: 400 });
 
 ## 4. CV Base (`/client/applications/base-cv`)
 
-### Diseño Propuesto
+### Dos Modos
+
+Esta página funciona tanto para **crear** como para **editar** el CV base:
+
+| Modo | Cuándo | Acción |
+|------|--------|--------|
+| Crear | No existe CV base en BD | Formulario vacío con "Crear CV Base" |
+| Editar | Ya existe CV base | Formulario precargado con "Guardar Cambios" |
+
+### Diseño - Modo Crear (Primera vez)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│  ◀ Volver   │  MI CV BASE                               [Evaluación: 92%] │
+│  ◀ Volver   │  CREAR MI CV BASE                                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │             │                                                                     │
 │             │  ┌─────────────────────────────────────────────────────────────┐ │
-│             │  │  ⚠️ Tu CV base necesita mejoras para aplicaciones ATS     │ │
+│             │  │  ⚠️ Tu CV base es requerido para crear postulaciones     │ │
 │             │  │                                                              │ │
-│             │  │  • Añade más palabras clave técnicas                      │ │
-│             │  │  • Expande la sección de experiencia                      │ │
-│             │  │  • Añade métricas y logros cuantificables                 │ │
+│             │  │  Este CV se usará como base para generar CVs 100% ATS    │ │
+│             │  │  específicos para cada oferta de trabajo.                 │ │
+│             │  └─────────────────────────────────────────────────────────────┘ │
+│             │                                                                     │
+│             │  ┌─────────────────────────────────────────────────────────────┐ │
+│             │  │ Nombre completo *               [________________]        │ │
+│             │  │ Email *                         [________________]        │ │
+│             │  │ Teléfono                        [________________]        │ │
+│             │  │ Ubicación                       [________________]        │ │
+│             │  │ LinkedIn                        [________________]        │ │
+│             │  │                                                          │ │
+│             │  │ Resumen profesional *                                        │ │
+│             │  │ ┌────────────────────────────────────────────────────┐    │ │
+│             │  │ │  Experienced developer with 5+ years...          │    │ │
+│             │  │ └────────────────────────────────────────────────────┘    │ │
+│             │  │                                                          │ │
+│             │  │ Experiencia laboral *                                        │ │
+│             │  │ ┌────────────────────────────────────────────────────┐    │ │
+│             │  │ │  Company — Role (Year-Year)                      │    │ │
+│             │  │ │  • Logro cuantificable...                       │    │ │
+│             │  │ └────────────────────────────────────────────────────┘    │ │
+│             │  │                                                          │ │
+│             │  │ [Crear mi CV Base]                                      │ │
+│             │  └─────────────────────────────────────────────────────────────┘ │
+│             │                                                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Diseño - Modo Editar (Ya existe)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  ◀ Volver   │  EDITAR MI CV BASE                     [Evaluación: 92%]   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│             │                                                                     │
+│             │  ┌─────────────────────────────────────────────────────────────┐ │
+│             │  │  📊 Evaluación ATS: 92% - ¡Excelente!                   │ │
 │             │  │                                                              │ │
-│             │  │  [Volver a evaluar]                                        │ │
+│             │  │  Tu CV base está listo para generar postulaciones.        │ │
+│             │  │  Puedes editarlo cuando quieras para mantenerlo al día.  │ │
 │             │  └─────────────────────────────────────────────────────────────┘ │
 │             │                                                                     │
 │             │  ┌─────────────────────────────────────────────────────────────┐ │
@@ -242,7 +304,7 @@ const stepRef = useFadeInUp({ duration: 400 });
 │             │  │  │  Experienced developer with 5+ years...          │    │ │
 │             │  │  └────────────────────────────────────────────────────┘    │ │
 │             │  │                                                              │ │
-│             │  │  [Guardar CV Base]                                         │ │
+│             │  │  [Guardar Cambios]     [← Volver a Postulaciones]       │ │
 │             │  └─────────────────────────────────────────────────────────────┘ │
 │             │                                                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -377,12 +439,13 @@ tl
 
 | # | Regla | Descripción |
 |---|-------|-------------|
-| 1 | CV Base Obligatorio | No se puede crear postulación sin CV base >85% ATS |
-| 2 | Oferta es Central | La JobOffer se guarda primero, luego se genera CV match |
-| 3 | CV Match 100% ATS | IA genera CV específico para cada oferta |
-| 4 | Entrevista Opcional | El usuario decide si genera y guarda la entrevista |
-| 5 | Sin Edición Post-Creación | Una vez creada, solo se puede eliminar |
-| 6 | Limpieza Visual | Cada página tiene una responsabilidad única |
+| 1 | CV Base: Primera vez obligatorio | La primera vez, el usuario debe crear un CV base. Luego puede editarlo cuando desee. |
+| 2 | Postulaciones requieren CV base | Para crear una postulación, debe existir un CV base en BD. Si no existe, se redirige a crearlo. |
+| 3 | Oferta es Central | La JobOffer se guarda primero, luego se genera CV match |
+| 4 | CV Match 100% ATS | IA genera CV específico para cada oferta |
+| 5 | Entrevista Opcional | El usuario decide si genera y guarda la entrevista |
+| 6 | Sin Edición Post-Creación | Una vez creada la postulación, solo se puede eliminar |
+| 7 | Limpieza Visual | Cada página tiene una responsabilidad única |
 
 ---
 
@@ -401,28 +464,34 @@ Todos los endpoints de F035 se mantienen.
 ## Checklist de Implementación
 
 ### Fase 1: Estructura
-- [ ] Crear rutas en `/app/client/applications/`
-- [ ] Implementar Layout con breadcrumbs
-- [ ] Agregar skeleton loaders
+- [x] Crear rutas en `/app/client/applications/`
+- [x] Implementar Layout con breadcrumbs
+- [x] Agregar skeleton loaders
+- [ ] **IMPLEMENTAR: Flujo correcto de CV Base**
+  - [ ] Listing: Si NO existe CV base → mostrar banner + botón "Crear CV Base"
+  - [ ] Listing: Si YA existe CV base → mostrar botón "Nueva postulación" + "Editar CV Base"
+  - [ ] /new: Si NO existe CV base → redirigir a /base-cv
+  - [ ] /base-cv: Si YA existe → modo editar (prellenar formulario)
+  - [ ] /base-cv: Si NO existe → modo crear (formulario vacío)
 
 ### Fase 2: Listado
-- [ ] Refactorizar AppCard minimalista
-- [ ] Agregar animaciones de entrada (stagger)
-- [ ] Implementar filtros con animate open/close
+- [x] Refactorizar AppCard minimalista
+- [x] Agregar animaciones de entrada (stagger)
+- [x] Implementar filtros con animate open/close
 
 ### Fase 3: Detalle
-- [ ] Migrar InterviewSimulator desde AppCard
-- [ ] Agregar animaciones de secciones
-- [ ] Implementar modal de eliminación
+- [x] Migrar InterviewSimulator desde AppCard
+- [x] Agregar animaciones de secciones
+- [x] Implementar modal de eliminación
 
 ### Fase 4: Creación (Wizard)
-- [ ] Crear formulario paso a paso
-- [ ] Validaciones en tiempo real
-- [ ] Animaciones de transición entre pasos
+- [x] Crear formulario paso a paso
+- [x] Validaciones en tiempo real
+- [x] Animaciones de transición entre pasos
 
 ### Fase 5: Detalles
-- [ ] Empty states con animaciones
-- [ ] Responsive design mobile
+- [x] Empty states con animaciones
+- [x] Responsive design mobile
 - [ ] Testing de animaciones
 
 ---

@@ -23,10 +23,13 @@ export default function BaseCVPage() {
 
   const {
     baseCV,
+    cvComplete,
     loadApps,
     toast,
     showToast,
   } = useApplications({ authLoading, user });
+
+  const isEditing = !!cvComplete;
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -49,13 +52,28 @@ export default function BaseCVPage() {
       <PermissionGate module="applications">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
           <div ref={headerRef} className="py-10 border-b border-slate-200 dark:border-slate-800/60 mb-8">
-            <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-slate-400 mb-2">
-              {t.applications.moduleLabel}
-            </p>
-            <h1 className="font-mono text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight">
-              {t.applications.baseCVPageTitle}
-            </h1>
-            <p className="font-mono text-[12px] text-slate-400 mt-3">{t.applications.baseCVPageSubtitle}</p>
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-slate-400 mb-2">
+                  {t.applications.moduleLabel}
+                </p>
+                <h1 className="font-mono text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight">
+                  {isEditing ? t.applications.editBaseCV : t.applications.createBaseCV}
+                </h1>
+                <p className="font-mono text-[12px] text-slate-400 mt-3">{t.applications.baseCVPageSubtitle}</p>
+              </div>
+              {isEditing && (
+                <button
+                  onClick={() => router.push('/client/applications')}
+                  className="btn-secondary text-[11px] py-2.5 px-5 flex items-center gap-2"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                  {t.applications.backToApplications}
+                </button>
+              )}
+            </div>
           </div>
 
           <BaseCVForm

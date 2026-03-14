@@ -18,12 +18,17 @@ export const applicationsES = {
     cvBaseIncompleteTitle: 'CV Base incompleto',
     cvBaseIncompleteDesc: 'Configura tu CV Base antes de crear postulaciones. Puedes subir tu CV en PDF y la IA extraerá los datos automáticamente.',
     cvBaseConfigureBtn: 'Configurar →',
+    createBaseCV: 'Crear CV Base',
+    editBaseCV: 'Editar CV Base',
+    cvBaseRequiredTitle: 'Necesitas un CV base para crear postulaciones',
+    cvBaseRequiredDesc: 'El CV base se usará como plantilla para generar CVs 100% ATS específicos para cada oferta.',
 
     // List tab
     loadingApps: 'Cargando postulaciones...',
     noApps: 'No hay postulaciones aún.',
     createFirstApp: '+ Crear primera postulación',
     configureCVFirst: 'Configurar CV Base primero',
+    backToApplications: '← Volver a Postulaciones',
 
     // Status
     statusPending: 'Pendiente',
@@ -241,11 +246,16 @@ export const applicationsEN = {
     cvBaseIncompleteTitle: 'Base CV incomplete',
     cvBaseIncompleteDesc: 'Set up your Base CV before creating applications. You can upload your CV as a PDF and AI will extract your data automatically.',
     cvBaseConfigureBtn: 'Set up →',
+    createBaseCV: 'Create Base CV',
+    editBaseCV: 'Edit Base CV',
+    cvBaseRequiredTitle: 'You need a Base CV to create applications',
+    cvBaseRequiredDesc: 'The Base CV will be used as a template to generate 100% ATS CVs specific to each job offer.',
 
     loadingApps: 'Loading applications...',
     noApps: 'No applications yet.',
     createFirstApp: '+ Create first application',
     configureCVFirst: 'Set up Base CV first',
+    backToApplications: '← Back to Applications',
 
     statusPending: 'Pending',
     statusInProcess: 'In process',
