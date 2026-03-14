@@ -52,5 +52,3 @@ export const telegramEN = {
     confirmBtn: 'Got it, I know how to get it',
   },
 } as const;
-
-export const telegramTranslations: Record<Locale, typeof telegramES> = { es: telegramES, en: telegramEN };

@@ -6,10 +6,10 @@ import { UsersModule } from '../users/users.module';
 
 import { ApplicationsController } from './applications.controller';
 import { ApplicationsService } from './applications.service';
-import { ApplicationEntity, BaseCvEntity } from './entities/application.entity';
+import { ApplicationEntity, BaseCvEntity, JobOfferEntity } from './entities/application.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ApplicationEntity, BaseCvEntity]), UsersModule],
+  imports: [TypeOrmModule.forFeature([ApplicationEntity, BaseCvEntity, JobOfferEntity]), UsersModule],
   providers: [ApplicationsService, JwtAuthGuard],
   controllers: [ApplicationsController],
   exports: [ApplicationsService],

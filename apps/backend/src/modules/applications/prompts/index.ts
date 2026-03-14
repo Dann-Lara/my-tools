@@ -4,3 +4,4 @@ export * from './answerInterviewQuestions.prompts';
 export * from './extractCvFromText.prompts';
 export * from './evaluateBaseCV.prompts';
 export * from './generateFeedback.prompts';
+export * from './interviewSimulator.prompts';

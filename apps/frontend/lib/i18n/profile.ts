@@ -57,5 +57,3 @@ export const profileEN = {
     systemAlertsDesc: 'As superadmin, you will receive system notifications on Telegram: critical errors, high AI error rate, and platform status summaries. Make sure your Chat ID is configured.',
   },
 } as const;
-
-export const profileTranslations: Record<Locale, typeof profileES> = { es: profileES, en: profileEN };

@@ -111,6 +111,34 @@ export interface CvEvaluationResult {
   approved: boolean; // score >= 85
 }
 
+// ── Job Offer ─────────────────────────────────────────────────────────────────
+export class CreateJobOfferDto {
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(200) company!: string;
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(200) position!: string;
+  @ApiProperty() @IsString() @MinLength(10) description!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() requirements?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) location?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) salary?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500) sourceUrl?: string;
+}
+
+// ── Interview Simulator (AI) ───────────────────────────────────────────────────
+export class GenerateInterviewSimulatorDto {
+  @ApiProperty({ description: 'Application id' })
+  @IsString() @MinLength(1) applicationId!: string;
+  
+  @ApiPropertyOptional() @IsOptional() @IsString() lang?: string;
+}
+
+export interface InterviewQuestion {
+  question: string;
+  answer: string;
+}
+
+export interface InterviewSimulatorResult {
+  questions: InterviewQuestion[];
+}
+
 // ── Answer interview questions (AI) ─────────────────────────────────────────
 export class AnswerInterviewDto {
   @ApiProperty({ description: 'Application id' })

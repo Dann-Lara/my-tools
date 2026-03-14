@@ -35,17 +35,18 @@ export type Messages =
   typeof applicationsES;
 
 // ── Merged translations ──────────────────────────────────────────────────────
-const es: Messages = {
+// Using type assertion to allow ES and EN to have compatible structure
+const es = {
   ...commonES, ...authES, ...homeES,
   ...dashboardES, ...usersES, ...profileES,
   ...checklistES, ...telegramES, ...applicationsES,
-};
+} as unknown as Messages;
 
-const en: Messages = {
+const en = {
   ...commonEN, ...authEN, ...homeEN,
   ...dashboardEN, ...usersEN, ...profileEN,
   ...checklistEN, ...telegramEN, ...applicationsEN,
-};
+} as unknown as Messages;
 
 export const translations: Record<Locale, Messages> = { es, en };
 

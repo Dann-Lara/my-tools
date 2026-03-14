@@ -69,5 +69,3 @@ export const commonEN = {
     rights: 'All rights reserved', madeWith: 'Built with',
   },
 } as const;
-
-export const commonTranslations: Record<Locale, typeof commonES> = { es: commonES, en: commonEN };

@@ -3,13 +3,14 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { ApplicationsService } from './applications.service';
-import { ApplicationEntity, BaseCvEntity } from './entities/application.entity';
+import { ApplicationEntity, BaseCvEntity, JobOfferEntity } from './entities/application.entity';
 import { esc, extractJson, cleanCvText } from './applications.utils';
 
 describe('ApplicationsService', () => {
   let service: ApplicationsService;
   let appRepo: jest.Mocked<Repository<ApplicationEntity>>;
   let cvRepo: jest.Mocked<Repository<BaseCvEntity>>;
+  let jobOfferRepo: jest.Mocked<Repository<JobOfferEntity>>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -35,12 +36,22 @@ describe('ApplicationsService', () => {
             save: jest.fn(),
           },
         },
+        {
+          provide: getRepositoryToken(JobOfferEntity),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<ApplicationsService>(ApplicationsService);
     appRepo = module.get(getRepositoryToken(ApplicationEntity));
     cvRepo = module.get(getRepositoryToken(BaseCvEntity));
+    jobOfferRepo = module.get(getRepositoryToken(JobOfferEntity));
   });
 
   describe('getBaseCV', () => {
