@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '../../../../lib/i18n-context';
 import { useAuth } from '../../../../hooks/useAuth';
@@ -23,12 +23,20 @@ export default function NewApplicationPage() {
 
   const {
     cvComplete,
+    baseCVLoading,
+    loadBaseCV,
     loadApps,
     toast,
     showToast,
   } = useApplications({ authLoading, user });
 
-  if (authLoading || !user) {
+  useEffect(() => {
+    if (user) {
+      loadBaseCV();
+    }
+  }, [user, loadBaseCV]);
+
+  if (authLoading || !user || baseCVLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <Spinner />
