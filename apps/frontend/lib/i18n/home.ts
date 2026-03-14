@@ -35,5 +35,3 @@ export const homeEN = {
     docsTitle: 'API Documentation', docsCta: 'Open Swagger →',
   },
 } as const;
-
-export const homeTranslations: Record<Locale, typeof homeES> = { es: homeES, en: homeEN };

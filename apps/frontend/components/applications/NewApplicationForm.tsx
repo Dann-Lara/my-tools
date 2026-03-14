@@ -46,15 +46,15 @@ function printATS(cvText: string, lang: 'es' | 'en', position: string, company: 
   win.document.write(`<!DOCTYPE html>
 <html lang="${lang}"><head><meta charset="UTF-8"/><title></title>
 <style>
-@page { margin: 0; size: Letter; }
+@page { margin: 0.75in; size: Letter; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, Helvetica, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #000; background: #fff; padding: 0.65in 0.75in; }
-h2 { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.22in; margin-bottom: 0.04in; break-after: avoid; page-break-after: avoid; }
-p { margin-bottom: 0.03in; break-inside: avoid; }
-p.role { font-weight: bold; margin-top: 0.06in; margin-bottom: 0.02in; break-after: avoid; page-break-after: avoid; }
-p.bullet { padding-left: 0.18in; text-indent: -0.18in; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; padding: 0; max-width: 8.5in; }
+h2 { font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 14pt; margin-bottom: 6pt; break-after: avoid; page-break-after: avoid; }
+p { margin-bottom: 4pt; break-inside: avoid; }
+p.role { font-weight: bold; margin-top: 8pt; margin-bottom: 2pt; break-after: avoid; page-break-after: avoid; }
+p.bullet { padding-left: 18pt; text-indent: -18pt; }
 p.bullet::before { content: "- "; }
-div.gap { height: 0.04in; }
+div.gap { height: 6pt; }
 </style></head>
 <body>${htmlLines.join('\n')}</body></html>`);
   win.document.close();
@@ -88,7 +88,15 @@ interface Props {
 export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t }: Props) {
   const ta = t.applications;
 
-  const [form, setForm] = useState({ company: '', position: '', jobOffer: '', appliedFrom: '' });
+  const [form, setForm] = useState({ 
+    company: '', 
+    position: '', 
+    jobOffer: '', 
+    appliedFrom: '',
+    location: '',
+    salary: '',
+    sourceUrl: '',
+  });
   const [generating, setGen] = useState(false);
   const [genError, setErr] = useState('');
   const [atsScore, setScore] = useState<number | null>(null);
@@ -124,7 +132,14 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t }: Pro
       const res = await fetch('/api/applications/generate-cv', {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ company: form.company, position: form.position, jobOffer: form.jobOffer }),
+        body: JSON.stringify({ 
+          company: form.company, 
+          position: form.position, 
+          jobOffer: form.jobOffer,
+          location: form.location,
+          salary: form.salary,
+          sourceUrl: form.sourceUrl,
+        }),
       });
       if (!res.ok)
         throw new Error(
@@ -189,7 +204,7 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t }: Pro
   }
 
   function finish() {
-    setForm({ company: '', position: '', jobOffer: '', appliedFrom: '' });
+    setForm({ company: '', position: '', jobOffer: '', appliedFrom: '', location: '', salary: '', sourceUrl: '' });
     setCvEn('');
     setCvEs('');
     setScore(null);
@@ -236,6 +251,42 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t }: Pro
                 />
               </div>
             ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1.5">
+                {ta.fieldLocation ?? 'Ubicación'}
+              </label>
+              <input
+                value={form.location}
+                onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
+                placeholder={ta.fieldLocationPlaceholder ?? 'Ciudad, País'}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1.5">
+                {ta.fieldSalary ?? 'Salario'}
+              </label>
+              <input
+                value={form.salary}
+                onChange={(e) => setForm((p) => ({ ...p, salary: e.target.value }))}
+                placeholder={ta.fieldSalaryPlaceholder ?? '\$100k - \$150k'}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1.5">
+                {ta.fieldSourceUrl ?? 'URL de la oferta'}
+              </label>
+              <input
+                value={form.sourceUrl}
+                onChange={(e) => setForm((p) => ({ ...p, sourceUrl: e.target.value }))}
+                placeholder={ta.fieldSourceUrlPlaceholder ?? 'https://...'}
+                className="input-field"
+              />
+            </div>
           </div>
 
           <div>

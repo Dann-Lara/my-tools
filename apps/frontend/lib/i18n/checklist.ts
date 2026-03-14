@@ -169,5 +169,3 @@ export const checklistEN = {
     save: 'Save',
   },
 } as const;
-
-export const checklistTranslations: Record<Locale, typeof checklistES> = { es: checklistES, en: checklistEN };

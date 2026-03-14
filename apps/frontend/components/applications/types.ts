@@ -2,6 +2,18 @@
 export type AppStatus = 'pending' | 'accepted' | 'rejected' | 'in_process';
 export type Tab = 'list' | 'new' | 'base-cv' | 'dashboard';
 
+export interface JobOffer {
+  id: string;
+  company: string;
+  position: string;
+  description: string;
+  requirements?: string;
+  location?: string;
+  salary?: string;
+  sourceUrl?: string;
+  createdAt?: string;
+}
+
 export interface BaseCV {
   fullName: string;
   email: string;
@@ -23,6 +35,7 @@ export interface Application {
   appliedAt: string;
   status: AppStatus;
   jobOffer: string;
+  jobOfferId?: string;
   atsScore?: number;
   cvGenerated?: boolean;
   cvGeneratedEs?: string;
@@ -30,6 +43,8 @@ export interface Application {
   appliedFrom?: string;
   interviewQuestions?: string;
   interviewAnswers?: string;
+  interviewGeneratedAt?: string;
+  jobOfferData?: JobOffer;
 }
 
 export interface CvEvalResult {

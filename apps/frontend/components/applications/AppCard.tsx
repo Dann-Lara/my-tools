@@ -70,45 +70,46 @@ function printATS(cvText: string, lang: 'es' | 'en', position: string, company: 
   win.document.write(`<!DOCTYPE html>
 <html lang="${lang}"><head><meta charset="UTF-8"/><title></title>
 <style>
-@page { margin: 0; size: Letter; }
+@page { margin: 0.75in; size: Letter; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 10.5pt;
-  line-height: 1.45;
+  font-size: 11pt;
+  line-height: 1.5;
   color: #000;
   background: #fff;
-  padding: 0.65in 0.75in;
+  padding: 0;
+  max-width: 8.5in;
 }
 h2 {
-  font-size: 10.5pt;
+  font-size: 12pt;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-top: 0.22in;
-  margin-bottom: 0.04in;
+  margin-top: 14pt;
+  margin-bottom: 6pt;
   break-after: avoid;
   page-break-after: avoid;
 }
 p {
-  margin-bottom: 0.03in;
+  margin-bottom: 4pt;
   break-inside: avoid;
 }
 p.role {
   font-weight: bold;
-  margin-top: 0.06in;
-  margin-bottom: 0.02in;
+  margin-top: 8pt;
+  margin-bottom: 2pt;
   break-after: avoid;
   page-break-after: avoid;
 }
 p.bullet {
-  padding-left: 0.18in;
-  text-indent: -0.18in;
+  padding-left: 18pt;
+  text-indent: -18pt;
 }
 p.bullet::before {
   content: "- ";
 }
-div.gap { height: 0.04in; }
+div.gap { height: 6pt; }
 </style></head>
 <body>${htmlLines.join('\n')}</body></html>`);
   win.document.close();

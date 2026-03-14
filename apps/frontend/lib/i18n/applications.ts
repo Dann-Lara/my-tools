@@ -401,8 +401,3 @@ export const applicationsEN = {
     accessDeniedDesc: 'Contact your administrator to enable this module.',
   },
 } as const;
-
-export const applicationsTranslations: Record<string, typeof applicationsES> = {
-  es: applicationsES,
-  en: applicationsEN,
-};

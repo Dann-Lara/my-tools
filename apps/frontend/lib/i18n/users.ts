@@ -35,5 +35,3 @@ export const usersEN = {
     filterRole: 'Filter by role', noUsers: 'No users',
   },
 } as const;
-
-export const usersTranslations: Record<Locale, typeof usersES> = { es: usersES, en: usersEN };

@@ -29,5 +29,3 @@ export const authEN = {
     successSignup: 'Account created! You can now sign in.',
   },
 } as const;
-
-export const authTranslations: Record<Locale, typeof authES> = { es: authES, en: authEN };

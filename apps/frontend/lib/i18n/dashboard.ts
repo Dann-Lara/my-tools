@@ -70,5 +70,3 @@ export const dashboardEN = {
     actions: 'Actions', deactivate: 'Deactivate', activate: 'Activate',
   },
 } as const;
-
-export const dashboardTranslations: Record<Locale, typeof dashboardES> = { es: dashboardES, en: dashboardEN };
