@@ -70,7 +70,13 @@ export class GenerateCvDto {
 
   @ApiProperty({ description: 'Full job offer / description text' })
   @IsString() @MinLength(10) jobOffer!: string;
+
   @ApiPropertyOptional() @IsOptional() @IsString() lang?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() location?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() salary?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() sourceUrl?: string;
+
   /** Optional — ignored by generate-cv, accepted to prevent whitelist rejection */
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) appliedFrom?: string;
 }
