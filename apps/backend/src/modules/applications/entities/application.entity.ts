@@ -83,7 +83,7 @@ export class ApplicationEntity {
   @Column({ length: 200 }) company!: string;
   @Column({ length: 200 }) position!: string;
   /** @deprecated Use jobOffer relation instead - stores full job offer text */
-  @Column({ type: 'text' }) jobOfferText!: string;
+  @Column({ type: 'text', nullable: true }) jobOfferText?: string;
 
   @Column({ type: 'varchar', default: 'pending' })
   status!: ApplicationStatus;
