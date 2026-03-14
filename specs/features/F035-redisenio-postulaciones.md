@@ -1,6 +1,6 @@
 # F035: Rediseño del Módulo de Postulaciones
 
-> Estado: DRAFT
+> Estado: APPROVED
 > Fecha de creación: 2026-03-14
 > Última actualización: 2026-03-14
 
@@ -556,8 +556,30 @@ Requisitos:
 
 ---
 
+## Notas de Implementación
+
+### Decisiones de Diseño
+
+1. **Página de detalle separada**: En lugar de expandir la card en el listado, se creó una página de detalle en `/client/applications/[id]` para mantener el listado limpio.
+
+2. **Entrevista simulada**: Se integra en la página de detalle, accesible desde el botón "Ver detalle" en cada card.
+
+3. **API endpoint**: El endpoint de entrevista simulada usa `POST /api/applications/interview-simulator` con `applicationId` en el body.
+
+### Componentes Creados
+
+- `InterviewSimulator.tsx` - Componente para generar y guardar entrevistas simuladas con IA
+- `app/client/applications/[id]/page.tsx` - Página de detalle de postulación
+
+### Endpoints API
+
+- `POST /api/v1/applications/interview-simulator` - Genera preguntas y respuestas de entrevista
+
+---
+
 ## Historial de Cambios
 
 | Fecha      | Versión | Cambio           | Autor |
 | ---------- | ------- | ---------------- | ----- |
 | 2026-03-14 | 1.0.0   | Creación inicial | —     |
+| 2026-03-14 | 1.0.1   | Implementación completada | —     |
