@@ -547,7 +547,7 @@ export class ApplicationsService {
     const { systemMessage, prompt } = buildInterviewSimulatorPrompts({
       position: app.position,
       company: app.company,
-      jobDescription: app.jobOfferText,
+      jobDescription: app.jobOfferText ?? '',
       tailoredCv: app.cvGeneratedEn ?? app.cvGeneratedEs ?? '',
       skills: baseCV.skills,
       languages: baseCV.languages,
@@ -562,7 +562,7 @@ export class ApplicationsService {
         generateText({
           prompt,
           systemMessage,
-          maxTokens: 4000,
+          maxTokens: 8000,
           temperature: 0.5,
         }),
       2,
