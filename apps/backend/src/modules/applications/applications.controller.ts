@@ -13,6 +13,7 @@ import { ApplicationsService } from './applications.service';
 import {
   CreateApplicationDto, EvaluateCvDto, PatchApplicationDto,
   UpsertBaseCvDto, GenerateCvDto, ExtractCvDto, AnswerInterviewDto,
+  GenerateInterviewSimulatorDto,
 } from './dto/application.dto';
 
 @ApiTags('Applications')
@@ -137,5 +138,16 @@ export class ApplicationsController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.svc.adaptCvToSpanish(user.userId, id);
+  }
+
+  @Post('interview-simulator')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Generate simulated interview with 5-7 questions and answers' })
+  generateInterviewSimulator(
+    @CurrentUser() user: JwtUser,
+    @Body() dto: GenerateInterviewSimulatorDto,
+  ) {
+    return this.svc.generateInterviewSimulator(user.userId, dto.applicationId, dto.lang ?? 'es');
   }
 }

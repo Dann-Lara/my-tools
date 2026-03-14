@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { generateText } from '@ai-lab/ai-core';
 import { withRetry } from '@ai-lab/shared';
 
-import { ApplicationEntity, BaseCvEntity } from './entities/application.entity';
+import { ApplicationEntity, BaseCvEntity, JobOfferEntity } from './entities/application.entity';
 import { esc, extractJson, cleanCvText } from './applications.utils';
 import {
   buildGenerateCvPrompts,
@@ -13,6 +13,7 @@ import {
   buildExtractCvFromTextPrompts,
   buildEvaluateBaseCVPrompts,
   buildGenerateFeedbackPrompts,
+  buildInterviewSimulatorPrompts,
 } from './prompts';
 import type {
   CreateApplicationDto,
@@ -47,6 +48,8 @@ export class ApplicationsService {
     private readonly appRepo: Repository<ApplicationEntity>,
     @InjectRepository(BaseCvEntity)
     private readonly cvRepo: Repository<BaseCvEntity>,
+    @InjectRepository(JobOfferEntity)
+    private readonly jobOfferRepo: Repository<JobOfferEntity>,
   ) {}
 
   // ── Base CV ──────────────────────────────────────────────────────────────────
@@ -104,7 +107,7 @@ export class ApplicationsService {
       userId,
       company: dto.company,
       position: dto.position,
-      jobOffer: dto.jobOffer,
+      jobOfferText: dto.jobOffer,
       status: 'pending',
       atsScore: dto.atsScore,
       cvGenerated: dto.generatedCvTextEs ?? dto.generatedCvText,
@@ -524,5 +527,68 @@ export class ApplicationsService {
     );
 
     return { feedback: text.trim() };
+  }
+
+  // ── AI: Interview Simulator ─────────────────────────────────────────────────
+
+  async generateInterviewSimulator(
+    userId: string,
+    appId: string,
+    lang: string,
+  ): Promise<{ questions: { question: string; answer: string }[] }> {
+    const app = await this.findOne(userId, appId);
+    const baseCV = await this.cvRepo.findOne({ where: { userId } });
+
+    if (!baseCV) throw new BadRequestException('Base CV not found');
+    if (!app.cvGeneratedEn && !app.cvGeneratedEs) {
+      throw new BadRequestException('No generated CV found for this application');
+    }
+
+    const { systemMessage, prompt } = buildInterviewSimulatorPrompts({
+      position: app.position,
+      company: app.company,
+      jobDescription: app.jobOfferText,
+      tailoredCv: app.cvGeneratedEn ?? app.cvGeneratedEs ?? '',
+      skills: baseCV.skills,
+      languages: baseCV.languages,
+      certifications: baseCV.certifications,
+      lang,
+    });
+
+    this.logger.log(`Generating interview simulator: ${app.position} @ ${app.company}`);
+
+    const result = await withRetry(
+      async () =>
+        generateText({
+          prompt,
+          systemMessage,
+          maxTokens: 4000,
+          temperature: 0.5,
+        }),
+      2,
+      2000,
+    );
+
+    const parsed = extractJson<{ questions: { question: string; answer: string }[] }>(result.text);
+
+    if (!parsed || !parsed.questions || !Array.isArray(parsed.questions)) {
+      this.logger.error('[interviewSimulator] unparseable: ' + result.text.slice(0, 300));
+      throw new Error('AI returned unparseable interview response');
+    }
+
+    // Save to application
+    const questionsText = parsed.questions.map((q, i) => `${i + 1}. ${q.question}`).join('\n');
+    const answersText = parsed.questions.map((q) => q.answer).join('\n\n');
+
+    await this.appRepo.update(
+      { id: appId, userId },
+      {
+        interviewQuestions: questionsText,
+        interviewAnswers: answersText,
+        interviewGeneratedAt: new Date(),
+      },
+    );
+
+    return { questions: parsed.questions };
   }
 }
