@@ -28,7 +28,7 @@ export const applicationsES = {
     noApps: 'No hay postulaciones aún.',
     createFirstApp: '+ Crear primera postulación',
     configureCVFirst: 'Configurar CV Base primero',
-    backToApplications: '← Volver a Postulaciones',
+    backToApplications: 'Volver a Postulaciones',
 
     // Status
     statusPending: 'Pendiente',
@@ -255,7 +255,7 @@ export const applicationsEN = {
     noApps: 'No applications yet.',
     createFirstApp: '+ Create first application',
     configureCVFirst: 'Set up Base CV first',
-    backToApplications: '← Back to Applications',
+    backToApplications: 'Back to Applications',
 
     statusPending: 'Pending',
     statusInProcess: 'In process',

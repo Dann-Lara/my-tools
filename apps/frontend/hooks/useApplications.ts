@@ -19,6 +19,7 @@ interface UseApplicationsOptions {
 interface UseApplicationsReturn {
   apps: Application[];
   appsLoading: boolean;
+  baseCVLoading: boolean;
   baseCV: BaseCV;
   loadApps: () => Promise<void>;
   loadBaseCV: () => Promise<void>;
@@ -42,6 +43,7 @@ export function useApplications({ authLoading, user }: UseApplicationsOptions): 
 
   const [apps, setApps] = useState<Application[]>([]);
   const [appsLoading, setAppsLoading] = useState(true);
+  const [baseCVLoading, setBaseCVLoading] = useState(true);
   const [baseCV, setBaseCV] = useState<BaseCV>(EMPTY_CV);
   const [toast, setToast] = useState<{ msg: string; type: 'ok' | 'err' } | null>(null);
 
@@ -66,6 +68,7 @@ export function useApplications({ authLoading, user }: UseApplicationsOptions): 
   }, []);
 
   const loadBaseCV = useCallback(async () => {
+    setBaseCVLoading(true);
     try {
       const res = await fetch('/api/applications/base-cv', { headers: getHeaders() });
       if (res.ok) {
@@ -73,6 +76,7 @@ export function useApplications({ authLoading, user }: UseApplicationsOptions): 
         if (data?.fullName !== undefined) {
           setBaseCV({ ...EMPTY_CV, ...data });
           localStorage.setItem('ailab_base_cv', JSON.stringify(data));
+          setBaseCVLoading(false);
           return;
         }
       }
@@ -81,6 +85,7 @@ export function useApplications({ authLoading, user }: UseApplicationsOptions): 
       const raw = localStorage.getItem('ailab_base_cv');
       if (raw) setBaseCV({ ...EMPTY_CV, ...JSON.parse(raw) as BaseCV });
     } catch { /* defaults */ }
+    setBaseCVLoading(false);
   }, []);
 
   useEffect(() => {
@@ -129,6 +134,7 @@ export function useApplications({ authLoading, user }: UseApplicationsOptions): 
   return {
     apps,
     appsLoading,
+    baseCVLoading,
     baseCV,
     loadApps,
     loadBaseCV,

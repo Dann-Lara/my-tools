@@ -29,6 +29,7 @@ export default function ApplicationsPage() {
   const {
     apps,
     appsLoading,
+    baseCVLoading,
     baseCV,
     loadApps,
     loadBaseCV,
@@ -50,7 +51,7 @@ export default function ApplicationsPage() {
     }
   }, [user, loadBaseCV]);
 
-  if (authLoading || !user) {
+  if (authLoading || !user || baseCVLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <Spinner />
