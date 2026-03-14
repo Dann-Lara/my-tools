@@ -225,7 +225,11 @@ export function AppCard({
       await fetch(`/api/applications/${app.id}`, {
         method: 'PATCH',
         headers: getHeaders(),
-        body: JSON.stringify({ interviewQuestions: questions, interviewAnswers: answers }),
+        body: JSON.stringify({ 
+          interviewQuestions: JSON.stringify(questions), 
+          interviewAnswers: JSON.stringify(answers),
+          interviewGeneratedAt: new Date().toISOString(),
+        }),
       });
       onUpdate(app.id, { interviewQuestions: questions, interviewAnswers: answers });
     } catch {
