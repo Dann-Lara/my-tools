@@ -1,6 +1,6 @@
 # F036: UX/UI Refactor - Módulo de Postulaciones (Innovación)
 
-> Estado: DRAFT
+> Estado: APPROVED
 > Fecha de creación: 2026-03-14
 > Versión: 1.0.0
 > Reemplaza: F035 (parcialmente)
@@ -467,12 +467,12 @@ Todos los endpoints de F035 se mantienen.
 - [x] Crear rutas en `/app/client/applications/`
 - [x] Implementar Layout con breadcrumbs
 - [x] Agregar skeleton loaders
-- [ ] **IMPLEMENTAR: Flujo correcto de CV Base**
-  - [ ] Listing: Si NO existe CV base → mostrar banner + botón "Crear CV Base"
-  - [ ] Listing: Si YA existe CV base → mostrar botón "Nueva postulación" + "Editar CV Base"
-  - [ ] /new: Si NO existe CV base → redirigir a /base-cv
-  - [ ] /base-cv: Si YA existe → modo editar (prellenar formulario)
-  - [ ] /base-cv: Si NO existe → modo crear (formulario vacío)
+- [x] **IMPLEMENTAR: Flujo correcto de CV Base**
+  - [x] Listing: Si NO existe CV base → mostrar banner + botón "Crear CV Base"
+  - [x] Listing: Si YA existe CV base → mostrar botón "Nueva postulación" + "Editar CV Base"
+  - [x] /new: Si NO existe CV base → redirigir a /base-cv
+  - [x] /base-cv: Si YA existe → modo editar (prellenar formulario)
+  - [x] /base-cv: Si NO existe → modo crear (formulario vacío)
 
 ### Fase 2: Listado
 - [x] Refactorizar AppCard minimalista
@@ -568,3 +568,4 @@ apps/frontend/lib/i18n/
 | Fecha | Versión | Cambio | Autor |
 |-------|---------|--------|-------|
 | 2026-03-14 | 1.0.0 | Versión inicial del spec | - |
+| 2026-03-14 | 1.0.1 | Corregir flujo de CV Base - crear vs editar | - |
