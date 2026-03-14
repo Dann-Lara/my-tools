@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useI18n } from '../../../../lib/i18n-context';
 import { useAuth } from '../../../../hooks/useAuth';
@@ -55,7 +56,17 @@ export default function NewApplicationPage() {
     <DashboardLayout variant={variant} user={user} title={t.applications.tabNew}>
       <PermissionGate module="applications">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
-          <div ref={headerRef} className="py-10 border-b border-slate-200 dark:border-slate-800/60 mb-8">
+          <Link
+            href="/client/applications"
+            className="inline-flex items-center gap-2 font-mono text-[11px] text-slate-500 hover:text-sky-500 dark:text-slate-400 dark:hover:text-sky-400 mb-6 transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            {t.applications.backToApplications}
+          </Link>
+
+          <div ref={headerRef} className="py-6 border-b border-slate-200 dark:border-slate-800/60 mb-8">
             <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-slate-400 mb-2">
               {t.applications.moduleLabel}
             </p>

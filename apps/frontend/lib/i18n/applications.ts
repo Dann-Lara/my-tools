@@ -9,7 +9,7 @@ export const applicationsES = {
 
     // Tabs
     tabList: 'Listado',
-    tabNew: '+ Nueva postulación',
+    tabNew: 'Nueva postulación',
     newAppSubtitle: 'Crea una nueva postulación con CV 100% optimizado para ATS',
     tabBaseCV: 'CV Base',
     tabDashboard: 'Dashboard IA',
@@ -238,7 +238,7 @@ export const applicationsEN = {
     pageSubtitle: 'Manage your job applications and generate ATS-optimized CVs with AI.',
 
     tabList: 'List',
-    tabNew: '+ New application',
+    tabNew: 'New application',
     newAppSubtitle: 'Create a new application with 100% ATS-optimized CV',
     tabBaseCV: 'Base CV',
     tabDashboard: 'AI Dashboard',
