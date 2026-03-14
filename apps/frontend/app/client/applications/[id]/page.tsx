@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useI18n } from '../../../../lib/i18n-context';
 import { useAuth } from '../../../../hooks/useAuth';
@@ -18,7 +18,6 @@ export default function ApplicationDetailPage() {
   const { t, locale } = useI18n();
   const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
   const params = useParams();
-  const router = useRouter();
   const headerRef = useFadeInUp<HTMLDivElement>({ delay: 0, duration: 500 });
 
   const [app, setApp] = useState<Application | null>(null);
@@ -164,11 +163,9 @@ export default function ApplicationDetailPage() {
                   <h2 className="font-mono text-[11px] uppercase tracking-widest text-slate-500 mb-4">
                     {t.applications.detailJobOffer}
                   </h2>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="font-mono text-[10.5px] text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                      {app.jobOffer}
-                    </p>
-                  </div>
+                  <p className="font-mono text-[10.5px] text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                    {app.jobOffer}
+                  </p>
                 </div>
               )}
 

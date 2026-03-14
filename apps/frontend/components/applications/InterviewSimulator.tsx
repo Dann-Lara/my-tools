@@ -59,10 +59,11 @@ export function InterviewSimulator({ application, baseCV, onUpdate, t }: Props) 
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`/api/applications/${application.id}/interview-simulator`, {
+      const res = await fetch('/api/applications/interview-simulator', {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
+          applicationId: application.id,
           cvText: baseCV || application.cvGeneratedEn || application.cvGeneratedEs || '',
           jobDescription: application.jobOffer,
           position: application.position,
