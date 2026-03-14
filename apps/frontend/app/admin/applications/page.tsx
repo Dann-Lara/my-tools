@@ -9,7 +9,7 @@ import { DashboardLayout } from '../../../components/ui/DashboardLayout';
 import { PermissionGate } from '../../../components/ui/PermissionGate';
 import { Spinner } from '../../../components/ui/Spinner';
 import { Toast } from '../../../components/ui/Toast';
-import { AppCard, BaseCVForm, NewApplicationForm, AiFeedbackPanel, Tab } from '../../../components/applications';
+import { AppCard, BaseCVForm, NewApplicationForm, AiFeedbackPanel, InterviewSimulator, Tab } from '../../../components/applications';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
@@ -132,12 +132,24 @@ export default function ApplicationsPage() {
               ) : (
                 <div className="space-y-3">
                   {apps.map(app => (
-                    <AppCard key={app.id} app={app}
-                      userRole={user.role}
-                      onStatusChange={updateStatus}
-                      onDelete={deleteApp}
-                      onUpdate={updateApp}
-                      t={t as { applications: Record<string, string> }} />
+                    <div key={app.id}>
+                      <AppCard 
+                        app={app}
+                        userRole={user.role}
+                        onStatusChange={updateStatus}
+                        onDelete={deleteApp}
+                        onUpdate={updateApp}
+                        t={t as { applications: Record<string, string> }} 
+                      />
+                      <div className="mt-3">
+                        <InterviewSimulator 
+                          application={app}
+                          baseCV={baseCV.summary || baseCV.experience || undefined}
+                          onUpdate={updateApp}
+                          t={t as { applications: Record<string, string> }}
+                        />
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
