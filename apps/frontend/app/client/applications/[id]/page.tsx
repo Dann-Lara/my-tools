@@ -50,7 +50,7 @@ export default function ApplicationDetailPage() {
       const res = await fetch('/api/applications/base-cv', { headers: getHeaders() });
       if (res.ok) {
         const data = (await res.json()) as BaseCV;
-        if (data?.fullName !== undefined) {
+        if (data?.cvText !== undefined) {
           setBaseCV({ ...EMPTY_CV, ...data });
         }
       }
@@ -240,7 +240,7 @@ export default function ApplicationDetailPage() {
               {/* Interview Simulator */}
               <InterviewSimulator
                 application={app}
-                baseCV={baseCV.summary || baseCV.experience || undefined}
+                baseCV={baseCV.cvText || undefined}
                 onUpdate={updateApp}
                 t={t as { applications: Record<string, string> }}
               />
