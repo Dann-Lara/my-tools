@@ -12,6 +12,7 @@ import {
   buildAnswerInterviewQuestionsPrompts,
   buildExtractCvFromTextPrompts,
   buildEvaluateBaseCVPrompts,
+  buildEvaluateCvGlobalPrompts,
   buildGenerateFeedbackPrompts,
   buildInterviewSimulatorPrompts,
 } from './prompts';
@@ -22,7 +23,9 @@ import type {
   GenerateCvDto,
   ExtractCvDto,
   EvaluateCvDto,
+  EvaluateCvGlobalDto,
   CvEvaluationResult,
+  CvEvaluationGlobalResult,
 } from './dto/application.dto';
 
 const CV_FIELDS = [
@@ -59,35 +62,46 @@ export class ApplicationsService {
     if (existing) return existing;
     return this.cvRepo.create({
       userId,
-      fullName: '',
-      email: '',
-      phone: '',
-      location: '',
-      linkedIn: '',
-      summary: '',
-      experience: '',
-      education: '',
-      skills: '',
-      languages: '',
-      certifications: '',
+      cvText: '',
     });
   }
 
-  async upsertBaseCV(
-    userId: string,
-    dto: UpsertBaseCvDto & { cvScore?: number },
-  ): Promise<BaseCvEntity> {
-    // Enforce minimum quality gate — clients must evaluate before saving
-    if (typeof dto.cvScore === 'number' && dto.cvScore < 85) {
-      throw new BadRequestException(
-        `CV quality score is ${dto.cvScore}/100. A score of at least 85 is required to save.`,
-      );
-    }
+  async upsertBaseCV(userId: string, dto: UpsertBaseCvDto): Promise<BaseCvEntity> {
     let entity = await this.cvRepo.findOne({ where: { userId } });
     if (!entity) entity = this.cvRepo.create({ userId });
-    const { cvScore: _ignored, ...cvData } = dto;
-    Object.assign(entity, cvData);
+    entity.cvText = dto.cvText;
     return this.cvRepo.save(entity);
+  }
+
+  async evaluateCvGlobal(dto: EvaluateCvGlobalDto): Promise<CvEvaluationGlobalResult> {
+    const { systemMessage, prompt } = buildEvaluateCvGlobalPrompts({
+      cvText: dto.cvText,
+      lang: dto.lang,
+    });
+
+    this.logger.debug(`[evaluateCvGlobal] evaluating CV (${dto.cvText.length} chars)`);
+
+    const result = await withRetry(
+      async () =>
+        generateText({
+          prompt,
+          systemMessage,
+          temperature: 0.3,
+        }),
+    );
+
+    const parsed = extractJson(result.text) as CvEvaluationGlobalResult | null;
+    const score = parsed?.score ?? 0;
+    const summary = parsed?.summary ?? 'No se pudo evaluar el CV';
+    const suggestions = Array.isArray(parsed?.suggestions) ? parsed.suggestions.slice(0, 3) : [];
+
+    this.logger.log(`[evaluateCvGlobal] score=${score}, suggestions=${suggestions.length}`);
+
+    return {
+      score: Math.min(100, Math.max(0, score)),
+      summary,
+      suggestions,
+    };
   }
 
   // ── Applications CRUD ─────────────────────────────────────────────────────
@@ -146,48 +160,17 @@ export class ApplicationsService {
     dto: GenerateCvDto,
   ): Promise<{ atsScore: number; cv: string; lang: 'es' | 'en' }> {
     const baseCV = await this.cvRepo.findOne({ where: { userId } });
-    if (!baseCV || !baseCV.fullName || (!baseCV.experience && !baseCV.summary)) {
+    if (!baseCV || !baseCV.cvText || baseCV.cvText.length < 50) {
       throw new BadRequestException(
-        'Base CV is incomplete. Please fill in name, email and experience/summary before generating.',
+        'Base CV is empty. Please add your CV text before generating.',
       );
     }
-
-    // ── Build structured candidate profile — NO esc() needed ──────────────
-    // We use SystemMessage/HumanMessage directly (no LangChain template parsing),
-    // so curly braces in the candidate's text are safe as-is.
-    const candidate = [
-      `FULL NAME: ${baseCV.fullName}`,
-      `EMAIL: ${baseCV.email}`,
-      `PHONE: ${baseCV.phone}`,
-      `LOCATION: ${baseCV.location}`,
-      baseCV.linkedIn ? `LINKEDIN: ${baseCV.linkedIn}` : '',
-      '',
-      '--- PROFESSIONAL SUMMARY ---',
-      baseCV.summary,
-      '',
-      '--- WORK EXPERIENCE ---',
-      baseCV.experience,
-      '',
-      '--- EDUCATION ---',
-      baseCV.education || '(not provided)',
-      '',
-      '--- TECHNICAL SKILLS ---',
-      baseCV.skills || '(not provided)',
-      '',
-      '--- LANGUAGES ---',
-      baseCV.languages || '(not provided)',
-      '',
-      '--- CERTIFICATIONS ---',
-      baseCV.certifications || '(not provided)',
-    ]
-      .filter((l) => l !== undefined)
-      .join('\n');
 
     const { systemMessage, prompt, detectedLang } = buildGenerateCvPrompts({
       company: dto.company,
       position: dto.position,
       jobOffer: dto.jobOffer,
-      candidate,
+      candidate: baseCV.cvText,
     });
 
     this.logger.log(
@@ -286,9 +269,7 @@ export class ApplicationsService {
       company: esc(app.company),
       questions: esc(questions),
       tailoredCv,
-      skills: esc((baseCV.skills ?? '').slice(0, 500)),
-      languages: esc(baseCV.languages ?? ''),
-      certifications: esc((baseCV.certifications ?? '').slice(0, 300)),
+      baseCvText: esc(baseCV.cvText?.slice(0, 2000) ?? ''),
       lang: lang ?? 'es',
       userRole,
     });
@@ -525,9 +506,7 @@ export class ApplicationsService {
       company: app.company,
       jobDescription: app.jobOfferText ?? '',
       tailoredCv: app.cvGenerated ?? '',
-      skills: baseCV.skills,
-      languages: baseCV.languages,
-      certifications: baseCV.certifications,
+      baseCvText: baseCV.cvText,
       lang,
     });
 

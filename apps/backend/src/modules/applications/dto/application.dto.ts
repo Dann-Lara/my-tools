@@ -7,19 +7,18 @@ import type { ApplicationStatus } from '../entities/application.entity';
 
 // ── Base CV ───────────────────────────────────────────────────────────────────
 export class UpsertBaseCvDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(150) fullName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(150) email?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(50)  phone?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(150) location?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(250) linkedIn?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() summary?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() experience?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() education?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() skills?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(250) languages?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() certifications?: string;
-  /** CV quality score returned by the evaluate endpoint — must be >= 85 to save */
-  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) @Max(100) cvScore?: number;
+  @ApiProperty() @IsString() @MinLength(50) cvText!: string;
+}
+
+export class EvaluateCvGlobalDto {
+  @ApiProperty() @IsString() @MinLength(50) cvText!: string;
+  @ApiProperty({ enum: ['es', 'en'] }) @IsString() lang!: 'es' | 'en';
+}
+
+export interface CvEvaluationGlobalResult {
+  score: number;
+  summary: string;
+  suggestions: string[];
 }
 
 // ── Create Application ────────────────────────────────────────────────────────

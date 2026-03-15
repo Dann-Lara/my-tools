@@ -3,9 +3,7 @@ export interface InterviewSimulatorPromptParams {
   company: string;
   jobDescription: string;
   tailoredCv: string;
-  skills: string;
-  languages: string;
-  certifications: string;
+  baseCvText: string;
   lang: string;
 }
 
@@ -17,27 +15,12 @@ export function buildInterviewSimulatorPrompts(
     company,
     jobDescription,
     tailoredCv,
-    skills,
-    languages,
-    certifications,
+    baseCvText,
     lang,
   } = params;
 
   const isEs = (lang ?? 'es') === 'es';
   const langLabel = isEs ? 'Spanish' : 'English';
-
-  const cvContext =
-    '=== TAILORED CV for ' +
-    position +
-    ' @ ' +
-    company +
-    ' ===\n' +
-    tailoredCv +
-    '\n\n' +
-    '=== ADDITIONAL CONTEXT ===\n' +
-    'SKILLS: ' + skills + '\n' +
-    'LANGUAGES: ' + languages + '\n' +
-    'CERTIFICATIONS: ' + certifications;
 
   const systemMessage =
     `You are an expert technical interview coach. Your task is to generate a simulated interview based on the candidate's CV and job offer.
@@ -71,7 +54,11 @@ IMPORTANT: Respond ONLY with valid JSON, no additional text.
 JOB DESCRIPTION:
 ${jobDescription}
 
-${cvContext}
+=== BASE CV ===
+${baseCvText.slice(0, 2000)}
+
+=== TAILORED CV ===
+${tailoredCv}
 
 Generate the simulated interview in JSON format:`;
 

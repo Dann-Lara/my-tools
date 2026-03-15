@@ -44,17 +44,9 @@ export class BaseCvEntity {
   @JoinColumn({ name: 'user_id' })
   user!: UserEntity;
 
-  @Column({ length: 150, default: '' }) fullName!: string;
-  @Column({ length: 150, default: '' }) email!: string;
-  @Column({ length: 50, default: '' }) phone!: string;
-  @Column({ length: 150, default: '' }) location!: string;
-  @Column({ length: 250, default: '' }) linkedIn!: string;
-  @Column({ type: 'text', default: '' }) summary!: string;
-  @Column({ type: 'text', default: '' }) experience!: string;
-  @Column({ type: 'text', default: '' }) education!: string;
-  @Column({ type: 'text', default: '' }) skills!: string;
-  @Column({ length: 250, default: '' }) languages!: string;
-  @Column({ type: 'text', default: '' }) certifications!: string;
+  @Column({ type: 'text' }) cvText!: string;
+
+  @Column({ type: 'timestamp', nullable: true }) lastEvaluatedAt?: Date;
 
   @CreateDateColumn() createdAt!: Date;
   @UpdateDateColumn() updatedAt!: Date;

@@ -11,7 +11,7 @@ import { PermissionGuard } from '../auth/guards/permission.guard';
 import { RequireModulePermission } from '../auth/decorators/module-permission.decorator';
 import { ApplicationsService } from './applications.service';
 import {
-  CreateApplicationDto, EvaluateCvDto, PatchApplicationDto,
+  CreateApplicationDto, EvaluateCvDto, EvaluateCvGlobalDto, PatchApplicationDto,
   UpsertBaseCvDto, GenerateCvDto, ExtractCvDto, AnswerInterviewDto,
   GenerateInterviewSimulatorDto,
 } from './dto/application.dto';
@@ -37,6 +37,14 @@ export class ApplicationsController {
   @ApiOperation({ summary: 'Create or update the current user\'s base CV' })
   upsertBaseCV(@CurrentUser() user: JwtUser, @Body() dto: UpsertBaseCvDto) {
     return this.svc.upsertBaseCV(user.userId, dto);
+  }
+
+  @Post('base-cv/evaluate-global')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @ApiOperation({ summary: 'Evaluate base CV globally (score + suggestions)' })
+  evaluateCvGlobal(@Body() dto: EvaluateCvGlobalDto) {
+    return this.svc.evaluateCvGlobal(dto);
   }
 
   // ── AI endpoints ───────────────────────────────────────────────────────────

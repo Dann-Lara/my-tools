@@ -15,17 +15,14 @@ export interface JobOffer {
 }
 
 export interface BaseCV {
-  fullName: string;
-  email: string;
-  phone: string;
-  location: string;
-  linkedIn: string;
+  cvText: string;
+  lastEvaluatedAt?: string;
+}
+
+export interface CvEvaluationGlobalResult {
+  score: number;
   summary: string;
-  experience: string;
-  education: string;
-  skills: string;
-  languages: string;
-  certifications: string;
+  suggestions: string[];
 }
 
 export interface Application {
@@ -66,19 +63,9 @@ export function getHeaders(): Record<string, string> {
 }
 
 export const EMPTY_CV: BaseCV = {
-  fullName: '',
-  email: '',
-  phone: '',
-  location: '',
-  linkedIn: '',
-  summary: '',
-  experience: '',
-  education: '',
-  skills: '',
-  languages: '',
-  certifications: '',
+  cvText: '',
 };
 
 export function isCVComplete(cv: BaseCV) {
-  return !!(cv.fullName && cv.email && (cv.experience || cv.summary));
+  return cv.cvText.length >= 50;
 }
