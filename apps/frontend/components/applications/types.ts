@@ -15,6 +15,7 @@ export interface JobOffer {
 }
 
 export interface BaseCV {
+  id?: string;
   cvText: string;
   lastEvaluatedAt?: string;
 }

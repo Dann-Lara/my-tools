@@ -77,6 +77,7 @@ export default function BaseCVPage() {
           </div>
 
           <SimpleBaseCVForm
+            key={baseCV?.id || 'new'}
             initialCV={baseCV}
             lang={locale}
             onSaved={() => {

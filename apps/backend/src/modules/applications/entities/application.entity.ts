@@ -44,7 +44,7 @@ export class BaseCvEntity {
   @JoinColumn({ name: 'user_id' })
   user!: UserEntity;
 
-  @Column({ type: 'text', nullable: true }) cvText?: string;
+  @Column({ type: 'text', default: '' }) cvText: string = '';
 
   @Column({ type: 'timestamp', nullable: true }) lastEvaluatedAt?: Date;
 
