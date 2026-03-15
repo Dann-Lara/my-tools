@@ -78,7 +78,11 @@ export default function BaseCVPage() {
 
           <SimpleBaseCVForm
             key={baseCV?.id || 'new'}
-            initialCV={baseCV}
+            initialCV={{
+              id: baseCV?.id,
+              cvText: baseCV?.cvText || '',
+              lastEvaluatedAt: baseCV?.lastEvaluatedAt
+            }}
             lang={locale}
             onSaved={() => {
               showToast(t.applications.toastCVSaved, 'ok');

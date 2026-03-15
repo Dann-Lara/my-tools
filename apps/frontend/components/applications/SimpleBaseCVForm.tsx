@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BaseCV, CvEvaluationGlobalResult, getHeaders } from './types';
 import { IconCheck, IconSave, IconSpark, IconWarning, Spinner } from './icons';
 
@@ -14,65 +14,72 @@ interface Props {
 
 export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const ta = t.applications;
-  const [cvText, setCvText] = useState('');
-  const [initialized, setInitialized] = useState(false);
+  
+  // Estado simple - inicializar con el valor que venga o vacío
+  const [cvText, setCvText] = useState(initialCV?.cvText || '');
   const [evaluating, setEvaluating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<CvEvaluationGlobalResult | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!initialized && initialCV?.cvText) {
-      setCvText(initialCV.cvText);
-      setInitialized(true);
-    }
-  }, [initialCV, initialized]);
-
-  const canEvaluate = cvText.length >= 50 && !evaluating;
+  // Validación simple
+  const hasText = cvText.length >= 50;
+  const canEvaluate = hasText && !evaluating;
+  const canSave = evaluation !== null && evaluation.score >= MIN_SCORE && !saving;
 
   async function handleEvaluate() {
-    if (cvText.length < 50) {
-      setError(ta.cvTextTooShort || 'El CV debe tener al menos 50 caracteres');
+    if (!hasText) {
+      setError('El CV debe tener al menos 50 caracteres');
       return;
     }
+    
     setEvaluating(true);
     setError('');
+    
     try {
       const res = await fetch('/api/applications/base-cv/evaluate-global', {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ cvText, lang }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}`);
+      }
+      
       const data = (await res.json()) as CvEvaluationGlobalResult;
       setEvaluation(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : ta.toastEvaluateError);
+      setError(e instanceof Error ? e.message : 'Error al evaluar');
     } finally {
       setEvaluating(false);
     }
   }
 
   async function handleSave() {
-    if (!evaluation || evaluation.score < MIN_SCORE) return;
+    if (!canSave) return;
+    
     setSaving(true);
     setError('');
+    
     try {
       const res = await fetch('/api/applications/base-cv', {
         method: 'PUT',
         headers: getHeaders(),
         body: JSON.stringify({ cvText }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      if (!res.ok) {
+        throw new Error(`Error ${res.status}`);
+      }
+      
       onSaved({ cvText, lastEvaluatedAt: new Date().toISOString() });
     } catch (e) {
-      setError(e instanceof Error ? e.message : ta.toastSaveError);
+      setError(e instanceof Error ? e.message : 'Error al guardar');
     } finally {
       setSaving(false);
     }
   }
-
-  const canSave = evaluation && evaluation.score >= MIN_SCORE;
 
   return (
     <div className="space-y-6">
@@ -92,14 +99,20 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
         />
       </div>
 
-      {/* Evaluate Button */}
+      {/* Contador de caracteres */}
+      <p className="font-mono text-[10px] text-slate-400">
+        {cvText.length} caracteres (mínimo 50)
+      </p>
+
+      {/* Botón Evaluar */}
       <button
+        type="button"
         onClick={handleEvaluate}
         disabled={!canEvaluate}
         className="btn-secondary flex items-center gap-2"
       >
         {evaluating ? <Spinner /> : <IconSpark />}
-        {evaluating ? (ta.evaluating || 'Evaluando...') : (ta.evaluateCv || 'Evaluar mi CV')}
+        {evaluating ? 'Evaluando...' : 'Evaluar mi CV'}
       </button>
 
       {/* Error */}
@@ -109,22 +122,22 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
         </div>
       )}
 
-      {/* Evaluation Result */}
+      {/* Resultado de evaluación */}
       {evaluation && (
         <div className="card p-6">
           <div className="flex items-center gap-4 mb-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <span className="font-mono text-[14px] font-bold text-slate-700 dark:text-slate-300">
-                  {ta.scoreLabel || 'Score'}: {evaluation.score}/100
+                  Score: {evaluation.score}/100
                 </span>
                 {evaluation.score >= MIN_SCORE ? (
                   <span className="flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-400/10 text-emerald-700 dark:text-emerald-300">
-                    <IconCheck /> {ta.cvEvalApprovedBadge || 'Aprobado'}
+                    <IconCheck /> Aprobado
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-400/10 text-amber-700 dark:text-amber-300">
-                    <IconWarning /> {ta.cvEvalNeedMore?.replace('{n}', String(MIN_SCORE - evaluation.score)) || 'Necesita mejoras'}
+                    <IconWarning /> Necesita mejoras
                   </span>
                 )}
               </div>
@@ -148,7 +161,7 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
           {evaluation.suggestions.length > 0 && (
             <div className="space-y-2">
               <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400">
-                {ta.suggestionsLabel || 'Sugerencias'}
+                Sugerencias
               </p>
               <ul className="space-y-1">
                 {evaluation.suggestions.map((s, i) => (
@@ -163,14 +176,15 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
         </div>
       )}
 
-      {/* Save Button */}
+      {/* Botón Guardar */}
       <button
+        type="button"
         onClick={handleSave}
-        disabled={!canSave || saving}
-        className={`btn-primary flex items-center gap-2 ${!canSave || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+        disabled={!canSave}
+        className="btn-primary flex items-center gap-2"
       >
         {saving ? <Spinner /> : <IconSave />}
-        {saving ? (ta.saving || 'Guardando...') : (ta.saveBaseCv || 'Guardar CV Base')}
+        {saving ? 'Guardando...' : 'Guardar CV Base'}
       </button>
     </div>
   );

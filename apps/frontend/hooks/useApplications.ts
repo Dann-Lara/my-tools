@@ -73,17 +73,23 @@ export function useApplications({ authLoading, user }: UseApplicationsOptions): 
       const res = await fetch('/api/applications/base-cv', { headers: getHeaders() });
       if (res.ok) {
         const data = (await res.json()) as BaseCV;
-        if (data?.cvText !== undefined) {
-          setBaseCV({ ...EMPTY_CV, ...data });
-          localStorage.setItem('ailab_base_cv', JSON.stringify(data));
-          setBaseCVLoading(false);
-          return;
-        }
+        const normalizedData = {
+          ...EMPTY_CV,
+          ...data,
+          cvText: data?.cvText || '',
+        };
+        setBaseCV(normalizedData);
+        localStorage.setItem('ailab_base_cv', JSON.stringify(normalizedData));
+        setBaseCVLoading(false);
+        return;
       }
     } catch { /* fallback */ }
     try {
       const raw = localStorage.getItem('ailab_base_cv');
-      if (raw) setBaseCV({ ...EMPTY_CV, ...JSON.parse(raw) as BaseCV });
+      if (raw) {
+        const parsed = JSON.parse(raw) as BaseCV;
+        setBaseCV({ ...parsed, cvText: parsed?.cvText || '' });
+      }
     } catch { /* defaults */ }
     setBaseCVLoading(false);
   }, []);
