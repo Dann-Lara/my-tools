@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { getHeaders } from './types';
 import { AtsRing, IconDownload, IconSave, IconSpark, IconCheck, Spinner } from './icons';
+import { jsPDF } from 'jspdf';
 
 const IconEdit = () => (
   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -18,51 +19,90 @@ const IconGlobe = () => (
 );
 
 function printATS(cvText: string, lang: 'es' | 'en', position: string, company: string) {
-  const win = window.open('', '_blank');
-  if (!win) return;
-
   const SECTION_RX =
     /^(CONTACT(?:O)?|SUMMARY|RESUMEN|EXPERIENCE|EXPERIENCIA|EDUCATION|EDUCACI[OÓ]N|SKILLS|HABILIDADES|LANGUAGES|IDIOMAS|CERTIFICATIONS|CERTIFICACIONES)$/i;
   const ROLE_RX = /^.{3,60}[|–—-].{3,}$/;
 
-  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'pt',
+    format: 'letter',
+  });
 
-  const htmlLines: string[] = [];
-  for (const raw of cvText.split('\n')) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 40;
+  const maxWidth = pageWidth - margin * 2;
+  let y = margin;
+
+  const checkNewPage = (needed: number) => {
+    if (y + needed > pageHeight - margin) {
+      doc.addPage();
+      y = margin;
+    }
+  };
+
+  const lines = cvText.split('\n');
+  const processedLines: { text: string; type: 'h2' | 'role' | 'bullet' | 'normal' }[] = [];
+
+  for (const raw of lines) {
     const line = raw.trimEnd();
     if (line === '') {
-      htmlLines.push('<div class="gap"></div>');
+      processedLines.push({ text: '', type: 'normal' });
     } else if (SECTION_RX.test(line.trim())) {
-      htmlLines.push(`<h2>${esc(line.trim())}</h2>`);
+      processedLines.push({ text: line.trim(), type: 'h2' });
     } else if (line.trimStart().startsWith('- ')) {
-      htmlLines.push(`<p class="bullet">${esc(line.trimStart().slice(2))}</p>`);
+      processedLines.push({ text: line.trimStart().slice(2), type: 'bullet' });
     } else if (ROLE_RX.test(line.trim())) {
-      htmlLines.push(`<p class="role">${esc(line.trim())}</p>`);
+      processedLines.push({ text: line.trim(), type: 'role' });
     } else {
-      htmlLines.push(`<p>${esc(line.trim())}</p>`);
+      processedLines.push({ text: line.trim(), type: 'normal' });
     }
   }
 
-  win.document.write(`<!DOCTYPE html>
-<html lang="${lang}"><head><meta charset="UTF-8"/><title></title>
-<style>
-@page { margin: 0.6in 0.5in; size: Letter; }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; padding: 0; margin: 0; }
-h2 { font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 14pt; margin-bottom: 6pt; break-after: avoid; page-break-after: avoid; }
-p { margin-bottom: 4pt; break-inside: avoid; }
-p.role { font-weight: bold; margin-top: 8pt; margin-bottom: 2pt; break-after: avoid; page-break-after: avoid; }
-p.bullet { padding-left: 18pt; text-indent: -18pt; }
-p.bullet::before { content: "- "; }
-div.gap { height: 6pt; }
-</style></head>
-<body>${htmlLines.join('\n')}</body></html>`);
-  win.document.close();
-  win.addEventListener('load', () => {
-    win.focus();
-    win.print();
-    win.close();
-  });
+  for (const item of processedLines) {
+    if (item.text === '') {
+      y += 12;
+      continue;
+    }
+
+    if (item.type === 'h2') {
+      checkNewPage(24);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(item.text.toUpperCase(), margin, y);
+      y += 20;
+    } else if (item.type === 'role') {
+      checkNewPage(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      const roleLines = doc.splitTextToSize(item.text, maxWidth);
+      doc.text(roleLines, margin, y);
+      y += roleLines.length * 14 + 4;
+    } else if (item.type === 'bullet') {
+      checkNewPage(14);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      const bulletText = `- ${item.text}`;
+      const bulletLines = doc.splitTextToSize(bulletText, maxWidth - 18);
+      doc.text(bulletLines, margin + 18, y);
+      y += bulletLines.length * 14;
+    } else {
+      checkNewPage(14);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.setTextColor(0, 0, 0);
+      const textLines = doc.splitTextToSize(item.text, maxWidth);
+      doc.text(textLines, margin, y);
+      y += textLines.length * 14;
+    }
+  }
+
+  const filename = `CV-${position.replace(/[^a-zA-Z0-9]/g, '-')}-${company.replace(/[^a-zA-Z0-9]/g, '-')}-${lang}.pdf`;
+  doc.save(filename);
 }
 
 const APPLIED_FROM_OPTIONS = [
