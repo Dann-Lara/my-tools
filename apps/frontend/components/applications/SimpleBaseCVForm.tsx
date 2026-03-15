@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BaseCV, CvEvaluationGlobalResult, getHeaders } from './types';
 import { IconCheck, IconSave, IconSpark, IconWarning, Spinner } from './icons';
 
@@ -14,20 +14,13 @@ interface Props {
 
 export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const ta = t.applications;
-  const [cvText, setCvText] = useState('');
+  const [cvText, setCvText] = useState(initialCV?.cvText || '');
   const [evaluating, setEvaluating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<CvEvaluationGlobalResult | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (initialCV?.cvText) {
-      setCvText(initialCV.cvText);
-    }
-  }, [initialCV?.cvText]);
-
-  const textLength = cvText.length;
-  const canEvaluate = textLength >= 50 && !evaluating;
+  const canEvaluate = cvText.length >= 50 && !evaluating;
 
   async function handleEvaluate() {
     if (cvText.length < 50) {
@@ -95,7 +88,7 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
       <button
         onClick={handleEvaluate}
         disabled={!canEvaluate}
-        className={`btn-secondary flex items-center gap-2 ${!canEvaluate ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className="btn-secondary flex items-center gap-2"
       >
         {evaluating ? <Spinner /> : <IconSpark />}
         {evaluating ? (ta.evaluating || 'Evaluando...') : (ta.evaluateCv || 'Evaluar mi CV')}
