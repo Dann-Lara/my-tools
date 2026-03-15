@@ -18,13 +18,13 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const [evaluating, setEvaluating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<CvEvaluationGlobalResult | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (initialCV?.cvText && cvText === '') {
+    if (initialCV?.cvText) {
       setCvText(initialCV.cvText);
     }
-  }, [initialCV]);
-  const [error, setError] = useState('');
+  }, [initialCV?.cvText]);
 
   async function handleEvaluate() {
     if (cvText.length < 50) {
@@ -91,7 +91,7 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
       {/* Evaluate Button */}
       <button
         onClick={handleEvaluate}
-        disabled={evaluating}
+        disabled={evaluating || cvText.length < 50}
         className={`btn-secondary flex items-center gap-2 ${cvText.length < 50 ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {evaluating ? <Spinner /> : <IconSpark />}
