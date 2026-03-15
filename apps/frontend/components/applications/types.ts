@@ -37,7 +37,7 @@ export interface Application {
   jobOffer: string;
   jobOfferId?: string;
   atsScore?: number;
-  cvGenerated?: boolean;
+  cvGenerated?: string;
   cvGeneratedLang?: string;
   appliedFrom?: string;
   interviewQuestions?: string;

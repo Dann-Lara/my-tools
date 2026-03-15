@@ -9,7 +9,7 @@ import { useFadeInUp } from '../../../../hooks/useAnime';
 import { DashboardLayout } from '../../../../components/ui/DashboardLayout';
 import { Spinner } from '../../../../components/ui/Spinner';
 import { Toast } from '../../../../components/ui/Toast';
-import { InterviewSimulator, Application, BaseCV, getHeaders, EMPTY_CV, AppStatus } from '../../../../components/applications';
+import { InterviewSimulator, Application, BaseCV, getHeaders, EMPTY_CV, AppStatus, printATS } from '../../../../components/applications';
 import { PermissionGate } from '../../../../components/ui/PermissionGate';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
@@ -177,16 +177,12 @@ export default function ApplicationDetailPage() {
                 {app.cvGenerated ? (
                   <button
                     onClick={() => {
-                      const cvText = String(app.cvGenerated || '');
-                      const year = new Date().getFullYear();
-                      const fileName = `CV-${app.company}-${app.position}-${year}.txt`;
-                      const blob = new Blob([cvText], { type: 'text/plain' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = fileName;
-                      a.click();
-                      URL.revokeObjectURL(url);
+                      printATS(
+                        String(app.cvGenerated || ''),
+                        (app.cvGeneratedLang as 'es' | 'en') || 'en',
+                        app.position,
+                        app.company
+                      );
                     }}
                     className="btn-primary text-[10px] py-2 px-4"
                   >
