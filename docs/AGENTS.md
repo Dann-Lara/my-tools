@@ -347,3 +347,38 @@ Before marking any task done:
 5. n8n workflow credential IDs match the project standard (`EfBrBbQ88fwJlS4R` / `8JyddEiApG6k1J3x`)
 6. Module documentation updated if changes affect a module (see §10)
 7. Spec created/updated if new feature (see §10)
+
+---
+
+## 14. Testing Rules
+
+Every feature, fix, or refactor **must** include test code:
+
+1. **New features**: Add tests in `__tests__/` folder alongside the component/service
+2. **Bug fixes**: Add regression tests to prevent future breakage
+3. **Refactors**: Ensure existing tests still pass
+
+### Test Requirements
+
+- Run tests **before** pushing: `npm run test`
+- All tests must pass before creating PR/merge
+- Push is blocked until: `npm run test` passes
+
+### Test File Locations
+
+```
+apps/frontend/components/[module]/__tests__/
+apps/backend/src/modules/[module]/[module].service.spec.ts
+```
+
+---
+
+## 15. Development Rule: Spec + Test Before Push
+
+**Never push to master until:**
+
+1. ✅ Spec created/updated for the feature
+2. ✅ Implementation complete
+3. ✅ Tests added and passing
+4. ✅ `npm run test` passes
+5. ✅ `npm run type-check` passes

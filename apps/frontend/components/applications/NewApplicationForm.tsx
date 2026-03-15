@@ -170,14 +170,22 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
-          ...form,
+          company: form.company || undefined,
+          position: form.position || undefined,
+          jobOffer: form.jobOffer || undefined,
           atsScore: atsScore ?? 0,
-          cvGenerated: true,
           generatedCvText: cvEn,
           generatedCvLang: lang,
+          appliedFrom: form.appliedFrom || undefined,
+          location: form.location || undefined,
+          salary: form.salary || undefined,
+          sourceUrl: form.sourceUrl || undefined,
         }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
       const saved = (await res.json()) as { id: string };
       setSavedAppId(saved.id ?? null);
     } catch {
