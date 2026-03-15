@@ -15,6 +15,14 @@ export const homeES = {
     feat3Desc: 'n8n integrado con webhooks bidireccionales. Flujos de trabajo sin código, listos para producción.',
     stackTitle: 'Stack Tecnológico',
     docsTitle: 'Documentación API', docsCta: 'Abrir Swagger',
+    archTitle: 'Arquitectura',
+    archDesc: 'Flujo de datos en tiempo real desde el usuario hasta PostgreSQL, con IA y automatización',
+    sddTitle: 'Spec-Driven Development',
+    sddDesc: 'De la idea a producción en días. Metodología probada para escalar sin deuda técnica',
+    n8nTitle: 'Automatización n8n',
+    n8nDesc: 'Workflows automatizados que trabajan mientras duermes',
+    metricsTitle: 'Métricas en Tiempo Real',
+    githubLink: 'Ver en GitHub',
   },
 } as const;
 
@@ -33,5 +41,13 @@ export const homeEN = {
     feat3Desc: 'n8n integrated with bidirectional webhooks. No-code workflows, production-ready.',
     stackTitle: 'Tech Stack',
     docsTitle: 'API Documentation', docsCta: 'Open Swagger',
+    archTitle: 'Architecture',
+    archDesc: 'Real-time data flow from user to PostgreSQL, with AI and automation',
+    sddTitle: 'Spec-Driven Development',
+    sddDesc: 'From idea to production in days. Proven methodology to scale without technical debt',
+    n8nTitle: 'n8n Automation',
+    n8nDesc: 'Automated workflows that work while you sleep',
+    metricsTitle: 'Real-Time Metrics',
+    githubLink: 'View on GitHub',
   },
 } as const;
