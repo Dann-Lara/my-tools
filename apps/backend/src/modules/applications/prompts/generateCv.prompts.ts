@@ -8,13 +8,29 @@ export interface GenerateCvPromptParams {
 export function buildGenerateCvPrompts(params: GenerateCvPromptParams): {
   systemMessage: string;
   prompt: string;
+  detectedLang: 'es' | 'en';
 } {
   const { company, position, jobOffer, candidate } = params;
 
+  const spanishIndicators = /\b(y |el |la |los |las |de |en |que |es |son |con |para |por |una |uno|este|esta|estos|estas|ese|esa|esos|esas|como|del|se|su|sus|lo|mas|pero|si|no|ya|al|com|has|han|tiene|tienen|donde|cuando|quien|cual|que)\b/i;
+  const spanishChars = /[áéíóúñü¿¡]/i;
+  
+  const spanishWordCount = (jobOffer.match(spanishIndicators) || []).length;
+  const hasSpanishChars = spanishChars.test(jobOffer);
+  
+  const isSpanish = spanishWordCount > 5 || hasSpanishChars;
+  const detectedLang = isSpanish ? 'es' : 'en';
+
+  const targetLang = isSpanish ? 'Spanish (Latin American Spanish, not Spain Spanish)' : 'English';
+  const langLabel = isSpanish ? 'ESPAÑOL' : 'ENGLISH';
+
   const systemMessage = `You are an expert technical recruiter and CV writer with 15+ years of experience crafting ATS-optimized resumes.
 
+LANGUAGE DETECTION:
+The job offer provided is in ${isSpanish ? 'Spanish' : 'English'}. You MUST write the CV in ${targetLang}.
+
 YOUR TASK:
-Create a tailored CV in English by combining the candidate's real background with the language and keywords from the job offer.
+Create a tailored CV in ${targetLang} by combining the candidate's real background with the language and keywords from the job offer.
 
 HYBRID METHODOLOGY — what this means:
 1. KEEP all real data: actual company names, actual job titles, actual dates, actual education, actual certifications
@@ -43,7 +59,7 @@ ATS FORMATTING REQUIREMENTS:
 
 OUTPUT FORMAT (follow exactly — two parts):
 
-PART 1 — Write the complete CV first:
+PART 1 — Write the complete CV in ${targetLang}:
 - Start directly with the candidate's full name (no preamble)
 - Include ALL sections in full: CONTACT, SUMMARY, EXPERIENCE (every role, every bullet), EDUCATION, SKILLS, LANGUAGES, CERTIFICATIONS
 - Do NOT stop or truncate — write every section completely before moving on
@@ -55,7 +71,7 @@ The score reflects how well this hybrid CV matches the job offer (keyword covera
 
 No markdown. No preamble. No truncation. The CV must be complete before the score line.`;
 
-  const prompt = `=== JOB OFFER ===
+  const prompt = `=== JOB OFFER (${langLabel}) ===
 Company: ${company}
 Position: ${position}
 
@@ -65,15 +81,16 @@ ${jobOffer}
 ${candidate}
 
 === INSTRUCTIONS ===
-Write a complete ATS-optimized CV in English that maximizes this candidate's match to the job offer above.
+The job offer above is in ${isSpanish ? 'Spanish' : 'English'}.
+Write a complete ATS-optimized CV in ${targetLang} that maximizes this candidate's match to the job offer above.
 - Use the candidate's REAL experience, companies, dates and education — do not change these facts
 - Rewrite the summary and bullet points to mirror the job offer's language and keywords
 - Apply the inference guide: if they know a technology, explicitly name the related sub-skills
 - Organize experience bullets with the most relevant achievements first
 - The SKILLS section must include every keyword from the job offer that is truthfully derivable from the candidate's profile
 Plain text only. No markdown.
-Write the COMPLETE CV first (every section, every bullet, nothing omitted), then end with:
+Write the COMPLETE CV in ${targetLang} first (every section, every bullet, nothing omitted), then end with:
 ===ATS_SCORE:<number>===`;
 
-  return { systemMessage, prompt };
+  return { systemMessage, prompt, detectedLang };
 }

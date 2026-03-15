@@ -88,7 +88,7 @@ export default function ApplicationDetailPage() {
   return (
     <DashboardLayout variant={variant} user={user} title={t.applications.detailTitle}>
       <PermissionGate module="applications">
-        <div className="max-w-[1200px] mx-auto px-6 md:px-12 pt-8 pb-16">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
           <Link
             href="/client/applications"
             className="inline-flex items-center gap-2 font-mono text-[11px] text-slate-500 hover:text-sky-500 dark:text-slate-400 dark:hover:text-sky-400 mb-6 transition-colors"
@@ -174,37 +174,24 @@ export default function ApplicationDetailPage() {
                 <h2 className="font-mono text-[11px] uppercase tracking-widest text-slate-500 mb-4">
                   {t.applications.detailGeneratedCV}
                 </h2>
-                {app.cvGeneratedEs || app.cvGeneratedEn ? (
-                  <div className="flex flex-wrap gap-3">
-                    {app.cvGeneratedEs && (
-                      <button
-                        onClick={() => {
-                          const win = window.open('', '_blank');
-                          if (win) {
-                            win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV</title></head><body style="font-family: Arial; white-space: pre-wrap;">${app.cvGeneratedEs}</body></html>`);
-                            win.document.close();
-                          }
-                        }}
-                        className="btn-primary text-[10px] py-2 px-4"
-                      >
-                        {t.applications.detailDownloadES}
-                      </button>
-                    )}
-                    {app.cvGeneratedEn && (
-                      <button
-                        onClick={() => {
-                          const win = window.open('', '_blank');
-                          if (win) {
-                            win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV</title></head><body style="font-family: Arial; white-space: pre-wrap;">${app.cvGeneratedEn}</body></html>`);
-                            win.document.close();
-                          }
-                        }}
-                        className="btn-primary text-[10px] py-2 px-4"
-                      >
-                        {t.applications.detailDownloadEN}
-                      </button>
-                    )}
-                  </div>
+                {app.cvGenerated ? (
+                  <button
+                    onClick={() => {
+                      const cvText = String(app.cvGenerated || '');
+                      const year = new Date().getFullYear();
+                      const fileName = `CV-${app.company}-${app.position}-${year}.txt`;
+                      const blob = new Blob([cvText], { type: 'text/plain' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = fileName;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="btn-primary text-[10px] py-2 px-4"
+                  >
+                    {t.applications.detailDownload}
+                  </button>
                 ) : (
                   <p className="font-mono text-[11px] text-slate-400">
                     {t.applications.detailNoCV}

@@ -14,7 +14,7 @@ export const homeES = {
     feat3Title: 'Automatización',
     feat3Desc: 'n8n integrado con webhooks bidireccionales. Flujos de trabajo sin código, listos para producción.',
     stackTitle: 'Stack Tecnológico',
-    docsTitle: 'Documentación API', docsCta: 'Abrir Swagger →',
+    docsTitle: 'Documentación API', docsCta: 'Abrir Swagger',
   },
 } as const;
 
@@ -32,6 +32,6 @@ export const homeEN = {
     feat3Title: 'Automation',
     feat3Desc: 'n8n integrated with bidirectional webhooks. No-code workflows, production-ready.',
     stackTitle: 'Tech Stack',
-    docsTitle: 'API Documentation', docsCta: 'Open Swagger →',
+    docsTitle: 'API Documentation', docsCta: 'Open Swagger',
   },
 } as const;

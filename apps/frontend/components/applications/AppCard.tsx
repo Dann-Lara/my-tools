@@ -26,7 +26,7 @@ export function AppCard({ app, userRole, onStatusChange, onDelete, onUpdate, t }
   const [confirmDel, setConfirmDel] = useState(false);
   const ta = t ?? {};
 
-  const hasCv = app.cvGeneratedEn || app.cvGeneratedEs;
+  const hasCv = app.cvGenerated;
   const meta = statusMap[app.status] ?? statusMap.pending;
 
   return (

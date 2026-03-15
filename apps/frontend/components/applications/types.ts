@@ -38,8 +38,7 @@ export interface Application {
   jobOfferId?: string;
   atsScore?: number;
   cvGenerated?: boolean;
-  cvGeneratedEs?: string;
-  cvGeneratedEn?: string;
+  cvGeneratedLang?: string;
   appliedFrom?: string;
   interviewQuestions?: string;
   interviewAnswers?: string;

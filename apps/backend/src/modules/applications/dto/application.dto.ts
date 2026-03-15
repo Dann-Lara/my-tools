@@ -37,11 +37,8 @@ export class CreateApplicationDto {
 
   @ApiPropertyOptional()
   @IsOptional() @IsString() generatedCvText?: string;
-
   @ApiPropertyOptional()
-  @IsOptional() cvGenerated?: boolean;
-  @IsOptional() @IsString() generatedCvTextEs?: string;
-  @IsOptional() @IsString() generatedCvTextEn?: string;
+  @IsOptional() @IsString() generatedCvLang?: 'es' | 'en';
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) appliedFrom?: string;
 }
 
@@ -57,8 +54,8 @@ export class PatchApplicationDto {
 
   @ApiPropertyOptional()
   @IsOptional() @IsString() generatedCvText?: string;
-  @IsOptional() @IsString() generatedCvTextEs?: string;
-  @IsOptional() @IsString() generatedCvTextEn?: string;
+  @ApiPropertyOptional()
+  @IsOptional() @IsString() generatedCvLang?: 'es' | 'en';
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) appliedFrom?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() interviewQuestions?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() interviewAnswers?: string;
