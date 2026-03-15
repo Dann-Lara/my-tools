@@ -117,7 +117,7 @@ export default function ApplicationDetailPage() {
             <div className="space-y-8">
               {/* Status & Meta */}
               <div className="card p-6">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                   <div>
                     <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
                       {t.applications.detailStatus}
@@ -134,6 +134,16 @@ export default function ApplicationDetailPage() {
                       {new Date(app.appliedAt).toLocaleDateString(locale === 'es' ? 'es-MX' : 'en-US')}
                     </p>
                   </div>
+                  {app.location && (
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
+                        {t.applications.detailLocation}
+                      </p>
+                      <p className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
+                        {app.location}
+                      </p>
+                    </div>
+                  )}
                   {app.atsScore !== undefined && (
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
@@ -142,6 +152,31 @@ export default function ApplicationDetailPage() {
                       <p className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
                         {app.atsScore}%
                       </p>
+                    </div>
+                  )}
+                  {app.salary && (
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
+                        {t.applications.detailSalary}
+                      </p>
+                      <p className="font-mono text-[11px] text-slate-700 dark:text-slate-300">
+                        {app.salary}
+                      </p>
+                    </div>
+                  )}
+                  {app.sourceUrl && (
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
+                        {t.applications.detailSourceUrl}
+                      </p>
+                      <a
+                        href={app.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-[11px] text-sky-600 dark:text-sky-400 hover:underline truncate block"
+                      >
+                        {new URL(app.sourceUrl).hostname}
+                      </a>
                     </div>
                   )}
                   {app.appliedFrom && (
@@ -171,9 +206,16 @@ export default function ApplicationDetailPage() {
 
               {/* Generated CV */}
               <div className="card p-6">
-                <h2 className="font-mono text-[11px] uppercase tracking-widest text-slate-500 mb-4">
-                  {t.applications.detailGeneratedCV}
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-mono text-[11px] uppercase tracking-widest text-slate-500">
+                    {t.applications.detailGeneratedCV}
+                  </h2>
+                  {app.cvGeneratedLang && (
+                    <span className="font-mono text-[10px] px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded">
+                      {app.cvGeneratedLang.toUpperCase()}
+                    </span>
+                  )}
+                </div>
                 {app.cvGenerated ? (
                   <button
                     onClick={() => {

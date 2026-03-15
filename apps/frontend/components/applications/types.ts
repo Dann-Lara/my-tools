@@ -44,6 +44,9 @@ export interface Application {
   interviewAnswers?: string;
   interviewGeneratedAt?: string;
   jobOfferData?: JobOffer;
+  location?: string;
+  salary?: string;
+  sourceUrl?: string;
 }
 
 export interface CvEvalResult {
