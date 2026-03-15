@@ -86,7 +86,7 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
       <button
         onClick={handleEvaluate}
         disabled={evaluating || cvText.length < 50}
-        className="btn-secondary flex items-center gap-2"
+        className={`btn-secondary flex items-center gap-2 ${cvText.length < 50 ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {evaluating ? <Spinner /> : <IconSpark />}
         {evaluating ? (ta.evaluating || 'Evaluando...') : (ta.evaluateCv || 'Evaluar mi CV')}
