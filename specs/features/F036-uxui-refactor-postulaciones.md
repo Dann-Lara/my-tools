@@ -449,15 +449,55 @@ tl
 
 ---
 
-## Entidades (Sin Cambios)
+## Entidades (Actualizado 2026-03-14)
 
-La estructura de datos no cambia significativamente. La JobOffer sigue siendo parte de Application (o relación).
+### Cambios respecto a F035:
+
+| Campo Anterior | Campo Nuevo | Notas |
+|----------------|-------------|-------|
+| `cvGeneratedEs`, `cvGeneratedEn` | `cvGenerated` (texto) + `cvGeneratedLang` ('es'/'en') | Simplificado a un solo CV |
+| N/A | `jobOffer` | Alias de `jobOfferText` en respuesta API |
+| N/A | `location`, `salary`, `sourceUrl` | Nuevos campos en Application |
+
+### Response API
+
+El endpoint `GET /api/v1/applications/:id` ahora retorna:
+```json
+{
+  "id": "uuid",
+  "company": "Tech Corp",
+  "position": "Frontend Dev",
+  "jobOffer": "texto completo de la oferta...",  // alias de jobOfferText
+  "status": "pending",
+  "atsScore": 85,
+  "cvGenerated": "CV generado...",
+  "cvGeneratedLang": "en",
+  "location": "Remoto",
+  "salary": "$1000-1500",
+  "sourceUrl": "https://...",
+  "appliedFrom": "LinkedIn",
+  ...
+}
+```
 
 ---
 
-## Endpoints API (Sin Cambios)
+## Endpoints API (Actualizado 2026-03-14)
 
 Todos los endpoints de F035 se mantienen.
+- `POST /api/v1/applications` - Crear postulación (recibe `generatedCvText` + `generatedCvLang`)
+- `GET /api/v1/applications/:id` - Retorna `jobOffer` (alias de jobOfferText)
+
+---
+
+## PDF Generation (Actualizado 2026-03-14)
+
+### Generación directa con jsPDF
+
+El PDF se genera directamente en el cliente usando jsPDF:
+- No requiere abrir diálogo de impresión del navegador
+- Descarga directa como `CV-{company}-{position}-{year}.pdf`
+- Soporta formato visual con secciones (SUMMARY, EXPERIENCE, etc.)
 
 ---
 
@@ -569,3 +609,8 @@ apps/frontend/lib/i18n/
 |-------|---------|--------|-------|
 | 2026-03-14 | 1.0.0 | Versión inicial del spec | - |
 | 2026-03-14 | 1.0.1 | Corregir flujo de CV Base - crear vs editar | - |
+| 2026-03-14 | 1.0.2 | Simplificar CV: cvGenerated + cvGeneratedLang en lugar de cvGeneratedEs/cvGeneratedEn | - |
+| 2026-03-14 | 1.0.3 | Fix jobOffer: mapear jobOfferText → jobOffer en respuesta API | - |
+| 2026-03-14 | 1.0.4 | Agregar campos location, salary, sourceUrl al detalle de postulación | - |
+| 2026-03-14 | 1.0.5 | PDF: generación directa con jsPDF (sin print dialog) | - |
+| 2026-03-14 | 1.0.6 | Tests: agregar controller spec para Applications | - |

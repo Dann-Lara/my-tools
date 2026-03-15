@@ -76,9 +76,10 @@ export class ApplicationsController {
   // ── CRUD ───────────────────────────────────────────────────────────────────
 
   @Get()
-  @ApiOperation({ summary: 'List all applications for the current user' })
+  @ApiOperation({ summary: 'List all applications' })
   findAll(@CurrentUser() user: JwtUser) {
-    return this.svc.findAll(user.userId);
+    const apps = this.svc.findAll(user.userId);
+    return apps.then((list) => list.map((a) => ({ ...a, jobOffer: a.jobOfferText })));
   }
 
   @Get(':id')
@@ -87,7 +88,8 @@ export class ApplicationsController {
     @CurrentUser() user: JwtUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.svc.findOne(user.userId, id);
+    const app = this.svc.findOne(user.userId, id);
+    return app.then((a) => ({ ...a, jobOffer: a.jobOfferText }));
   }
 
   @Post()
