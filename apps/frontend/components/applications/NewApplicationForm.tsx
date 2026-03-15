@@ -85,7 +85,7 @@ interface Props {
   lang: string;
 }
 
-export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t }: Props) {
+export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang }: Props) {
   const ta = t.applications;
 
   const [form, setForm] = useState({ 
@@ -145,11 +145,16 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t }: Pro
         throw new Error(
           ((await res.json()) as { message?: string }).message ?? `HTTP ${res.status}`
         );
-      const data = (await res.json()) as { atsScore: number; cvEs?: string; cvEn?: string; cvText?: string };
+      const data = (await res.json()) as { atsScore: number; cv?: string; lang?: string };
       setScore(data.atsScore ?? 0);
-      setCvEn(data.cvEn ?? data.cvText ?? '');
-      setCvEs(data.cvEs ?? '');
-      setTab('en');
+      if (data.lang === 'es') {
+        setCvEs(data.cv ?? '');
+        setCvEn('');
+      } else {
+        setCvEn(data.cv ?? '');
+        setCvEs('');
+      }
+      setTab(data.lang === 'es' ? 'es' : 'en');
     } catch (e) {
       setErr(e instanceof Error ? e.message : ta.toastGenerateError);
     } finally {
@@ -169,8 +174,7 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t }: Pro
           atsScore: atsScore ?? 0,
           cvGenerated: true,
           generatedCvText: cvEn,
-          generatedCvTextEn: cvEn,
-          generatedCvTextEs: cvEs || undefined,
+          generatedCvLang: lang,
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
