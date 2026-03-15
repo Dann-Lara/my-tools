@@ -14,7 +14,7 @@ interface Props {
 
 export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const ta = t.applications;
-  const [cvText, setCvText] = useState(initialCV?.cvText ?? '');
+  const [cvText, setCvText] = useState('');
   const [evaluating, setEvaluating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<CvEvaluationGlobalResult | null>(null);
@@ -25,6 +25,9 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
       setCvText(initialCV.cvText);
     }
   }, [initialCV?.cvText]);
+
+  const textLength = cvText.length;
+  const canEvaluate = textLength >= 50 && !evaluating;
 
   async function handleEvaluate() {
     if (cvText.length < 50) {
@@ -91,8 +94,8 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
       {/* Evaluate Button */}
       <button
         onClick={handleEvaluate}
-        disabled={evaluating || cvText.length < 50}
-        className={`btn-secondary flex items-center gap-2 ${cvText.length < 50 ? 'opacity-50 cursor-not-allowed' : ''}`}
+        disabled={!canEvaluate}
+        className={`btn-secondary flex items-center gap-2 ${!canEvaluate ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {evaluating ? <Spinner /> : <IconSpark />}
         {evaluating ? (ta.evaluating || 'Evaluando...') : (ta.evaluateCv || 'Evaluar mi CV')}
