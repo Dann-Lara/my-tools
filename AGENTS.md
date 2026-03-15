@@ -328,7 +328,28 @@ Every new design or UI component **must** support both color modes:
 
 ---
 
-## 14. i18n for All User-Facing Text
+## 14. No Emojis in Code
+
+**Never use emoji characters in code** — they cause encoding issues and aren't accessible:
+
+- ✅ **DO**: Use SVG icons or React components (e.g., `<IconDownload />`)
+- ✅ **DO**: Use CSS-based indicators (e.g., colored dots, status badges)
+- ❌ **DON'T**: Use emoji like 🚀, ✅, 📝, 🔷 in JSX or strings
+
+```typescript
+// ✅ DO — use icons
+import { IconCheck, IconArrow } from './icons';
+<span><IconCheck /> Done</span>
+
+// ❌ DON'T — emoji in code
+<span>✅ Done</span>
+```
+
+If you need visual indicators, create icon components in `apps/frontend/components/ui/icons/`.
+
+---
+
+## 15. i18n for All User-Facing Text
 
 **Every** string shown to the user must use the i18n system — no hardcoded text in components:
 

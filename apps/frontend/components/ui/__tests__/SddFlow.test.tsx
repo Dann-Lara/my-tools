@@ -28,14 +28,14 @@ describe('SddFlow', () => {
     expect(screen.getByText('Done')).toBeInTheDocument();
   });
 
-  it('renders step icons', () => {
+  it('renders step descriptions', () => {
     render(<SddFlow />);
     
-    expect(screen.getByText('📝')).toBeInTheDocument();
-    expect(screen.getByText('✅')).toBeInTheDocument();
-    expect(screen.getByText('📋')).toBeInTheDocument();
-    expect(screen.getByText('⚡')).toBeInTheDocument();
-    expect(screen.getByText('🚀')).toBeInTheDocument();
+    expect(screen.getByText('Create spec document')).toBeInTheDocument();
+    expect(screen.getByText('Stakeholder review')).toBeInTheDocument();
+    expect(screen.getByText('Break into tasks')).toBeInTheDocument();
+    expect(screen.getByText('Implementation')).toBeInTheDocument();
+    expect(screen.getByText('Verified & shipped')).toBeInTheDocument();
   });
 
   it('renders feedback loop message', () => {

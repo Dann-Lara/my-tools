@@ -3,7 +3,7 @@ import type { Locale } from './types';
 export const homeES = {
   home: {
     heroTag: 'v1.0 — Listo para construir',
-    heroTitle: 'AI Lab\nTemplate',
+    heroTitle: 'My\nTools',
     heroSub: 'Monorepo fullstack con IA, automatización y auth robusto. Next.js · NestJS · LangChain · n8n',
     heroCta: 'Abrir Panel', heroCtaSec: 'Ver Docs',
     featuresTitle: 'Capacidades',
@@ -29,7 +29,7 @@ export const homeES = {
 export const homeEN = {
   home: {
     heroTag: 'v1.0 — Ready to build',
-    heroTitle: 'AI Lab\nTemplate',
+    heroTitle: 'My\nTools',
     heroSub: 'Fullstack monorepo with AI, automation and robust auth. Next.js · NestJS · LangChain · n8n',
     heroCta: 'Open Dashboard', heroCtaSec: 'View Docs',
     featuresTitle: 'Capabilities',

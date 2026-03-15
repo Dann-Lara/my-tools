@@ -8,15 +8,38 @@ interface Workflow {
   name: string;
   trigger: string;
   status: 'active' | 'ready';
-  icon: string;
+  icon: 'clock' | 'message' | 'feedback';
   color: string;
 }
 
 const workflows: Workflow[] = [
-  { id: 'reminders', name: 'Checklist Reminders', trigger: 'Every hour', status: 'active', icon: '⏰', color: 'sky' },
-  { id: 'telegram', name: 'Telegram Bot', trigger: 'Webhook', status: 'ready', icon: '✈️', color: 'cyan' },
-  { id: 'feedback', name: 'Weekly Feedback', trigger: 'Sunday 20:00', status: 'active', icon: '💬', color: 'emerald' },
+  { id: 'reminders', name: 'Checklist Reminders', trigger: 'Every hour', status: 'active', icon: 'clock', color: 'sky' },
+  { id: 'telegram', name: 'Telegram Bot', trigger: 'Webhook', status: 'ready', icon: 'message', color: 'cyan' },
+  { id: 'feedback', name: 'Weekly Feedback', trigger: 'Sunday 20:00', status: 'active', icon: 'feedback', color: 'emerald' },
 ];
+
+const icons: Record<string, React.ReactNode> = {
+  clock: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  message: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
+  feedback: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+    </svg>
+  ),
+};
+
+function WorkflowIcon({ icon }: { icon: string }) {
+  return <span className="text-sky-400">{icons[icon]}</span>;
+}
 
 export function N8nShowcase() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -94,7 +117,7 @@ export function N8nShowcase() {
   };
 
   return (
-    <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+    <div ref={containerRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
       {workflows.map((wf) => {
         const colors = colorClasses[wf.color];
         return (
@@ -106,7 +129,7 @@ export function N8nShowcase() {
             
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-4">
-                <div className="text-2xl">{wf.icon}</div>
+                <WorkflowIcon icon={wf.icon} />
                 <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[9px] font-mono uppercase tracking-wider ${wf.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-400'}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${wf.status === 'active' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-400'}`} />
                   {wf.status}
