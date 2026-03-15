@@ -209,6 +209,6 @@ No hay variables de entorno específicas de este módulo. Usa las de AI y n8n.
 - `packages/ai-core/README.md`
 - `n8n-workflows/README.md`
 - `PROJECT.md` — Contexto general del proyecto
-- `docs/AGENTS.md` — Reglas de desarrollo
+- `AGENTS.md` — Reglas de desarrollo
 - `specs/FEATURES.md` — Índice de features
 - `specs/SPEC.md` — Constitución SDD

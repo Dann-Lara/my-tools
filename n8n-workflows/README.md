@@ -175,6 +175,6 @@ Los workflows usan endpoints específicos:
 - `apps/backend/src/modules/webhooks/README.md`
 - `apps/backend/src/modules/checklists/README.md`
 - `PROJECT.md` — Contexto general del proyecto
-- `docs/AGENTS.md` — Reglas de desarrollo
+- `AGENTS.md` — Reglas de desarrollo
 - `specs/FEATURES.md` — Índice de features
 - `specs/SPEC.md` — Constitución SDD

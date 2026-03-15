@@ -258,6 +258,6 @@ npm test
 - `packages/ai-core/src/chains/text-generation.ts`
 - `packages/ai-core/src/llm/executor.ts`
 - `PROJECT.md` — Contexto general del proyecto
-- `docs/AGENTS.md` — Reglas de desarrollo
+- `AGENTS.md` — Reglas de desarrollo
 - `specs/FEATURES.md` — Índice de features
 - `specs/SPEC.md` — Constitución SDD

@@ -69,7 +69,9 @@
 | F026 | Tests para Módulo Auth             | auth         | PENDING_APPROVAL | Alta      |
 | F027 | Tests para Applications Frontend   | applications | PENDING_APPROVAL | Alta      |
 | F034 | Dashboard Permisos y Actualización | frontend     | APPROVED         | Alta      |
-| F035 | Rediseño Módulo Postulaciones      | applications | APPROVED         | Alta      |
+| F035 | Rediseño Módulo Postulaciones      | applications | COMPLETED        | Alta      |
+| F036 | UX/UI Refactor Postulaciones       | applications | IN_PROGRESS      | Alta      |
+| F037 | Simplificar CV Base                | applications | IN_PROGRESS      | Alta      |
 
 ---
 

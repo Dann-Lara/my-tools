@@ -134,6 +134,6 @@ export class UsersController { ... }
 - `apps/backend/src/modules/auth/auth.service.ts`
 - `apps/backend/src/modules/auth/auth.controller.ts`
 - `PROJECT.md` — Contexto general del proyecto
-- `docs/AGENTS.md` — Reglas de desarrollo
+- `AGENTS.md` — Reglas de desarrollo
 - `specs/FEATURES.md` — Índice de features
 - `specs/SPEC.md` — Constitución SDD

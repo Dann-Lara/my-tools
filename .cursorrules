@@ -5,11 +5,11 @@
 - **Frontend**: Next.js 14 App Router + TypeScript strict — `apps/frontend/`
 - **AI**: shared package at `packages/ai-core/` — use `generateText()` from there
 - **Automations**: n8n workflows in `n8n-workflows/*.json`
-- Docs & rules: `docs/AGENTS.md` — read it for full conventions
+- **Development Rules**: `AGENTS.md` — read it first for full conventions
 
 ## Before every edit
 1. Read the full target file first
-2. Check `docs/AGENTS.md` for relevant conventions
+2. Check `AGENTS.md` for relevant conventions
 3. Never edit more than one file per logical change unless necessary
 
 ## Code style — Backend (NestJS/TypeScript)

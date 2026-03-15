@@ -1,7 +1,8 @@
 # My Tools — Personal AI-Assisted Productivity Platform
 
-> **IMPORTANT**: Before working on this project, read `PROJECT.md` for context.
-> This file is the quick start guide. For full context, see `PROJECT.md`.
+> **IMPORTANT**: Before working on this project:
+> 1. Read `PROJECT.md` for context
+> 2. Read `AGENTS.md` for development rules
 
 ---
 
@@ -230,7 +231,7 @@ my-tools/
 │   ├── ai-core/               Multi-provider LLM engine with fallback
 │   └── shared/                Shared types and DTOs
 ├── n8n-workflows/             n8n JSON exports (auto-pushed by npm run n8n:sync)
-├── docs/                      Guides and references
+├── AGENTS.md                 # Development rules (read this!)
 │   └── CONFIGURATION.md       ← Full env + deployment guide
 ├── scripts/
 │   ├── setup.sh               Unix setup script

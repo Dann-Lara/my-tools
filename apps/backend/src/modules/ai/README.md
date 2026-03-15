@@ -144,6 +144,6 @@ Ver: `packages/ai-core/README.md`
 - `apps/backend/src/modules/ai/ai.controller.ts`
 - `packages/ai-core/README.md`
 - `PROJECT.md` — Contexto general del proyecto
-- `docs/AGENTS.md` — Reglas de desarrollo
+- `AGENTS.md` — Reglas de desarrollo
 - `specs/FEATURES.md` — Índice de features
 - `specs/SPEC.md` — Constitución SDD

@@ -153,6 +153,6 @@ No hay variables de entorno específicas de este módulo.
 - `apps/backend/src/modules/users/users.service.ts`
 - `apps/backend/src/modules/users/users.controller.ts`
 - `PROJECT.md` — Contexto general del proyecto
-- `docs/AGENTS.md` — Reglas de desarrollo
+- `AGENTS.md` — Reglas de desarrollo
 - `specs/FEATURES.md` — Índice de features
 - `specs/SPEC.md` — Constitución SDD

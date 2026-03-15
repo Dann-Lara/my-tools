@@ -119,6 +119,6 @@ Las credenciales de Telegram se configuran en n8n UI (no en código):
 - `apps/backend/src/modules/webhooks/webhooks.controller.ts`
 - `n8n-workflows/README.md`
 - `PROJECT.md` — Contexto general del proyecto
-- `docs/AGENTS.md` — Reglas de desarrollo
+- `AGENTS.md` — Reglas de desarrollo
 - `specs/FEATURES.md` — Índice de features
 - `specs/SPEC.md` — Constitución SDD
