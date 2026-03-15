@@ -384,20 +384,22 @@ apps/backend/src/modules/[module]/[module].service.spec.ts
 4. ✅ `npm run test` passes
 5. ✅ `npm run type-check` passes
 
----
-
 ## AI Agent Skills
 
 This project includes specialized skills for AI agents. Use the `skill` tool to load them:
 
-| Skill | Purpose |
-|-------|---------|
-| `typeorm` | TypeORM development guidelines |
-| `vercel-react-best-practices` | React/Next.js performance optimization |
-| `tailwindcss` | TailwindCSS utility classes |
-| `clean-code` | Clean code principles (SOLID, DRY, KISS) |
-| `nestjs-best-practices` | NestJS architecture patterns |
-| `docker-security-guide` | Docker container security |
-| `pdf-ats` | ATS-friendly PDF generation |
-| `uxui` | UX/UI design principles |
-| `anime-js` | Animation guidelines |
+> **Quick config files**: This project also uses `.cursorrules` for Cursor-specific rules.
+
+| Skill | Purpose | When to Use |
+|-------|---------|-------------|
+| `typeorm` | TypeORM development guidelines | When working with entities, repositories, migrations, or database queries |
+| `vercel-react-best-practices` | React/Next.js performance optimization | When writing or refactoring React/Next.js components or pages |
+| `tailwindcss` | TailwindCSS utility classes | When styling any component - check here for responsive design patterns |
+| `clean-code` | Clean code principles (SOLID, DRY, KISS) | When refactoring code or solving architectural decisions |
+| `nestjs-best-practices` | NestJS architecture patterns | When working on backend modules, controllers, services, or guards |
+| `docker-security-guide` | Docker container security | When writing Dockerfiles, docker-compose files, or reviewing container security |
+| `pdf-ats` | ATS-friendly PDF generation | When working with PDF generation for CVs or resumes |
+| `uxui` | UX/UI design principles | When designing new components, pages, or user flows |
+| `anime-js` | Animation guidelines | When adding animations or transitions to components |
+
+> **Note**: The `skill` tool is available in this environment. To load a skill, use: `skill(name: 'skill-name')`

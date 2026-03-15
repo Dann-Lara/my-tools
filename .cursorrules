@@ -57,3 +57,13 @@
 `type(scope): description`  
 Types: feat, fix, refactor, docs, chore, test  
 Example: `fix(n8n): align credential IDs in workflow 02`
+
+## AI Agent Skills
+This project has specialized skills for specific tasks. Use the `skill` tool:
+- `typeorm` - TypeORM entities/repositories
+- `tailwindcss` - CSS styling
+- `nestjs-best-practices` - Backend NestJS patterns
+- `vercel-react-best-practices` - React/Next.js optimization
+- `pdf-ats` - ATS-friendly PDF generation
+- `uxui` - UX/UI design
+- `anime-js` - Animations
