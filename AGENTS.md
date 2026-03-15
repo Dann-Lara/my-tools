@@ -376,13 +376,35 @@ apps/backend/src/modules/[module]/[module].service.spec.ts
 
 ## 16. Development Rule: Spec + Test Before Push
 
-**Never push to master until:**
+> ⚠️ **This rule is mandatory for all features.**
 
-1. ✅ Spec created/updated for the feature
-2. ✅ Implementation complete
-3. ✅ Tests added and passing
-4. ✅ `npm run test` passes
-5. ✅ `npm run type-check` passes
+**Never push directly to master. Always use PR workflow:**
+
+1. ✅ **Create SPEC**: Create or update spec in `specs/features/F0XX-name.md`
+2. ✅ **Create Branch**: `git checkout -b feat/F0XX-description` from master
+3. ✅ **Implement**: Build the feature following SDD workflow
+4. ✅ **Add Tests**: Tests in `__tests__/` or `.spec.ts`
+5. ✅ **Run Tests**: `npm run test` must pass
+6. ✅ **Run Typecheck**: `npm run type-check` must pass
+7. ✅ **Commit & Push**: Push branch and create PR
+8. ✅ **Review**: Wait for review, address feedback
+9. ✅ **Merge**: Only merge after approval and CI passing
+
+**Quick Reference:**
+```bash
+# Start new feature
+git checkout master
+git pull
+git checkout -b feat/F038-landing-redesign
+
+# After implementation
+git add .
+git commit -m "feat: add landing page redesign"
+git push -u origin feat/F038-landing-redesign
+
+# Create PR on GitHub
+gh pr create --title "feat(frontend): landing page redesign" --body "..."
+```
 
 ## AI Agent Skills
 
@@ -401,5 +423,10 @@ This project includes specialized skills for AI agents. Use the `skill` tool to 
 | `pdf-ats` | ATS-friendly PDF generation | When working with PDF generation for CVs or resumes |
 | `uxui` | UX/UI design principles | When designing new components, pages, or user flows |
 | `anime-js` | Animation guidelines | When adding animations or transitions to components |
+| `n8n-workflow-patterns` | n8n workflow patterns | When creating n8n automations and workflows |
+| `webhook-integration` | Webhook best practices | When implementing webhook endpoints and integrations |
+| `supabase-postgres-best-practices` | PostgreSQL optimization | When writing SQL queries, migrations, or database optimizations |
 
 > **Note**: The `skill` tool is available in this environment. To load a skill, use: `skill(name: 'skill-name')`
+> 
+> **Global skills**: Some skills are installed globally in `~/.agents/skills/` and are available for all agents.
