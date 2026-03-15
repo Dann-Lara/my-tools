@@ -18,7 +18,7 @@ import {
 
 @ApiTags('Applications')
 @ApiBearerAuth()
-@Controller({ path: 'applications', version: '1' })
+@Controller('applications')
 @UseGuards(JwtAuthGuard, PermissionGuard)
 @RequireModulePermission('applications')
 export class ApplicationsController {
