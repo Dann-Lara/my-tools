@@ -3,6 +3,35 @@
 import { useEffect, useRef, useState } from 'react';
 import anime from 'animejs';
 
+function IconUsers({ className = '' }: { className?: string }) {
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className={className}>
+      <circle cx="13" cy="13" r="5" stroke="currentColor" strokeWidth="2" />
+      <circle cx="26" cy="13" r="5" stroke="currentColor" strokeWidth="2" />
+      <path d="M5 28c0-3.3 2.7-6 6-6s6 2.7 6 6M19 28c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconChecklist({ className = '' }: { className?: string }) {
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className={className}>
+      <rect x="6" y="4" width="24" height="28" rx="3" stroke="currentColor" strokeWidth="2" />
+      <path d="M10 14h16M10 20h16M10 26h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M24 22l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconApplications({ className = '' }: { className?: string }) {
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" className={className}>
+      <rect x="6" y="3" width="24" height="30" rx="3" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 10h12M12 16h8M12 22h10M12 28h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 interface MetricsData {
   activeUsers: number;
   checklistsCreated: number;
@@ -10,7 +39,7 @@ interface MetricsData {
 }
 
 interface MetricCardProps {
-  icon: string;
+  icon: React.ReactNode;
   value: number;
   label: string;
   delay: number;
@@ -122,9 +151,9 @@ export function LandingMetrics() {
   }, []);
 
   const metricsConfig = [
-    { icon: '🚀', value: metrics?.activeUsers ?? 0, label: 'Active Users', delay: 0 },
-    { icon: '📋', value: metrics?.checklistsCreated ?? 0, label: 'Checklists Created', delay: 100 },
-    { icon: '📝', value: metrics?.applicationsTracked ?? 0, label: 'Applications Tracked', delay: 200 },
+    { icon: <IconUsers className="text-sky-500" />, value: metrics?.activeUsers ?? 0, label: 'Active Users', delay: 0 },
+    { icon: <IconChecklist className="text-cyan-500" />, value: metrics?.checklistsCreated ?? 0, label: 'Checklists Created', delay: 100 },
+    { icon: <IconApplications className="text-indigo-500" />, value: metrics?.applicationsTracked ?? 0, label: 'Applications Tracked', delay: 200 },
   ];
 
   if (loading) {

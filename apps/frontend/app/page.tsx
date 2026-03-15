@@ -38,6 +38,47 @@ const STACK = [
   { name: 'AI Core',     color: 'text-violet-700 dark:text-violet-400',    dot: 'bg-violet-500 dark:bg-violet-400' },
 ];
 
+const HeroIcons = {
+  user: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
+  frontend: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  ),
+  backend: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+      <path d="M2 17l10 5 10-5" />
+      <path d="M2 12l10 5 10-5" />
+    </svg>
+  ),
+  database: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+      <ellipse cx="12" cy="5" rx="9" ry="3" />
+      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+    </svg>
+  ),
+  ai: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
+      <circle cx="9" cy="13" r="1" fill="currentColor" />
+      <circle cx="15" cy="13" r="1" fill="currentColor" />
+    </svg>
+  ),
+  n8n: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <rect x="8" y="8" width="8" height="8" fill="currentColor" />
+    </svg>
+  ),
+};
+
 function HeroAnimation() {
   const [isVisible, setIsVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -102,6 +143,15 @@ function HeroAnimation() {
     return () => pulse.pause();
   }, [isVisible]);
 
+  const heroNodes = [
+    { id: 'user', x: 50, y: 100, icon: HeroIcons.user },
+    { id: 'frontend', x: 150, y: 100, icon: HeroIcons.frontend },
+    { id: 'backend', x: 250, y: 100, icon: HeroIcons.backend },
+    { id: 'database', x: 350, y: 100, icon: HeroIcons.database },
+    { id: 'ai', x: 200, y: 50, icon: HeroIcons.ai },
+    { id: 'n8n', x: 200, y: 150, icon: HeroIcons.n8n },
+  ];
+
   return (
     <div ref={containerRef} className="relative w-full max-w-md mx-auto mb-12">
       <svg viewBox="0 0 400 200" className="w-full h-auto">
@@ -118,34 +168,39 @@ function HeroAnimation() {
         <line className="hero-line" x1="150" y1="100" x2="200" y2="50" stroke="url(#heroGrad)" strokeWidth="1.5" />
         <line className="hero-line" x1="150" y1="100" x2="200" y2="150" stroke="url(#heroGrad)" strokeWidth="1.5" />
 
-        <g className="hero-node" style={{ opacity: 0 }}>
-          <circle cx="50" cy="100" r="20" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-          <text x="50" y="105" textAnchor="middle" fontSize="14">👤</text>
-        </g>
-        <g className="hero-node" style={{ opacity: 0 }}>
-          <circle cx="150" cy="100" r="20" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-          <text x="150" y="105" textAnchor="middle" fontSize="14">⚡</text>
-        </g>
-        <g className="hero-node" style={{ opacity: 0 }}>
-          <circle cx="250" cy="100" r="20" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-          <text x="250" y="105" textAnchor="middle" fontSize="14">🔷</text>
-        </g>
-        <g className="hero-node" style={{ opacity: 0 }}>
-          <circle cx="350" cy="100" r="20" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-          <text x="350" y="105" textAnchor="middle" fontSize="14">🗄️</text>
-        </g>
-        <g className="hero-node" style={{ opacity: 0 }}>
-          <circle cx="200" cy="50" r="16" fill="#0f172a" stroke="#8b5cf6" strokeWidth="2" />
-          <text x="200" y="55" textAnchor="middle" fontSize="12">🤖</text>
-        </g>
-        <g className="hero-node" style={{ opacity: 0 }}>
-          <circle cx="200" cy="150" r="16" fill="#0f172a" stroke="#ec4899" strokeWidth="2" />
-          <text x="200" y="155" textAnchor="middle" fontSize="12">🔄</text>
-        </g>
+        {heroNodes.map((node) => (
+          <g key={node.id} className="hero-node" style={{ opacity: 0 }}>
+            <circle cx={node.x} cy={node.y} r="20" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
+            <g transform={`translate(${node.x - 10}, ${node.y - 10})`} className="text-sky-400">
+              {node.icon}
+            </g>
+          </g>
+        ))}
       </svg>
     </div>
   );
 }
+
+const FeatureIcons = {
+  ai: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
+      <circle cx="9" cy="13" r="1" fill="currentColor" />
+      <circle cx="15" cy="13" r="1" fill="currentColor" />
+    </svg>
+  ),
+  auth: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  ),
+  automation: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  ),
+};
 
 export default function LandingPage(): React.JSX.Element {
   const { t } = useI18n();
@@ -190,7 +245,7 @@ export default function LandingPage(): React.JSX.Element {
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/signup" className="btn-primary text-[11px] px-6 py-3" suppressHydrationWarning>
-                {t.home.heroCta} →
+                {t.home.heroCta}
               </Link>
               <Link href="/login" className="btn-ghost text-[11px] px-6 py-3" suppressHydrationWarning>
                 {t.nav.login}
@@ -198,7 +253,7 @@ export default function LandingPage(): React.JSX.Element {
               <a href="https://github.com/Dann-Lara/my-tools" target="_blank" rel="noopener noreferrer"
                 className="btn-ghost text-[11px] px-6 py-3 border-slate-300 dark:border-slate-700 text-slate-500 dark:text-slate-400"
                 suppressHydrationWarning>
-                {t.home.githubLink} ↗
+                {t.home.githubLink}
               </a>
             </div>
           </div>
@@ -232,7 +287,7 @@ export default function LandingPage(): React.JSX.Element {
       <section id="architecture" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="mb-12 text-center">
-            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">— 01</p>
+            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 01</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.archTitle}
             </h2>
@@ -248,7 +303,7 @@ export default function LandingPage(): React.JSX.Element {
       <section id="stack" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="mb-16">
-            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">— 02</p>
+            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 02</p>
             <h2 className="headline text-5xl md:text-7xl text-slate-900 dark:text-white" suppressHydrationWarning>
               {t.home.stackTitle}
             </h2>
@@ -272,7 +327,7 @@ export default function LandingPage(): React.JSX.Element {
       <section id="sdd" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="mb-16 text-center">
-            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">— 03</p>
+            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 03</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.sddTitle}
             </h2>
@@ -288,7 +343,7 @@ export default function LandingPage(): React.JSX.Element {
       <section id="metrics" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="mb-16 text-center">
-            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">— 04</p>
+            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 04</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.metricsTitle}
             </h2>
@@ -301,21 +356,21 @@ export default function LandingPage(): React.JSX.Element {
       <section id="features" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="mb-16">
-            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">— 05</p>
+            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 05</p>
             <h2 className="headline text-5xl md:text-7xl text-slate-900 dark:text-white" suppressHydrationWarning>
               {t.home.featuresTitle}
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { icon: '🤖', title: t.home.feat1Title, desc: t.home.feat1Desc },
-              { icon: '🔐', title: t.home.feat2Title, desc: t.home.feat2Desc },
-              { icon: '⚡', title: t.home.feat3Title, desc: t.home.feat3Desc },
+              { icon: FeatureIcons.ai, title: t.home.feat1Title, desc: t.home.feat1Desc },
+              { icon: FeatureIcons.auth, title: t.home.feat2Title, desc: t.home.feat2Desc },
+              { icon: FeatureIcons.automation, title: t.home.feat3Title, desc: t.home.feat3Desc },
             ].map(({ icon, title, desc }, i) => (
               <div key={i} className="relative group p-6 rounded-xl border transition-all duration-300
                                       border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40
                                       hover:border-sky-400/50 hover:shadow-lg dark:hover:bg-slate-900/80">
-                <span className="text-2xl mb-4 block">{icon}</span>
+                <span className="text-sky-400 mb-4 block">{icon}</span>
                 <h3 className="font-mono text-sm font-bold text-slate-800 dark:text-slate-100 mb-2 uppercase tracking-wider"
                     suppressHydrationWarning>{title}</h3>
                 <p className="font-mono text-[11px] text-slate-500 leading-relaxed" suppressHydrationWarning>{desc}</p>
@@ -332,7 +387,7 @@ export default function LandingPage(): React.JSX.Element {
       <section id="n8n" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="mb-16 text-center">
-            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">— 06</p>
+            <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 06</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.n8nTitle}
             </h2>
@@ -349,7 +404,7 @@ export default function LandingPage(): React.JSX.Element {
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">— 07</p>
+              <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 07</p>
               <h2 className="headline text-5xl md:text-7xl text-slate-900 dark:text-white" suppressHydrationWarning>
                 {t.home.docsTitle}
               </h2>
@@ -373,7 +428,7 @@ export default function LandingPage(): React.JSX.Element {
   "password": "SuperAdmin123!"
 }
 
-// Response → 200 OK
+// Response - 200 OK
 {
   "accessToken":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
