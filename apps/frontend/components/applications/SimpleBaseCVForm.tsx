@@ -27,6 +27,9 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const canEvaluate = hasText && !evaluating;
   const canSave = evaluation !== null && evaluation.score >= MIN_SCORE && !saving;
 
+  // DEBUG: Ver valores en consola
+  console.log('DEBUG:', { cvText: cvText.length, hasText, canEvaluate, evaluating });
+
   async function handleEvaluate() {
     if (!hasText) {
       setError('El CV debe tener al menos 50 caracteres');
@@ -99,16 +102,20 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
         />
       </div>
 
+      {/* Contador de caracteres - DEBUG */}
+      <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded text-xs font-mono">
+        DEBUG: length={cvText.length} hasText={String(hasText)} canEvaluate={String(canEvaluate)} evaluating={String(evaluating)}
+      </div>
+
       {/* Contador de caracteres */}
       <p className="font-mono text-[10px] text-slate-400">
         {cvText.length} caracteres (mínimo 50)
       </p>
 
-      {/* Botón Evaluar */}
+      {/* Botón Evaluar - probar sin disabled */}
       <button
         type="button"
         onClick={handleEvaluate}
-        disabled={!canEvaluate}
         className="btn-secondary flex items-center gap-2"
       >
         {evaluating ? <Spinner /> : <IconSpark />}
@@ -180,7 +187,6 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
       <button
         type="button"
         onClick={handleSave}
-        disabled={!canSave}
         className="btn-primary flex items-center gap-2"
       >
         {saving ? <Spinner /> : <IconSave />}
