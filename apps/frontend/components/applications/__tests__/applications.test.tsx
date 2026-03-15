@@ -1,6 +1,4 @@
-import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { isCVComplete, EMPTY_CV, BaseCV } from '../types';
 
 jest.mock('../../../lib/i18n-context', () => ({
   useI18n: () => ({
@@ -49,53 +47,35 @@ const mockApp = {
   interviewAnswers: '',
 };
 
-const mockBaseCV = {
-  cvText: 'Juan Pérez\nemail@email.com\n\nEXPERIENCE\nTech Corp - Dev (2020-2024)\n• Built features',
-  lastEvaluatedAt: '2024-01-15T00:00:00Z',
-};
-
 describe('Applications Components', () => {
-  describe('AppCard', () => {
-    it('should have test placeholder', () => {
-      expect(true).toBe(true);
+  describe('isCVComplete', () => {
+    it('should return false for empty CV', () => {
+      expect(isCVComplete(EMPTY_CV)).toBe(false);
+    });
+
+    it('should return false for CV with less than 50 characters', () => {
+      const cv: BaseCV = { cvText: 'Short text' };
+      expect(isCVComplete(cv)).toBe(false);
+    });
+
+    it('should return true for CV with 50 or more characters', () => {
+      const cv: BaseCV = { cvText: 'A'.repeat(50) };
+      expect(isCVComplete(cv)).toBe(true);
+    });
+
+    it('should return false for null cvText', () => {
+      const cv = { cvText: null } as unknown as BaseCV;
+      expect(isCVComplete(cv)).toBe(false);
+    });
+
+    it('should return false for undefined cvText', () => {
+      const cv = { cvText: undefined } as unknown as BaseCV;
+      expect(isCVComplete(cv)).toBe(false);
     });
   });
 
-  describe('SimpleBaseCVForm', () => {
-    it('should render textarea with placeholder', async () => {
-      const mockOnSaved = jest.fn();
-      const t = { applications: { 
-        baseCvTextareaLabel: 'Copia tu CV',
-        baseCvTextareaPlaceholder: 'Juan Pérez',
-        evaluateCv: 'Evaluar',
-        scoreLabel: 'Score',
-        cvEvalApprovedBadge: 'Aprobado',
-        suggestionsLabel: 'Sugerencias',
-        saveBaseCv: 'Guardar',
-        saving: 'Guardando...',
-      }};
-
-      render(<div data-testid="placeholder">Test</div>);
-      
-      expect(screen.getByTestId('placeholder')).toBeInTheDocument();
-    });
-
-    it('should show error when cvText is too short', async () => {
-      const user = userEvent.setup();
-      const t = { applications: { 
-        baseCvTextareaLabel: 'Copia tu CV',
-        baseCvTextareaPlaceholder: 'Juan Pérez',
-        evaluateCv: 'Evaluar',
-        cvTextTooShort: 'El CV debe tener al menos 50 caracteres',
-        scoreLabel: 'Score',
-        cvEvalApprovedBadge: 'Aprobado',
-        suggestionsLabel: 'Sugerencias',
-        saveBaseCv: 'Guardar',
-        saving: 'Guardando...',
-      }};
-
-      render(<div data-testid="placeholder">Test</div>);
-      
+  describe('AppCard', () => {
+    it('should have test placeholder', () => {
       expect(true).toBe(true);
     });
   });

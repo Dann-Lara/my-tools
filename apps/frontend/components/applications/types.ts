@@ -67,5 +67,5 @@ export const EMPTY_CV: BaseCV = {
 };
 
 export function isCVComplete(cv: BaseCV) {
-  return cv.cvText.length >= 50;
+  return !!(cv?.cvText && cv.cvText.length >= 50);
 }
