@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BaseCV, CvEvaluationGlobalResult, getHeaders } from './types';
 import { IconCheck, IconSave, IconSpark, IconWarning, Spinner } from './icons';
 
@@ -14,10 +14,16 @@ interface Props {
 
 export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const ta = t.applications;
-  const [cvText, setCvText] = useState(initialCV.cvText || '');
+  const [cvText, setCvText] = useState(initialCV?.cvText ?? '');
   const [evaluating, setEvaluating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<CvEvaluationGlobalResult | null>(null);
+
+  useEffect(() => {
+    if (initialCV?.cvText && cvText === '') {
+      setCvText(initialCV.cvText);
+    }
+  }, [initialCV]);
   const [error, setError] = useState('');
 
   async function handleEvaluate() {
