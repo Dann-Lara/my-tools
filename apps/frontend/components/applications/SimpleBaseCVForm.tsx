@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BaseCV, CvEvaluationGlobalResult, getHeaders } from './types';
 import { IconCheck, IconSave, IconSpark, IconWarning, Spinner } from './icons';
 
@@ -14,13 +14,19 @@ interface Props {
 
 export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const ta = t.applications;
-  const [cvText, setCvText] = useState((initialCV?.cvText ?? '') as string);
+  const [cvText, setCvText] = useState('');
+  const [initialized, setInitialized] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<CvEvaluationGlobalResult | null>(null);
   const [error, setError] = useState('');
 
-  console.log('DEBUG - initialCV:', initialCV, 'cvText:', cvText, 'canEvaluate:', cvText.length >= 50);
+  useEffect(() => {
+    if (!initialized && initialCV?.cvText) {
+      setCvText(initialCV.cvText);
+      setInitialized(true);
+    }
+  }, [initialCV, initialized]);
 
   const canEvaluate = cvText.length >= 50 && !evaluating;
 
@@ -161,7 +167,7 @@ export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
       <button
         onClick={handleSave}
         disabled={!canSave || saving}
-        className={`btn-primary flex items-center gap-2 ${!canSave ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`btn-primary flex items-center gap-2 ${!canSave || saving ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {saving ? <Spinner /> : <IconSave />}
         {saving ? (ta.saving || 'Guardando...') : (ta.saveBaseCv || 'Guardar CV Base')}
