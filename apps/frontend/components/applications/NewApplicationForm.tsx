@@ -46,9 +46,9 @@ function printATS(cvText: string, lang: 'es' | 'en', position: string, company: 
   win.document.write(`<!DOCTYPE html>
 <html lang="${lang}"><head><meta charset="UTF-8"/><title></title>
 <style>
-@page { margin: 0.75in; size: Letter; }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; padding: 0; max-width: 8.5in; }
+@page { margin: 0.6in 0.5in; size: Letter; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; background: #fff; padding: 0; margin: 0; }
 h2 { font-size: 12pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 14pt; margin-bottom: 6pt; break-after: avoid; page-break-after: avoid; }
 p { margin-bottom: 4pt; break-inside: avoid; }
 p.role { font-weight: bold; margin-top: 8pt; margin-bottom: 2pt; break-after: avoid; page-break-after: avoid; }
