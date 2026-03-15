@@ -10,7 +10,7 @@ import { DashboardLayout } from '../../../../components/ui/DashboardLayout';
 import { PermissionGate } from '../../../../components/ui/PermissionGate';
 import { Spinner } from '../../../../components/ui/Spinner';
 import { Toast } from '../../../../components/ui/Toast';
-import { BaseCVForm } from '../../../../components/applications';
+import { SimpleBaseCVForm } from '../../../../components/applications';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
@@ -76,10 +76,10 @@ export default function BaseCVPage() {
             </div>
           </div>
 
-          <BaseCVForm
+          <SimpleBaseCVForm
             initialCV={baseCV}
             lang={locale}
-            onSaved={saved => {
+            onSaved={() => {
               showToast(t.applications.toastCVSaved, 'ok');
               router.push('/client/applications');
             }}

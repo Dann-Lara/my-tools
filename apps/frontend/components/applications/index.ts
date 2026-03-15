@@ -1,7 +1,6 @@
 export * from './types';
 export * from './icons';
 export { AppCard } from './AppCard';
-export { BaseCVForm } from './BaseCVForm';
 export { SimpleBaseCVForm } from './SimpleBaseCVForm';
 export { NewApplicationForm } from './NewApplicationForm';
 export { AiFeedbackPanel } from './AiFeedbackPanel';
