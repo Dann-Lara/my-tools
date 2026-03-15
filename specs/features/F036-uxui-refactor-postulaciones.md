@@ -4,6 +4,7 @@
 > Fecha de creación: 2026-03-14
 > Versión: 1.0.0
 > Reemplaza: F035 (parcialmente)
+> Ver también: [F037](./F037-simplificar-cv-base.md) (CV Base simplificado)
 
 ---
 
@@ -228,7 +229,14 @@ const stepRef = useFadeInUp({ duration: 400 });
 
 ## 4. CV Base (`/client/applications/base-cv`)
 
-### Dos Modos
+> **Ver [F037](./F037-simplificar-cv-base.md)** para la especificación completa del CV Base simplificado (textarea + evaluación global).
+
+### Resumen de F037
+
+- **UI**: Textarea único donde el usuario copia y pega su CV
+- **Evaluación**: Score global (0-100) + máximo 3 sugerencias
+- **Guardado**: Solo permite guardar si score >= 85%
+- **DB**: Un solo campo `cvText` (texto plano)
 
 Esta página funciona tanto para **crear** como para **editar** el CV base:
 
@@ -614,3 +622,4 @@ apps/frontend/lib/i18n/
 | 2026-03-14 | 1.0.4 | Agregar campos location, salary, sourceUrl al detalle de postulación | - |
 | 2026-03-14 | 1.0.5 | PDF: generación directa con jsPDF (sin print dialog) | - |
 | 2026-03-14 | 1.0.6 | Tests: agregar controller spec para Applications | - |
+| 2026-03-14 | 1.0.7 | CV Base simplificado: ver F037 (textarea + evaluación global) | - |

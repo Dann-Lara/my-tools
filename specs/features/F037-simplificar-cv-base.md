@@ -1,6 +1,6 @@
 # F037: Simplificar CV Base - Texto Plano
 
-> Estado: DRAFT
+> Estado: APPROVED
 > Fecha de creación: 2026-03-14
 > Versión: 1.0.0
 
@@ -237,14 +237,14 @@ El prompt `generateCv.prompts.ts` ahora recibe el CV base como texto plano y ext
 
 ## Checklist de Implementación
 
-- [ ] Crear evaluateCvGlobal.prompts.ts
-- [ ] Crear endpoint POST /evaluate-cv-global
-- [ ] Modificar BaseCvEntity a texto plano
-- [ ] Crear frontend SimpleBaseCVForm con textarea
-- [ ] Eliminar PdfCVUploader
-- [ ] Modificar generateCv.prompts para usar texto plano
-- [ ] Tests para nuevo flujo
-- [ ] Actualizar F036 spec
+- [x] Crear evaluateCvGlobal.prompts.ts
+- [x] Crear endpoint POST /evaluate-cv-global
+- [x] Modificar BaseCvEntity a texto plano
+- [x] Crear frontend SimpleBaseCVForm con textarea
+- [x] Eliminar PdfCVUploader
+- [x] Modificar generateCv.prompts para usar texto plano
+- [x] Tests para nuevo flujo
+- [x] Actualizar F036 spec
 
 ---
 
