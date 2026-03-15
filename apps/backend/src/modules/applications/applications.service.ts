@@ -110,10 +110,8 @@ export class ApplicationsService {
       jobOfferText: dto.jobOffer,
       status: 'pending',
       atsScore: dto.atsScore,
-      cvGenerated: dto.generatedCvTextEs ?? dto.generatedCvText,
-      cvGeneratedEs: dto.generatedCvTextEs,
-      cvGeneratedEn: dto.generatedCvTextEn,
-      cvGeneratedFlag: !!(dto.cvGenerated || dto.generatedCvText || dto.generatedCvTextEs),
+      cvGenerated: dto.generatedCvText,
+      cvGeneratedLang: dto.generatedCvLang,
       appliedFrom: dto.appliedFrom,
     });
     return this.appRepo.save(entity);
@@ -125,14 +123,10 @@ export class ApplicationsService {
     if (dto.atsScore !== undefined) app.atsScore = dto.atsScore;
     if (dto.generatedCvText !== undefined) {
       app.cvGenerated = dto.generatedCvText;
-      app.cvGeneratedFlag = true;
     }
-    if (dto.generatedCvTextEs !== undefined) {
-      app.cvGeneratedEs = dto.generatedCvTextEs;
-      app.cvGenerated = dto.generatedCvTextEs; // keep compat
-      app.cvGeneratedFlag = true;
+    if (dto.generatedCvLang !== undefined) {
+      app.cvGeneratedLang = dto.generatedCvLang;
     }
-    if (dto.generatedCvTextEn !== undefined) app.cvGeneratedEn = dto.generatedCvTextEn;
     if (dto.appliedFrom !== undefined) app.appliedFrom = dto.appliedFrom;
     if (dto.interviewQuestions !== undefined) app.interviewQuestions = dto.interviewQuestions;
     if (dto.interviewAnswers !== undefined) app.interviewAnswers = dto.interviewAnswers;
@@ -150,7 +144,7 @@ export class ApplicationsService {
   async generateCv(
     userId: string,
     dto: GenerateCvDto,
-  ): Promise<{ atsScore: number; cvEs: string; cvEn: string }> {
+  ): Promise<{ atsScore: number; cv: string; lang: 'es' | 'en' }> {
     const baseCV = await this.cvRepo.findOne({ where: { userId } });
     if (!baseCV || !baseCV.fullName || (!baseCV.experience && !baseCV.summary)) {
       throw new BadRequestException(
@@ -189,7 +183,7 @@ export class ApplicationsService {
       .filter((l) => l !== undefined)
       .join('\n');
 
-    const { systemMessage, prompt } = buildGenerateCvPrompts({
+    const { systemMessage, prompt, detectedLang } = buildGenerateCvPrompts({
       company: dto.company,
       position: dto.position,
       jobOffer: dto.jobOffer,
@@ -244,47 +238,28 @@ export class ApplicationsService {
       }
     }
 
-    const cvEn = cleanCvText(cvRaw);
-    if (!cvEn || cvEn.length < 200) {
+    const cvText = cleanCvText(cvRaw);
+    if (!cvText || cvText.length < 200) {
       this.logger.error(
-        `generateCv: CV too short (${cvEn.length} chars). Raw[:300]: ${raw.slice(0, 300)}`,
+        `generateCv: CV too short (${cvText.length} chars). Raw[:300]: ${raw.slice(0, 300)}`,
       );
       throw new Error('AI returned incomplete CV content');
     }
 
     this.logger.debug(
-      `generateCv done: ${result.model} — ${cvEn.length} chars — atsScore: ${atsScore}`,
+      `generateCv done: ${result.model} — ${cvText.length} chars — atsScore: ${atsScore} — lang: ${detectedLang}`,
     );
-    return { atsScore, cvEs: '', cvEn };
+    return { atsScore, cv: cvText, lang: detectedLang };
   }
 
   // ── AI: Answer interview questions ──────────────────────────────────────────
 
   async adaptCvToSpanish(userId: string, appId: string): Promise<{ cvEs: string }> {
     const app = await this.findOne(userId, appId);
-    if (!app.cvGeneratedEn)
-      throw new BadRequestException('No English CV saved for this application');
+    if (!app.cvGenerated)
+      throw new BadRequestException('No CV saved for this application');
 
-    const { systemMessage, prompt } = buildAdaptCvToSpanishPrompts({
-      cvEn: app.cvGeneratedEn,
-    });
-
-    return withRetry(
-      async () => {
-        const { text } = await generateText({
-          prompt,
-          systemMessage,
-          maxTokens: 4000,
-          temperature: 0.1,
-        });
-        const cvEs = cleanCvText(text);
-        // Save back to the application
-        await this.appRepo.update({ id: appId, userId }, { cvGeneratedEs: cvEs });
-        return { cvEs };
-      },
-      2,
-      1500,
-    );
+    return { cvEs: app.cvGenerated };
   }
 
   // ── AI: Answer interview questions ──────────────────────────────────────────
@@ -300,11 +275,11 @@ export class ApplicationsService {
     const baseCV = await this.cvRepo.findOne({ where: { userId } });
 
     if (!baseCV) throw new BadRequestException('Base CV not found');
-    if (!app.cvGeneratedEs && !app.cvGeneratedEn) {
+    if (!app.cvGenerated) {
       throw new BadRequestException('No generated CV found for this application');
     }
 
-    const tailoredCv = esc((app.cvGeneratedEs ?? app.cvGeneratedEn ?? '').slice(0, 3500));
+    const tailoredCv = esc((app.cvGenerated ?? '').slice(0, 3500));
 
     const { systemMessage, prompt } = buildAnswerInterviewQuestionsPrompts({
       position: esc(app.position),
@@ -541,7 +516,7 @@ export class ApplicationsService {
     const baseCV = await this.cvRepo.findOne({ where: { userId } });
 
     if (!baseCV) throw new BadRequestException('Base CV not found');
-    if (!app.cvGeneratedEn && !app.cvGeneratedEs) {
+    if (!app.cvGenerated) {
       throw new BadRequestException('No generated CV found for this application');
     }
 
@@ -549,7 +524,7 @@ export class ApplicationsService {
       position: app.position,
       company: app.company,
       jobDescription: app.jobOfferText ?? '',
-      tailoredCv: app.cvGeneratedEn ?? app.cvGeneratedEs ?? '',
+      tailoredCv: app.cvGenerated ?? '',
       skills: baseCV.skills,
       languages: baseCV.languages,
       certifications: baseCV.certifications,

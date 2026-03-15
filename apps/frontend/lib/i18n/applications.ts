@@ -9,7 +9,7 @@ export const applicationsES = {
 
     // Tabs
     tabList: 'Listado',
-    tabNew: '+ Nueva postulación',
+    tabNew: 'Nueva postulación',
     newAppSubtitle: 'Crea una nueva postulación con CV 100% optimizado para ATS',
     tabBaseCV: 'CV Base',
     tabDashboard: 'Dashboard IA',
@@ -17,7 +17,7 @@ export const applicationsES = {
     // Warnings
     cvBaseIncompleteTitle: 'CV Base incompleto',
     cvBaseIncompleteDesc: 'Configura tu CV Base antes de crear postulaciones. Puedes subir tu CV en PDF y la IA extraerá los datos automáticamente.',
-    cvBaseConfigureBtn: 'Configurar →',
+    cvBaseConfigureBtn: 'Configurar',
     createBaseCV: 'Crear CV Base',
     editBaseCV: 'Editar CV Base',
     cvBaseRequiredTitle: 'Necesitas un CV base para crear postulaciones',
@@ -26,7 +26,7 @@ export const applicationsES = {
     // List tab
     loadingApps: 'Cargando postulaciones...',
     noApps: 'No hay postulaciones aún.',
-    createFirstApp: '+ Crear primera postulación',
+    createFirstApp: 'Crear primera postulación',
     configureCVFirst: 'Configurar CV Base primero',
     backToApplications: 'Volver a Postulaciones',
 
@@ -82,12 +82,12 @@ export const applicationsES = {
     generatingES: 'Adaptando al español...',
     generateSpanishHint: 'Adapta el CV en inglés al español',
     saveFirstHint: 'Guardá primero para habilitar',
-    doneBtn: 'Listo — ver postulaciones →',
+    doneBtn: 'Listo — ver postulaciones',
 
     // New application tab
     cvRequiredTitle: 'CV Base requerido',
     cvRequiredDesc: 'Completa tu CV Base antes de crear una postulación. La IA lo usará para generar un CV 100% ATS adaptado a cada oferta.',
-    goToBaseCV: 'Ir a CV Base →',
+    goToBaseCV: 'Ir a CV Base',
 
     // New app form
     newAppFormTitle: 'Datos de la postulación',
@@ -110,7 +110,7 @@ export const applicationsES = {
     // Generated CV
     generatedCVTitle: 'CV Generado',
     exportPDF: 'PDF',
-    editBack: '← Editar',
+    editBack: 'Editar',
     saveApplication: 'Guardar postulación',
 
     // Base CV tab
@@ -217,7 +217,7 @@ export const applicationsES = {
 
     // Detail page
     detailTitle: 'Detalle de Postulación',
-    detailBack: '← Volver al listado',
+    detailBack: 'Volver al listado',
     detailCompany: 'Empresa',
     detailPosition: 'Puesto',
     detailStatus: 'Estado',
@@ -225,6 +225,7 @@ export const applicationsES = {
     detailJobOffer: 'Oferta de Trabajo',
     detailGeneratedCV: 'CV Generado',
     detailNoCV: 'No hay CV generado',
+    detailDownload: 'Descargar PDF',
     detailDownloadES: 'Descargar PDF (ES)',
     detailDownloadEN: 'Descargar PDF (EN)',
     detailInterview: 'Entrevista Simulada',
@@ -238,14 +239,14 @@ export const applicationsEN = {
     pageSubtitle: 'Manage your job applications and generate ATS-optimized CVs with AI.',
 
     tabList: 'List',
-    tabNew: '+ New application',
+    tabNew: 'New application',
     newAppSubtitle: 'Create a new application with 100% ATS-optimized CV',
     tabBaseCV: 'Base CV',
     tabDashboard: 'AI Dashboard',
 
     cvBaseIncompleteTitle: 'Base CV incomplete',
     cvBaseIncompleteDesc: 'Set up your Base CV before creating applications. You can upload your CV as a PDF and AI will extract your data automatically.',
-    cvBaseConfigureBtn: 'Set up →',
+    cvBaseConfigureBtn: 'Set up',
     createBaseCV: 'Create Base CV',
     editBaseCV: 'Edit Base CV',
     cvBaseRequiredTitle: 'You need a Base CV to create applications',
@@ -307,11 +308,11 @@ export const applicationsEN = {
     generatingES: 'Adapting to Spanish...',
     generateSpanishHint: 'Adapts the English CV to Spanish',
     saveFirstHint: 'Save first to enable',
-    doneBtn: 'Done — view applications →',
+    doneBtn: 'Done — view applications',
 
     cvRequiredTitle: 'Base CV required',
     cvRequiredDesc: 'Complete your Base CV before creating an application. AI will use it to generate a 100% ATS-optimized CV tailored to each offer.',
-    goToBaseCV: 'Go to Base CV →',
+    goToBaseCV: 'Go to Base CV',
 
     newAppFormTitle: 'Application details',
     fieldCompany: 'Company',
@@ -331,7 +332,7 @@ export const applicationsEN = {
 
     generatedCVTitle: 'Generated CV',
     exportPDF: 'PDF',
-    editBack: '← Edit',
+    editBack: 'Edit',
     saveApplication: 'Save application',
 
     importFromPDF: 'Import from PDF',
@@ -432,7 +433,7 @@ export const applicationsEN = {
 
     // Detail page
     detailTitle: 'Application Detail',
-    detailBack: '← Back to list',
+    detailBack: 'Back to list',
     detailCompany: 'Company',
     detailPosition: 'Position',
     detailStatus: 'Status',
@@ -440,6 +441,7 @@ export const applicationsEN = {
     detailJobOffer: 'Job Offer',
     detailGeneratedCV: 'Generated CV',
     detailNoCV: 'No CV generated',
+    detailDownload: 'Download PDF',
     detailDownloadES: 'Download PDF (ES)',
     detailDownloadEN: 'Download PDF (EN)',
     detailInterview: 'Simulated Interview',
