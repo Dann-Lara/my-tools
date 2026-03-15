@@ -51,6 +51,15 @@ export default function ApplicationsPage() {
     }
   }, [user, loadBaseCV]);
 
+  useEffect(() => {
+    if (!authLoading && user && !baseCVLoading) {
+      const hasBaseCV = baseCV?.cvText && baseCV.cvText.length > 0;
+      if (!hasBaseCV && apps.length === 0) {
+        router.push('/client/applications/base-cv');
+      }
+    }
+  }, [authLoading, user, baseCVLoading, baseCV, apps, router]);
+
   if (authLoading || !user || baseCVLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">

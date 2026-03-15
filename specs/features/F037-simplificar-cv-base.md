@@ -22,6 +22,7 @@ Simplificar el CV Base de múltiples campos a un único textarea donde el usuari
 | Guardado | Permite score >= 60 | **Solo >= 85%** |
 | Sugerencias | Ilimitadas | Máximo 3-5 globales |
 | DB | Campos separados | Un solo campo `cvText` |
+| Routing | Manual a /base-cv | Auto-redirect si no hay CV ni postulaciones |
 
 ---
 
@@ -29,8 +30,18 @@ Simplificar el CV Base de múltiples campos a un único textarea donde el usuari
 
 ```
 /client/applications
+├── / (root) → Si NO hay CV base Y NO hay postulaciones → Redirect a /base-cv
 ├── /base-cv → Textarea único + evaluación global
 ```
+
+### Flujo de Routing
+
+1. Usuario accede a `/client/applications`
+2. Sistema verifica:
+   - ¿Existe CV base? (cvText no vacío)
+   - ¿Hay postulaciones?
+3. Si NO hay CV base Y NO hay postulaciones → Redirect automático a `/client/applications/base-cv`
+4. Si hay CV base → Mostrar listado de postulaciones
 
 ---
 

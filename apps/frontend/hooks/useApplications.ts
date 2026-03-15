@@ -73,7 +73,7 @@ export function useApplications({ authLoading, user }: UseApplicationsOptions): 
       const res = await fetch('/api/applications/base-cv', { headers: getHeaders() });
       if (res.ok) {
         const data = (await res.json()) as BaseCV;
-        if (data?.fullName !== undefined) {
+        if (data?.cvText !== undefined) {
           setBaseCV({ ...EMPTY_CV, ...data });
           localStorage.setItem('ailab_base_cv', JSON.stringify(data));
           setBaseCVLoading(false);
