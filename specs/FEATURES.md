@@ -72,6 +72,7 @@
 | F035 | Rediseño Módulo Postulaciones      | applications | COMPLETED        | Alta      |
 | F036 | UX/UI Refactor Postulaciones       | applications | IN_PROGRESS      | Alta      |
 | F037 | Simplificar CV Base                | applications | IN_PROGRESS      | Alta      |
+| F038 | Landing Page Redesign             | frontend     | VALIDATING       | Alta      |
 
 ---
 
