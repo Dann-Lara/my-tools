@@ -14,11 +14,13 @@ interface Props {
 
 export function SimpleBaseCVForm({ initialCV, onSaved, t, lang }: Props) {
   const ta = t.applications;
-  const [cvText, setCvText] = useState(initialCV?.cvText || '');
+  const [cvText, setCvText] = useState((initialCV?.cvText ?? '') as string);
   const [evaluating, setEvaluating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [evaluation, setEvaluation] = useState<CvEvaluationGlobalResult | null>(null);
   const [error, setError] = useState('');
+
+  console.log('DEBUG - initialCV:', initialCV, 'cvText:', cvText, 'canEvaluate:', cvText.length >= 50);
 
   const canEvaluate = cvText.length >= 50 && !evaluating;
 
