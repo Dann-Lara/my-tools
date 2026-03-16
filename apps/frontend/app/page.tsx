@@ -221,8 +221,8 @@ function HeroAnimation() {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full mb-12" suppressHydrationWarning>
-      <svg viewBox="0 0 800 300" className="w-full h-auto">
+    <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none" suppressHydrationWarning>
+      <svg viewBox="0 0 800 300" className="w-full h-full opacity-60">
         <defs>
           <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#0ea5e9" />
@@ -281,13 +281,15 @@ export default function LandingPage(): React.JSX.Element {
       <Navbar variant="public" />
 
       {/* HERO */}
-      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pt-14">
+      <section className="relative min-h-[70vh] overflow-hidden pt-20">
         <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: 'linear-gradient(#0284c7 1px, transparent 1px), linear-gradient(90deg, #0284c7 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px]
                         bg-sky-400/5 dark:bg-sky-500/8 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="relative max-w-[1400px] mx-auto px-6 md:px-12 py-24 md:py-32">
+        <HeroAnimation />
+
+        <div className="relative z-10 max-w-[1400px] px-6 md:px-12 py-16">
           <div className="inline-flex items-center gap-2 mb-8 font-mono text-[10px] uppercase tracking-[0.3em]
                           text-sky-600 dark:text-sky-400 border border-sky-300 dark:border-sky-400/20
                           bg-sky-50 dark:bg-sky-400/5 rounded-full px-4 py-2">
@@ -304,9 +306,7 @@ export default function LandingPage(): React.JSX.Element {
             </span>
           </h1>
 
-          <HeroAnimation />
-
-          <div className="max-w-2xl space-y-8 mt-12">
+          <div className="max-w-2xl space-y-8">
             <p className="font-mono text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed"
                suppressHydrationWarning>
               {t.home.heroSub}
@@ -326,7 +326,7 @@ export default function LandingPage(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="mt-20 grid grid-cols-3 gap-6 max-w-xl">
+          <div className="mt-16 grid grid-cols-3 gap-6 max-w-xl">
             {[
               { ref: linesRef, suffix: '+', label: 'Lines of code' },
               { ref: filesRef, suffix: '',  label: 'Files' },
