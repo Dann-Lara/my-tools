@@ -96,7 +96,7 @@ export function Sidebar({ variant, user }: SidebarProps) {
     { key: 'checklist',     href: '/checklists',          label: t.nav.checklist,     icon: <IconChecklist />, permission: 'checklist' },
     { key: 'applications',  href: `${base}/applications`, label: t.nav.applications ?? 'Postulaciones', icon: <IconBriefcase />, permission: 'applications' },
     { key: 'ai',           href: `${base}/ai`,            label: 'AI',                 icon: <IconSparkles />, permission: 'ai' },
-    ...(variant === 'client' ? [{ key: 'youtube', href: `${base}/youtube`, label: 'YouTube', icon: <IconYoutube />, permission: 'youtube' }] : []),
+    { key: 'youtube',      href: `${base}/youtube`,       label: 'YouTube',            icon: <IconYoutube />,  permission: 'youtube' },
   ];
 
   useEffect(() => { setMounted(true); }, []);
