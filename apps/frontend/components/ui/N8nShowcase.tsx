@@ -38,7 +38,7 @@ const icons: Record<string, React.ReactNode> = {
 };
 
 function WorkflowIcon({ icon }: { icon: string }) {
-  return <span className="text-sky-400">{icons[icon]}</span>;
+  return <span className="text-sky-400" suppressHydrationWarning>{icons[icon]}</span>;
 }
 
 export function N8nShowcase() {

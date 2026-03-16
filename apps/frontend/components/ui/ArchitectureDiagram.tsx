@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import anime from 'animejs';
 
 interface NodePosition {
@@ -78,8 +78,14 @@ const icons: Record<string, React.ReactNode> = {
   ),
 };
 
-function NodeIcon({ icon, className }: { icon: string; className?: string }) {
-  return <span className={className}>{icons[icon]}</span>;
+function NodeIcon({ icon, className = '' }: { icon: string; className?: string }) {
+  const iconNode = icons[icon];
+  if (!iconNode) return null;
+  return (
+    <span className={className} suppressHydrationWarning>
+      {iconNode}
+    </span>
+  );
 }
 
 export function ArchitectureDiagram() {

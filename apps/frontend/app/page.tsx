@@ -370,7 +370,7 @@ export default function LandingPage(): React.JSX.Element {
               <div key={i} className="relative group p-6 rounded-xl border transition-all duration-300
                                       border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40
                                       hover:border-sky-400/50 hover:shadow-lg dark:hover:bg-slate-900/80">
-                <span className="text-sky-400 mb-4 block">{icon}</span>
+                <span className="text-sky-400 mb-4 block" suppressHydrationWarning>{icon}</span>
                 <h3 className="font-mono text-sm font-bold text-slate-800 dark:text-slate-100 mb-2 uppercase tracking-wider"
                     suppressHydrationWarning>{title}</h3>
                 <p className="font-mono text-[11px] text-slate-500 leading-relaxed" suppressHydrationWarning>{desc}</p>

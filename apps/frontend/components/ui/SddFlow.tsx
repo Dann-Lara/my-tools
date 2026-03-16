@@ -62,7 +62,7 @@ const loopIcon = (
 );
 
 function StepIcon({ icon }: { icon: string }) {
-  return <span className="text-sky-400">{icons[icon]}</span>;
+  return <span className="text-sky-400" suppressHydrationWarning>{icons[icon]}</span>;
 }
 
 export function SddFlow() {
