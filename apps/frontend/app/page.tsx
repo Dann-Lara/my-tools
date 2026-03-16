@@ -35,15 +35,88 @@ function useCountUp(target: number, duration = 1200) {
 }
 
 const STACK = [
-  { name: 'Next.js 14',  color: 'text-slate-700 dark:text-white',         dot: 'bg-slate-400 dark:bg-white' },
-  { name: 'NestJS',      color: 'text-red-600 dark:text-red-400',          dot: 'bg-red-500 dark:bg-red-400' },
-  { name: 'TypeScript',  color: 'text-sky-700 dark:text-sky-400',          dot: 'bg-sky-500 dark:bg-sky-400' },
-  { name: 'PostgreSQL',  color: 'text-blue-700 dark:text-blue-400',        dot: 'bg-blue-500 dark:bg-blue-400' },
-  { name: 'Redis',       color: 'text-orange-700 dark:text-orange-400',    dot: 'bg-orange-500 dark:bg-orange-400' },
-  { name: 'n8n',         color: 'text-pink-700 dark:text-pink-400',        dot: 'bg-pink-500 dark:bg-pink-400' },
-  { name: 'Docker',      color: 'text-cyan-700 dark:text-cyan-400',        dot: 'bg-cyan-500 dark:bg-cyan-400' },
-  { name: 'Turborepo',   color: 'text-yellow-700 dark:text-yellow-400',   dot: 'bg-yellow-500 dark:bg-yellow-400' },
-  { name: 'AI Core',     color: 'text-violet-700 dark:text-violet-400',    dot: 'bg-violet-500 dark:bg-violet-400' },
+  { 
+    name: 'Next.js', 
+    desc: 'React framework with App Router', 
+    color: 'text-black dark:text-white',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M12 2L2 19.5h20L12 2zm0 4.5l6.5 11.25h-13L12 6.5z"/>
+      </svg>
+    )
+  },
+  { 
+    name: 'NestJS', 
+    desc: 'Node.js framework with TypeORM', 
+    color: 'text-red-600 dark:text-red-400',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+        <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
+      </svg>
+    )
+  },
+  { 
+    name: 'TypeScript', 
+    desc: 'Typed JavaScript at scale', 
+    color: 'text-sky-600 dark:text-sky-400',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0H1.125zm17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 0 1 1.306.34v2.458a3.95 3.95 0 0 0-.643-.361 5.093 5.093 0 0 0-.717-.26 5.453 5.453 0 0 0-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 0 0-.623.242c-.17.104-.3.229-.393.374a.888.888 0 0 0-.14.49c0 .196.053.373.156.529.104.156.252.304.443.444s.423.276.696.395c.273.12.582.248.926.381.52.202.99.409 1.41.621.42.212.777.459 1.069.743.293.284.514.622.665 1.014.15.392.226.858.226 1.398 0 .602-.114 1.119-.34 1.55-.227.43-.546.786-.956 1.067-.41.28-.897.487-1.46.623a7.685 7.685 0 0 1-1.838.203c-.654 0-1.273-.063-1.855-.188a8.137 8.137 0 0 1-1.543-.459v-2.631c.263.14.549.3.858.478.309.179.61.346.903.501.293.156.567.28.82.375.255.096.49.165.706.206.216.042.41.062.583.062.272 0 .514-.03.724-.091.21-.062.387-.159.53-.293.143-.133.253-.3.33-.501.077-.201.116-.444.116-.728 0-.291-.048-.533-.145-.725-.097-.193-.252-.35-.464-.473a4.77 4.77 0 0 0-.756-.34c-.295-.098-.654-.223-1.077-.374-.528-.19-.989-.395-1.384-.615a6.66 6.66 0 0 1-1.113-.675 3.94 3.94 0 0 1-.749-.893 2.836 2.836 0 0 1-.412-1.196c-.057-.329-.086-.794-.086-1.397 0-.613.115-1.139.344-1.58.23-.44.545-.802.947-1.085.402-.284.875-.495 1.418-.633a7.685 7.685 0 0 1 1.77-.214zm-6.59 1.678c.15.017.304.045.46.086.157.04.31.093.458.158.149.065.285.143.409.233.124.09.234.194.328.312.094.118.17.252.227.402.057.15.086.32.086.51 0 .223-.045.416-.135.579-.09.164-.217.3-.38.407a2.67 2.67 0 0 1-.585.27 6.16 6.16 0 0 1-.748.2c-.282.05-.58.088-.894.116l-.546.047z"/>
+      </svg>
+    )
+  },
+  { 
+    name: 'PostgreSQL', 
+    desc: 'Advanced open source database', 
+    color: 'text-blue-600 dark:text-blue-400',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+        <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z"/>
+      </svg>
+    )
+  },
+  { 
+    name: 'Redis', 
+    desc: 'In-memory data store', 
+    color: 'text-red-500 dark:text-red-400',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M10.5 2.661l.54.95-.54-.95a.75.75 0 0 1 1.035-.23l.77.62-.77-.62a.75.75 0 0 1 .23-1.035l1.08.38-1.08-.38a.75.75 0 0 1 .5-.866l.77.62-.77-.62a.75.75 0 0 1 .23-1.035l1.08.38-1.08-.38a.75.75 0 0 1 .5-.866l1.08.38-1.08-.38a.75.75 0 0 1 .23-1.035l1.08.38-1.08-.38a.75.75 0 0 1 .5-.866l1.08.38-1.08-.38a.75.75 0 0 1 .23-1.035l1.08.38-1.08-.38a.75.75 0 0 1 .5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1-.5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1-.5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l4.62 1.54a.75.75 0 0 1 .5.866l-4.62-1.54a.75.75 0 0 1 .23 1.035l-2.31-1.54a.75.75 0 0 1 .5.866l-1.08-.38 1.08.38a.75.75 0 0 1-.23 1.035l-2.31 1.54 2.31 1.54a.75.75 0 0 1 .23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-2.31-1.54 2.31 1.54a.75.75 0 0 1 .23 1.035l-4.62-1.54a.75.75 0 0 1-.5-.866l4.62 1.54a.75.75 0 0 1-.23-1.035l2.31 1.54-2.31-1.54a.75.75 0 0 1-.5-.866l1.08.38-1.08-.38a.75.75 0 0 1 .23-1.035l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1 .5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l4.62 1.54-4.62-1.54a.75.75 0 0 1-.5-.866l1.08.38-1.08-.38a.75.75 0 0 1 .23-1.035l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1-.5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l4.62 1.54a.75.75 0 0 1 .5.866l-4.62-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1-.5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1-.5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1-.5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l1.08.38-1.08-.38a.75.75 0 0 1-.5-.866l2.31 1.54-2.31-1.54a.75.75 0 0 1-.23-1.035l4.62 1.54a.75.75 0 0 1 .5.866l-1.08-.38 1.08.38a.75.75 0 0 1-.23 1.035l-2.31-1.54a.75.75 0 0 1-.5-.866l-1.08.38 1.08-.38a.75.75 0 0 1 .23 1.035l-2.31 1.54 2.31 1.54a.75.75 0 0 1 .23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-2.31-1.54a.75.75 0 0 1-.23 1.035l-1.08.38 1.08-.38a.75.75 0 0 1 .5.866l-4.62-1.54a.75.75 0 0 1-.5-.866l-1.08.38 1.08-.38a.75.75 0 0 1 .23 1.035l-2.31-1.54a.75.75 0 0 1-.5-.866l-1.08.38 1.08-.38a.75.75 0 0 1 .23 1.035l-2.31 1.54 2.31 1.54a.75.75 0 0 1 .23 1.035l-4.62-1.54a.75.75 0 0 1-.5.866l-1.08-.38 1.08.38a.75.75 0 0 1-.23 1.035l-2.31-1.54a.75.75 0 0 1-.5.866l-1.08.38 1.08-.38a.75.75 0 0 1 .23 1.035l-2.31-1.54a.75.75 0 0 1-.5.866l-1.08.38 1.08-.38a.75.75 0 0 1 .23 1.035l-4.62-1.54a.75.75 0 0 1-.5.866l-1.08-.38 1.08.38a.75.75 0 0 1-.23 1.035l-2.31-1.54a.75.75 0 0 1-.5.866l-1.08.38 1.08-.38a.75.75 0 0 1 .23 1.035l-2.31 1.54 2.31 1.54a.75.75 0 0 1 .23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-2.31-1.54a.75.75 0 0 1-.23 1.035l-1.08.38 1.08-.38a.75.75 0 0 1 .5.866l-4.62-1.54a.75.75 0 0 1-.5.866L6.8 13.6l1.08-.38a.75.75 0 0 1 .23 1.035l-2.31-1.54a.75.75 0 0 1-.5.866L3.38 14.46l1.08-.38a.75.75 0 0 1 .23 1.035l-2.31 1.54 2.31 1.54a.75.75 0 0 1 .23 1.035l-4.62-1.54a.75.75 0 0 1-.5.866l-.77-.62.77.62a.75.75 0 0 1-.23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-.77-.62.77.62a.75.75 0 0 1-.23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-2.31-1.54 2.31 1.54a.75.75 0 0 1-.23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-2.31-1.54 2.31 1.54a.75.75 0 0 1-.23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-2.31-1.54 2.31 1.54a.75.75 0 0 1-.23 1.035l-1.08-.38 1.08.38a.75.75 0 0 1-.5.866l-4.62-1.54 4.62 1.54a.75.75 0 0 1 .5.866l-1.08-.38 1.08.38a.75.75 0 0 1-.23 1.035l-2.31-1.54a.75.75 0 0 1-.5.866l-1.08.38 1.08-.38a.75.75 0 0 1 .23 1.035l-2.31 1.54 2.31 1.54a.75.75 0 0 1 .23 1.035l-4.62-1.54a.75.75 0 0 1-.5.866z"/>
+      </svg>
+    )
+  },
+  { 
+    name: 'Docker', 
+    desc: 'Container platform', 
+    color: 'text-sky-600 dark:text-sky-400',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.186m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.185-.186h-2.119a.185.185 0 00-.185.185v1.888c0 .102.084.185.185.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.185.185v1.888c0 .102.084.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046l.098-.288z"/>
+      </svg>
+    )
+  },
+  { 
+    name: 'TailwindCSS', 
+    desc: 'Utility-first CSS framework', 
+    color: 'text-sky-500 dark:text-sky-300',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z"/>
+      </svg>
+    )
+  },
+  { 
+    name: 'n8n', 
+    desc: 'Workflow automation', 
+    color: 'text-pink-500 dark:text-pink-400',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8">
+        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2c5.514 0 10 4.486 10 10s-4.486 10-10 10S2 17.514 2 12 6.486 2 12 2zm-1 2v8h2V4h-2z"/>
+      </svg>
+    )
+  },
 ];
 
 const HeroIcons = {
@@ -246,7 +319,7 @@ export default function LandingPage(): React.JSX.Element {
 
           <HeroAnimation />
 
-          <div className="max-w-2xl space-y-8">
+          <div className="max-w-3xl space-y-8 mt-12">
             <p className="font-mono text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed"
                suppressHydrationWarning>
               {t.home.heroSub}
@@ -266,7 +339,7 @@ export default function LandingPage(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="mt-20 grid grid-cols-3 gap-6 max-w-md">
+          <div className="mt-20 grid grid-cols-3 gap-6 max-w-2xl">
             {[
               { ref: linesRef, suffix: '+', label: 'Lines of code' },
               { ref: filesRef, suffix: '',  label: 'Files' },
@@ -294,12 +367,12 @@ export default function LandingPage(): React.JSX.Element {
       {/* ARCHITECTURE */}
       <section id="architecture" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="mb-12 text-center">
+          <div className="mb-12">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 01</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.archTitle}
             </h2>
-            <p className="font-mono text-[12px] text-slate-500 dark:text-slate-400 max-w-xl mx-auto" suppressHydrationWarning>
+            <p className="font-mono text-[12px] text-slate-500 dark:text-slate-400 max-w-2xl" suppressHydrationWarning>
               {t.home.archDesc}
             </p>
           </div>
@@ -316,15 +389,18 @@ export default function LandingPage(): React.JSX.Element {
               {t.home.stackTitle}
             </h2>
           </div>
-          <div className="flex flex-wrap gap-3">
-            {STACK.map(({ name, color, dot }) => (
-              <div key={name} className="flex items-center gap-2 px-4 py-2.5 rounded-lg cursor-default group
-                                         border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40
-                                         hover:border-slate-400 dark:hover:border-slate-600 transition-all">
-                <span className={`w-1.5 h-1.5 rounded-full ${dot} opacity-60 group-hover:opacity-100 transition-opacity`} />
-                <span className={`font-mono text-[11px] ${color} opacity-70 group-hover:opacity-100 transition-opacity uppercase tracking-wider`}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {STACK.map(({ name, desc, color, icon }) => (
+              <div key={name} className="group p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-sky-400/50 hover:shadow-lg hover:shadow-sky-500/10 transition-all duration-300">
+                <div className={`${color} mb-4 group-hover:scale-110 transition-transform`}>
+                  {icon}
+                </div>
+                <h3 className={`font-mono text-sm font-bold ${color} uppercase tracking-wider mb-1`}>
                   {name}
-                </span>
+                </h3>
+                <p className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
+                  {desc}
+                </p>
               </div>
             ))}
           </div>
@@ -334,12 +410,12 @@ export default function LandingPage(): React.JSX.Element {
       {/* SDD */}
       <section id="sdd" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="mb-16 text-center">
+          <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 03</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.sddTitle}
             </h2>
-            <p className="font-mono text-[12px] text-slate-500 dark:text-slate-400 max-w-xl mx-auto" suppressHydrationWarning>
+            <p className="font-mono text-[12px] text-slate-500 dark:text-slate-400 max-w-2xl" suppressHydrationWarning>
               {t.home.sddDesc}
             </p>
           </div>
@@ -350,13 +426,15 @@ export default function LandingPage(): React.JSX.Element {
       {/* METRICS */}
       <section id="metrics" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="mb-16 text-center">
+          <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 04</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.metricsTitle}
             </h2>
           </div>
-          <LandingMetrics />
+          <div suppressHydrationWarning>
+            <LandingMetrics />
+          </div>
         </div>
       </section>
 
@@ -369,11 +447,14 @@ export default function LandingPage(): React.JSX.Element {
               {t.home.featuresTitle}
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { icon: FeatureIcons.ai, title: t.home.feat1Title, desc: t.home.feat1Desc },
               { icon: FeatureIcons.auth, title: t.home.feat2Title, desc: t.home.feat2Desc },
               { icon: FeatureIcons.automation, title: t.home.feat3Title, desc: t.home.feat3Desc },
+              { icon: FeatureIcons.ai, title: t.home.feat4Title, desc: t.home.feat4Desc },
+              { icon: FeatureIcons.automation, title: t.home.feat5Title, desc: t.home.feat5Desc },
+              { icon: FeatureIcons.auth, title: t.home.feat6Title, desc: t.home.feat6Desc },
             ].map(({ icon, title, desc }, i) => (
               <div key={i} className="relative group p-6 rounded-xl border transition-all duration-300
                                       border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40
@@ -394,12 +475,12 @@ export default function LandingPage(): React.JSX.Element {
       {/* N8N SHOWCASE */}
       <section id="n8n" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
-          <div className="mb-16 text-center">
+          <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 06</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
               {t.home.n8nTitle}
             </h2>
-            <p className="font-mono text-[12px] text-slate-500 dark:text-slate-400 max-w-xl mx-auto" suppressHydrationWarning>
+            <p className="font-mono text-[12px] text-slate-500 dark:text-slate-400 max-w-2xl" suppressHydrationWarning>
               {t.home.n8nDesc}
             </p>
           </div>
