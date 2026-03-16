@@ -10,12 +10,17 @@ import {
   ModuleVisibilityEntity,
   ChannelStatus,
   IdeaStatus,
+  SearchVolume,
+  Competition,
+  Trend,
+  NicheSource,
   DEFAULT_MONETIZATION_STEPS,
 } from './entities';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateIdeaSeoDto, UpdateIdeaMetricsDto, UpdateIdeaStatusDto, GeneratePromptsDto } from './dto/update-idea.dto';
 import { UpdateVisibilityDto } from './dto/update-visibility.dto';
 import { ConfigService } from '@nestjs/config';
+import { generateNichesWithAI } from './ai/youtube-ai';
 
 @Injectable()
 export class YoutubeService {
@@ -40,12 +45,42 @@ export class YoutubeService {
   // === NICHES ===
 
   async getNiches() {
-    const niches = await this.nicheRepo.find({
+    let niches = await this.nicheRepo.find({
       order: { opportunityScore: 'DESC' },
     });
 
     if (niches.length === 0) {
-      return { niches: [], source: 'ai', cachedAt: null };
+      this.logger.log('No niches found in database, generating with AI...');
+      
+      try {
+        const aiNiches = await generateNichesWithAI(20);
+        
+        if (aiNiches.length > 0) {
+          const entities = aiNiches.map((n) => {
+            const entity = new NicheEntity();
+            entity.name = n.name;
+            entity.slug = n.slug;
+            entity.description = n.description;
+            entity.searchVolume = SearchVolume[n.searchVolume?.toUpperCase() as keyof typeof SearchVolume] || SearchVolume.MEDIUM;
+            entity.competition = Competition[n.competition?.toUpperCase() as keyof typeof Competition] || Competition.MEDIUM;
+            entity.opportunityScore = n.opportunityScore;
+            entity.trend = Trend[n.trend?.toUpperCase() as keyof typeof Trend] || Trend.STABLE;
+            entity.trendPercent = n.trendPercent !== undefined ? n.trendPercent : null;
+            entity.topKeywords = n.topKeywords || [];
+            entity.suggestedAudience = n.suggestedAudience;
+            entity.estimatedCPM = n.estimatedCPM;
+            entity.source = NicheSource.AI;
+            return entity;
+          });
+          
+          niches = await this.nicheRepo.save(entities);
+          this.logger.log(`Generated ${niches.length} niches with AI`);
+        }
+      } catch (err) {
+        this.logger.error('Failed to generate niches with AI', err);
+      }
+
+      return { niches, source: 'ai', cachedAt: null };
     }
 
     return {

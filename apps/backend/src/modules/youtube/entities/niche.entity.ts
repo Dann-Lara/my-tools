@@ -52,7 +52,7 @@ export class NicheEntity {
   trend!: Trend;
 
   @Column({ type: 'int', nullable: true })
-  trendPercent!: number;
+  trendPercent!: number | null;
 
   @Column('simple-array', { nullable: true })
   topKeywords!: string[];
