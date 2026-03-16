@@ -2,7 +2,6 @@ import { Injectable, Logger, NotFoundException, ForbiddenException, BadRequestEx
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
-  NicheEntity,
   ChannelEntity,
   ContentIdeaEntity,
   AIVideoPromptEntity,
@@ -10,10 +9,6 @@ import {
   ModuleVisibilityEntity,
   ChannelStatus,
   IdeaStatus,
-  SearchVolume,
-  Competition,
-  Trend,
-  NicheSource,
   DEFAULT_MONETIZATION_STEPS,
 } from './entities';
 import { CreateChannelDto } from './dto/create-channel.dto';
@@ -27,8 +22,6 @@ export class YoutubeService {
   private readonly logger = new Logger(YoutubeService.name);
 
   constructor(
-    @InjectRepository(NicheEntity)
-    private readonly nicheRepo: Repository<NicheEntity>,
     @InjectRepository(ChannelEntity)
     private readonly channelRepo: Repository<ChannelEntity>,
     @InjectRepository(ContentIdeaEntity)
@@ -45,55 +38,13 @@ export class YoutubeService {
   // === NICHES ===
 
   async getNiches() {
-    let niches = await this.nicheRepo.find({
-      order: { opportunityScore: 'DESC' },
-    });
-
-    if (niches.length === 0) {
-      this.logger.log('No niches found in database, generating with AI...');
-      
-      try {
-        const aiNiches = await generateNichesWithAI(20);
-        
-        if (aiNiches.length > 0) {
-          const entities = aiNiches.map((n) => {
-            const entity = new NicheEntity();
-            entity.name = n.name;
-            entity.slug = n.slug;
-            entity.description = n.description;
-            entity.searchVolume = SearchVolume[n.searchVolume?.toUpperCase() as keyof typeof SearchVolume] || SearchVolume.MEDIUM;
-            entity.competition = Competition[n.competition?.toUpperCase() as keyof typeof Competition] || Competition.MEDIUM;
-            entity.opportunityScore = n.opportunityScore;
-            entity.trend = Trend[n.trend?.toUpperCase() as keyof typeof Trend] || Trend.STABLE;
-            entity.trendPercent = n.trendPercent !== undefined ? n.trendPercent : null;
-            entity.topKeywords = n.topKeywords || [];
-            entity.suggestedAudience = n.suggestedAudience;
-            entity.estimatedCPM = n.estimatedCPM;
-            entity.source = NicheSource.AI;
-            return entity;
-          });
-          
-          niches = await this.nicheRepo.save(entities);
-          this.logger.log(`Generated ${niches.length} niches with AI`);
-        }
-      } catch (err) {
-        this.logger.error('Failed to generate niches with AI', err);
-      }
-
+    try {
+      const niches = await generateNichesWithAI(20);
       return { niches, source: 'ai', cachedAt: null };
+    } catch (err) {
+      this.logger.error('Failed to generate niches with AI', err);
+      return { niches: [], source: 'ai', cachedAt: null };
     }
-
-    return {
-      niches,
-      source: 'database',
-      cachedAt: new Date().toISOString(),
-    };
-  }
-
-  async getNicheById(id: string) {
-    const niche = await this.nicheRepo.findOne({ where: { id } });
-    if (!niche) throw new NotFoundException('Nicho no encontrado');
-    return niche;
   }
 
   // === CHANNELS ===
@@ -102,7 +53,6 @@ export class YoutubeService {
     const channels = await this.channelRepo.find({
       where: { userId },
       order: { createdAt: 'DESC' },
-      relations: ['niche'],
     });
     return channels;
   }
@@ -110,15 +60,12 @@ export class YoutubeService {
   async getChannelById(id: string, userId: string) {
     const channel = await this.channelRepo.findOne({
       where: { id, userId },
-      relations: ['niche'],
     });
     if (!channel) throw new NotFoundException('Canal no encontrado');
     return channel;
   }
 
   async createChannel(userId: string, dto: CreateChannelDto) {
-    const niche = await this.getNicheById(dto.nicheId);
-    
     const slug = dto.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
     const channel = this.channelRepo.create({
@@ -127,7 +74,7 @@ export class YoutubeService {
       name: dto.name,
       slug: `${slug}-${Date.now()}`,
       description: dto.description,
-      targetAudience: dto.targetAudience || niche.suggestedAudience,
+      targetAudience: dto.targetAudience,
       status: ChannelStatus.SETUP,
     });
 

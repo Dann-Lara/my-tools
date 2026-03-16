@@ -8,7 +8,6 @@ import { UserEntity } from '../users/entities/user.entity';
 import { YoutubeController } from './youtube.controller';
 import { YoutubeService } from './youtube.service';
 import {
-  NicheEntity,
   ChannelEntity,
   ContentIdeaEntity,
   AIVideoPromptEntity,
@@ -20,7 +19,6 @@ import {
   imports: [
     TypeOrmModule.forFeature([
       UserEntity,
-      NicheEntity,
       ChannelEntity,
       ContentIdeaEntity,
       AIVideoPromptEntity,

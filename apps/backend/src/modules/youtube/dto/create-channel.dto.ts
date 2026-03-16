@@ -1,9 +1,10 @@
-import { IsString, IsOptional, IsUUID, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateChannelDto {
-  @ApiProperty({ description: 'ID del nicho seleccionado' })
-  @IsUUID()
+  @ApiProperty({ description: 'Nombre del nicho seleccionado' })
+  @IsString()
+  @MaxLength(100)
   nicheId!: string;
 
   @ApiProperty({ description: 'Nombre del canal' })
@@ -17,9 +18,8 @@ export class CreateChannelDto {
   @MaxLength(500)
   description?: string;
 
-  @ApiPropertyOptional({ description: 'Audiencia objetivo' })
-  @IsOptional()
+  @ApiProperty({ description: 'Audiencia objetivo' })
   @IsString()
   @MaxLength(200)
-  targetAudience?: string;
+  targetAudience!: string;
 }
