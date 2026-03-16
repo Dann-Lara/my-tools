@@ -138,6 +138,7 @@ export class YoutubeController {
   // === MODULE VISIBILITY (Superadmin only) ===
 
   @Get('admin/visibility')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all module visibility settings (superadmin)' })
   getAllModuleVisibility(@CurrentUser() user: JwtUser) {
     if (user.role !== 'superadmin') {
@@ -148,6 +149,7 @@ export class YoutubeController {
 
   @Patch('admin/visibility')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update module visibility settings (superadmin)' })
   updateModuleVisibility(
     @CurrentUser() user: JwtUser,
