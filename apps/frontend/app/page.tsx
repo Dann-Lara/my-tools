@@ -186,42 +186,29 @@ function HeroAnimation() {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) {
-      anime.set('.hero-node', { opacity: 1, scale: 1 });
+      anime.set('.hero-node', { opacity: 1 });
       anime.set('.hero-line', { opacity: 0.3 });
       return;
     }
 
-    anime.set('.hero-node', { scale: 0, opacity: 0 });
-    anime.set('.hero-line', { strokeDasharray: 200, strokeDashoffset: 200, opacity: 0 });
+    anime.set('.hero-node', { opacity: 0 });
+    anime.set('.hero-line', { opacity: 0 });
 
     anime({
       targets: '.hero-node',
-      scale: [0, 1],
       opacity: [0, 1],
       duration: 800,
-      delay: anime.stagger(150),
-      easing: 'easeOutElastic(1, 0.5)',
+      delay: anime.stagger(100),
+      easing: 'easeOutQuad',
     });
 
     anime({
       targets: '.hero-line',
-      strokeDashoffset: [200, 0],
       opacity: [0, 0.4],
-      duration: 1000,
-      delay: anime.stagger(200, { start: 500 }),
-      easing: 'easeInOutSine',
+      duration: 600,
+      delay: anime.stagger(100, { start: 300 }),
+      easing: 'easeOutQuad',
     });
-
-    const pulse = anime({
-      targets: '.hero-node',
-      scale: [1, 1.1, 1],
-      duration: 2000,
-      delay: anime.stagger(300),
-      loop: true,
-      easing: 'easeInOutSine',
-    });
-
-    return () => pulse.pause();
   }, [isVisible]);
 
   const heroNodes = [
@@ -234,7 +221,7 @@ function HeroAnimation() {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-[1400px] mx-auto mb-12" suppressHydrationWarning>
+    <div ref={containerRef} className="relative w-full mb-12" suppressHydrationWarning>
       <svg viewBox="0 0 800 300" className="w-full h-auto">
         <defs>
           <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
