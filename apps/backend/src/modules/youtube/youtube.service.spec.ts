@@ -1,0 +1,277 @@
+import { Test, type TestingModule } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+
+import { YoutubeService } from './youtube.service';
+import {
+  NicheEntity,
+  ChannelEntity,
+  ContentIdeaEntity,
+  AIVideoPromptEntity,
+  MonetizationSetupEntity,
+  ModuleVisibilityEntity,
+  ChannelStatus,
+  IdeaStatus,
+} from './entities';
+
+describe('YoutubeService', () => {
+  let service: YoutubeService;
+  let nicheRepo: jest.Mocked<Repository<NicheEntity>>;
+  let channelRepo: jest.Mocked<Repository<ChannelEntity>>;
+  let ideaRepo: jest.Mocked<Repository<ContentIdeaEntity>>;
+  let promptRepo: jest.Mocked<Repository<AIVideoPromptEntity>>;
+  let monetizationRepo: jest.Mocked<Repository<MonetizationSetupEntity>>;
+  let visibilityRepo: jest.Mocked<Repository<ModuleVisibilityEntity>>;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        YoutubeService,
+        {
+          provide: getRepositoryToken(NicheEntity),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(ChannelEntity),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(ContentIdeaEntity),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(AIVideoPromptEntity),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(MonetizationSetupEntity),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(ModuleVisibilityEntity),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(),
+          },
+        },
+      ],
+    }).compile();
+
+    service = module.get<YoutubeService>(YoutubeService);
+    nicheRepo = module.get(getRepositoryToken(NicheEntity));
+    channelRepo = module.get(getRepositoryToken(ChannelEntity));
+    ideaRepo = module.get(getRepositoryToken(ContentIdeaEntity));
+    promptRepo = module.get(getRepositoryToken(AIVideoPromptEntity));
+    monetizationRepo = module.get(getRepositoryToken(MonetizationSetupEntity));
+    visibilityRepo = module.get(getRepositoryToken(ModuleVisibilityEntity));
+  });
+
+  describe('getNiches', () => {
+    it('should return niches from database', async () => {
+      const mockNiches = [
+        { id: '1', name: 'Tech', opportunityScore: 85 },
+        { id: '2', name: 'Gaming', opportunityScore: 70 },
+      ];
+      nicheRepo.find.mockResolvedValue(mockNiches as NicheEntity[]);
+
+      const result = await service.getNiches();
+
+      expect(result.niches).toEqual(mockNiches);
+      expect(result.source).toBe('database');
+      expect(nicheRepo.find).toHaveBeenCalledWith({ order: { opportunityScore: 'DESC' } });
+    });
+
+    it('should return empty array with source ai when no niches', async () => {
+      nicheRepo.find.mockResolvedValue([]);
+
+      const result = await service.getNiches();
+
+      expect(result.niches).toEqual([]);
+      expect(result.source).toBe('ai');
+    });
+  });
+
+  describe('getNicheById', () => {
+    it('should return niche by id', async () => {
+      const mockNiche = { id: '1', name: 'Tech' };
+      nicheRepo.findOne.mockResolvedValue(mockNiche as NicheEntity);
+
+      const result = await service.getNicheById('1');
+
+      expect(result).toEqual(mockNiche);
+    });
+
+    it('should throw NotFoundException when niche not found', async () => {
+      nicheRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.getNicheById('nonexistent')).rejects.toThrow('Nicho no encontrado');
+    });
+  });
+
+  describe('getChannels', () => {
+    it('should return channels for user', async () => {
+      const mockChannels = [
+        { id: '1', userId: 'user-1', name: 'My Channel' },
+      ];
+      channelRepo.find.mockResolvedValue(mockChannels as ChannelEntity[]);
+
+      const result = await service.getChannels('user-1');
+
+      expect(result).toEqual(mockChannels);
+      expect(channelRepo.find).toHaveBeenCalledWith({
+        where: { userId: 'user-1' },
+        order: { createdAt: 'DESC' },
+        relations: ['nicheId'],
+      });
+    });
+  });
+
+  describe('getChannelById', () => {
+    it('should return channel by id for user', async () => {
+      const mockChannel = { id: '1', userId: 'user-1', name: 'My Channel' };
+      channelRepo.findOne.mockResolvedValue(mockChannel as ChannelEntity);
+
+      const result = await service.getChannelById('1', 'user-1');
+
+      expect(result).toEqual(mockChannel);
+    });
+
+    it('should throw NotFoundException when channel not found', async () => {
+      channelRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.getChannelById('nonexistent', 'user-1')).rejects.toThrow('Canal no encontrado');
+    });
+  });
+
+  describe('createChannel', () => {
+    it('should create channel with correct status', async () => {
+      const mockNiche = { id: 'niche-1', name: 'Tech', suggestedAudience: 'Tech enthusiasts' };
+      nicheRepo.findOne.mockResolvedValue(mockNiche as NicheEntity);
+
+      const mockChannel = {
+        id: 'channel-1',
+        userId: 'user-1',
+        nicheId: 'niche-1',
+        name: 'Test Channel',
+        slug: 'test-channel',
+        status: ChannelStatus.SETUP,
+      };
+      channelRepo.create.mockReturnValue(mockChannel as ChannelEntity);
+      channelRepo.save.mockResolvedValue(mockChannel as ChannelEntity);
+
+      monetizationRepo.save.mockResolvedValue({ id: '1' } as MonetizationSetupEntity);
+
+      const result = await service.createChannel('user-1', {
+        nicheId: 'niche-1',
+        name: 'Test Channel',
+      });
+
+      expect(result.name).toBe('Test Channel');
+      expect(result.status).toBe(ChannelStatus.SETUP);
+    });
+  });
+
+  describe('canAccessModule', () => {
+    it('should return true when module is enabled with no restrictions', async () => {
+      const mockVisibility = {
+        id: '1',
+        moduleName: 'youtube',
+        isEnabled: true,
+        allowedRoles: [] as string[],
+        allowedUsers: [] as string[],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      visibilityRepo.findOne.mockResolvedValue(mockVisibility as ModuleVisibilityEntity);
+
+      const result = await service.canAccessModule('user-1', 'client', 'youtube');
+
+      expect(result).toBe(true);
+    });
+
+    it('should return false when module is disabled', async () => {
+      const mockVisibility = {
+        id: '1',
+        moduleName: 'youtube',
+        isEnabled: false,
+        allowedRoles: [] as string[],
+        allowedUsers: [] as string[],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      visibilityRepo.findOne.mockResolvedValue(mockVisibility as ModuleVisibilityEntity);
+
+      const result = await service.canAccessModule('user-1', 'client', 'youtube');
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true when user is in allowedUsers', async () => {
+      const mockVisibility = {
+        id: '1',
+        moduleName: 'youtube',
+        isEnabled: true,
+        allowedRoles: [] as string[],
+        allowedUsers: ['user-1', 'user-2'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      visibilityRepo.findOne.mockResolvedValue(mockVisibility as ModuleVisibilityEntity);
+
+      const result = await service.canAccessModule('user-1', 'client', 'youtube');
+
+      expect(result).toBe(true);
+    });
+
+    it('should return true when role is in allowedRoles', async () => {
+      const mockVisibility = {
+        id: '1',
+        moduleName: 'youtube',
+        isEnabled: true,
+        allowedRoles: ['admin', 'superadmin'],
+        allowedUsers: [] as string[],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      visibilityRepo.findOne.mockResolvedValue(mockVisibility as ModuleVisibilityEntity);
+
+      const result = await service.canAccessModule('user-1', 'admin', 'youtube');
+
+      expect(result).toBe(true);
+    });
+  });
+});
