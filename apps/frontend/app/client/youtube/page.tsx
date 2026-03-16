@@ -106,7 +106,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
           </p>
           <h1 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white">
             <span>Grow Your</span><br/>
-            <span className="text-red-600 dark:text-red-400">YouTube Channel</span>
+            <span className="text-sky-600 dark:text-sky-400">YouTube Channel</span>
           </h1>
         </div>
         <button onClick={logout} className="btn-ghost text-[10px] py-2 px-4 self-start md:self-auto">
@@ -120,7 +120,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
           onClick={() => setView('niches')}
           className={`pb-3 px-1 font-mono text-[11px] uppercase tracking-widest transition-colors
             ${view === 'niches'
-              ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+              ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400'
               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
         >
           Niches
@@ -129,7 +129,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
           onClick={() => setView('channels')}
           className={`pb-3 px-1 font-mono text-[11px] uppercase tracking-widest transition-colors
             ${view === 'channels'
-              ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+              ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400'
               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
         >
           My Channels
@@ -157,7 +157,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
             {niches.map((niche) => (
               <div
                 key={niche.id}
-                className="card p-5 hover:border-red-300 dark:hover:border-red-700/50 transition-colors cursor-pointer"
+                className="card p-5 hover:border-sky-300 dark:hover:border-sky-700/50 transition-colors cursor-pointer"
                 onClick={() => setSelectedNiche(niche)}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -209,7 +209,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
               {channels.map((channel) => (
                 <div
                   key={channel.id}
-                  className="card p-5 hover:border-red-300 dark:hover:border-red-700/50 transition-colors cursor-pointer"
+                  className="card p-5 hover:border-sky-300 dark:hover:border-sky-700/50 transition-colors cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-slate-900 dark:text-white">{channel.name}</h3>

@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
+import { NicheEntity } from './niche.entity';
 
 export enum ChannelStatus {
   SETUP = 'setup',
@@ -22,6 +23,10 @@ export class ChannelEntity {
 
   @Column()
   nicheId!: string;
+
+  @ManyToOne(() => NicheEntity, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'nicheId' })
+  niche!: NicheEntity;
 
   @Column()
   name!: string;

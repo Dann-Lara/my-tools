@@ -105,7 +105,7 @@ function YoutubeDashboardContent() {
           </p>
           <h1 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white">
             <span>Grow Your</span><br/>
-            <span className="text-red-600 dark:text-red-400">YouTube Channel</span>
+            <span className="text-sky-600 dark:text-sky-400">YouTube Channel</span>
           </h1>
         </div>
       </div>

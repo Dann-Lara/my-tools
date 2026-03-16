@@ -28,7 +28,7 @@ describe('UsersService', () => {
     passwordHash: 'hashed_password',
     role: 'client',
     isActive: true,
-    allowedModules: ['checklist', 'applications', 'ai'],
+    allowedModules: ['checklist', 'applications', 'ai', 'youtube'],
     adminId: null,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -196,7 +196,7 @@ describe('UsersService', () => {
 
       const result = service.getAllowedModules(superadmin);
 
-      expect(result).toEqual(['checklist', 'applications', 'ai']);
+      expect(result).toEqual(['checklist', 'applications', 'ai', 'youtube']);
     });
 
     it('should return all modules for admin', () => {
@@ -204,7 +204,7 @@ describe('UsersService', () => {
 
       const result = service.getAllowedModules(admin);
 
-      expect(result).toEqual(['checklist', 'applications', 'ai']);
+      expect(result).toEqual(['checklist', 'applications', 'ai', 'youtube']);
     });
 
     it('should return stored allowedModules for client', () => {
