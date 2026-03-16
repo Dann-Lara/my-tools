@@ -225,17 +225,17 @@ function HeroAnimation() {
   }, [isVisible]);
 
   const heroNodes = [
-    { id: 'user', x: 50, y: 100, icon: HeroIcons.user },
-    { id: 'frontend', x: 150, y: 100, icon: HeroIcons.frontend },
-    { id: 'backend', x: 250, y: 100, icon: HeroIcons.backend },
-    { id: 'database', x: 350, y: 100, icon: HeroIcons.database },
-    { id: 'ai', x: 200, y: 50, icon: HeroIcons.ai },
-    { id: 'n8n', x: 200, y: 150, icon: HeroIcons.n8n },
+    { id: 'user', x: 100, y: 150, icon: HeroIcons.user },
+    { id: 'frontend', x: 250, y: 150, icon: HeroIcons.frontend },
+    { id: 'backend', x: 400, y: 150, icon: HeroIcons.backend },
+    { id: 'database', x: 550, y: 150, icon: HeroIcons.database },
+    { id: 'ai', x: 400, y: 70, icon: HeroIcons.ai },
+    { id: 'n8n', x: 400, y: 230, icon: HeroIcons.n8n },
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-4xl mx-auto mb-12" suppressHydrationWarning>
-      <svg viewBox="0 0 400 200" className="w-full h-auto">
+    <div ref={containerRef} className="relative w-full max-w-[1400px] mx-auto mb-12" suppressHydrationWarning>
+      <svg viewBox="0 0 800 300" className="w-full h-auto">
         <defs>
           <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#0ea5e9" />
@@ -243,11 +243,11 @@ function HeroAnimation() {
           </linearGradient>
         </defs>
 
-        <line className="hero-line" x1="50" y1="100" x2="150" y2="100" stroke="url(#heroGrad)" strokeWidth="2" />
-        <line className="hero-line" x1="150" y1="100" x2="250" y2="100" stroke="url(#heroGrad)" strokeWidth="2" />
-        <line className="hero-line" x1="250" y1="100" x2="350" y2="100" stroke="url(#heroGrad)" strokeWidth="2" />
-        <line className="hero-line" x1="150" y1="100" x2="200" y2="50" stroke="url(#heroGrad)" strokeWidth="1.5" />
-        <line className="hero-line" x1="150" y1="100" x2="200" y2="150" stroke="url(#heroGrad)" strokeWidth="1.5" />
+        <line className="hero-line" x1="100" y1="150" x2="250" y2="150" stroke="url(#heroGrad)" strokeWidth="2" />
+        <line className="hero-line" x1="250" y1="150" x2="400" y2="150" stroke="url(#heroGrad)" strokeWidth="2" />
+        <line className="hero-line" x1="400" y1="150" x2="550" y2="150" stroke="url(#heroGrad)" strokeWidth="2" />
+        <line className="hero-line" x1="250" y1="150" x2="400" y2="70" stroke="url(#heroGrad)" strokeWidth="1.5" />
+        <line className="hero-line" x1="250" y1="150" x2="400" y2="230" stroke="url(#heroGrad)" strokeWidth="1.5" />
 
         {heroNodes.map((node) => (
           <g key={node.id} className="hero-node" style={{ opacity: 0 }}>
@@ -319,7 +319,7 @@ export default function LandingPage(): React.JSX.Element {
 
           <HeroAnimation />
 
-          <div className="max-w-3xl space-y-8 mt-12">
+          <div className="max-w-2xl space-y-8 mt-12">
             <p className="font-mono text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed"
                suppressHydrationWarning>
               {t.home.heroSub}
@@ -339,7 +339,7 @@ export default function LandingPage(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="mt-20 grid grid-cols-3 gap-6 max-w-2xl">
+          <div className="mt-20 grid grid-cols-3 gap-6 max-w-xl">
             {[
               { ref: linesRef, suffix: '+', label: 'Lines of code' },
               { ref: filesRef, suffix: '',  label: 'Files' },
