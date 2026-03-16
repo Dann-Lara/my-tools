@@ -153,7 +153,7 @@ function HeroAnimation() {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-md mx-auto mb-12">
+    <div ref={containerRef} className="relative w-full max-w-2xl mx-auto mb-12">
       <svg viewBox="0 0 400 200" className="w-full h-auto">
         <defs>
           <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -171,7 +171,7 @@ function HeroAnimation() {
         {heroNodes.map((node) => (
           <g key={node.id} className="hero-node" style={{ opacity: 0 }}>
             <circle cx={node.x} cy={node.y} r="20" fill="#0f172a" stroke="#0ea5e9" strokeWidth="2" />
-            <g transform={`translate(${node.x - 10}, ${node.y - 10})`} className="text-sky-400">
+            <g transform={`translate(${node.x - 10}, ${node.y - 10})`} className="text-sky-400" suppressHydrationWarning>
               {node.icon}
             </g>
           </g>
@@ -258,7 +258,7 @@ export default function LandingPage(): React.JSX.Element {
             </div>
           </div>
 
-          <div className="mt-20 grid grid-cols-3 gap-6 max-w-sm">
+          <div className="mt-20 grid grid-cols-3 gap-6 max-w-md">
             {[
               { ref: linesRef, suffix: '+', label: 'Lines of code' },
               { ref: filesRef, suffix: '',  label: 'Files' },
@@ -276,7 +276,7 @@ export default function LandingPage(): React.JSX.Element {
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2
                         font-mono text-[9px] uppercase tracking-widest text-slate-400 dark:text-slate-700 animate-bounce">
-          <span>scroll</span>
+          <span suppressHydrationWarning>scroll</span>
           <svg width="10" height="14" viewBox="0 0 10 14" fill="none">
             <path d="M5 1v12M1 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
