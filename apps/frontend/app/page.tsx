@@ -353,7 +353,7 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* ARCHITECTURE */}
       <section id="architecture" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1400px] px-6 md:px-12">
           <div className="mb-12">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 01</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
@@ -369,7 +369,7 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* STACK */}
       <section id="stack" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1400px] px-6 md:px-12">
           <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 02</p>
             <h2 className="headline text-5xl md:text-7xl text-slate-900 dark:text-white" suppressHydrationWarning>
@@ -396,7 +396,7 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* SDD */}
       <section id="sdd" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1400px] px-6 md:px-12">
           <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 03</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
@@ -412,7 +412,7 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* METRICS */}
       <section id="metrics" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1400px] px-6 md:px-12">
           <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 04</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
@@ -427,7 +427,7 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* FEATURES */}
       <section id="features" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1400px] px-6 md:px-12">
           <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 05</p>
             <h2 className="headline text-5xl md:text-7xl text-slate-900 dark:text-white" suppressHydrationWarning>
@@ -461,7 +461,7 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* N8N SHOWCASE */}
       <section id="n8n" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1400px] px-6 md:px-12">
           <div className="mb-16">
             <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 06</p>
             <h2 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white mb-4" suppressHydrationWarning>
@@ -477,7 +477,7 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* API DOCS */}
       <section id="docs" className="py-24 md:py-32 border-t border-slate-200 dark:border-slate-800/50 bg-slate-900/30 dark:bg-slate-900/20">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-12">
+        <div className="max-w-[1400px] px-6 md:px-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
               <p className="font-mono text-[10px] text-sky-500 dark:text-sky-400 uppercase tracking-[0.4em] mb-4">- 07</p>
