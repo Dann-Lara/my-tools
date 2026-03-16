@@ -83,13 +83,13 @@ export function PermissionsProvider({ user, children }: { user: AuthUser; childr
   }, [userId]);
 
   // Single function: uses real permissions from backend
-  // Superadmin always has full access
-  // Admin and client depend on their allowedModules from the backend
+  // Superadmin and admin always have full access
+  // Client depends on their allowedModules from the backend
   function hasPermission(key: string): boolean {
     // Use current user.role directly, not the captured constant
     const currentRole = user?.role;
-    // Superadmin always has full access
-    if (currentRole === 'superadmin') {
+    // Superadmin and admin always have full access
+    if (currentRole === 'superadmin' || currentRole === 'admin') {
       return true;
     }
     // Client depends on permissions fetch

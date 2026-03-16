@@ -59,6 +59,17 @@ const PERMISSION_MODULES = [
       </svg>
     ),
   },
+  {
+    key: 'youtube',
+    label: 'YouTube Channel Hack',
+    description: 'Acceso al módulo de crecimiento de canales de YouTube con IA',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/>
+        <path d="m10 15 5-3-5-3z"/>
+      </svg>
+    ),
+  },
 ] as const;
 
 // ─── Toggle Switch ────────────────────────────────────────────────────────────
@@ -117,7 +128,7 @@ export default function UserDetailPage() {
       const res = await fetch(`/api/users/${userId}`, { headers: getHeaders() });
       const data = await res.json() as UserDetail;
       // Backend returns allowedModules array - client role uses it, admin/superadmin have all
-      if (!data.allowedModules) data.allowedModules = ['checklist', 'applications', 'ai'];
+      if (!data.allowedModules) data.allowedModules = ['checklist', 'applications', 'ai', 'youtube'];
       setDetail(data);
     } catch {
       setDetail(null);
@@ -151,7 +162,7 @@ export default function UserDetailPage() {
       // Update local state with the allowedModules array
       setDetail(prev => prev ? { ...prev, allowedModules: updated } : prev);
       showToast(
-        `${permKey === 'ai' ? 'AI Tools' : permKey === 'checklist' ? 'Checklists' : 'Postulaciones'} ${!current ? 'habilitado' : 'deshabilitado'}`,
+        `${permKey === 'ai' ? 'AI Tools' : permKey === 'checklist' ? 'Checklists' : permKey === 'youtube' ? 'YouTube Channel Hack' : 'Postulaciones'} ${!current ? 'habilitado' : 'deshabilitado'}`,
         'ok'
       );
     } catch {
