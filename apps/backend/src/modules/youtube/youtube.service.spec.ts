@@ -155,7 +155,7 @@ describe('YoutubeService', () => {
       expect(channelRepo.find).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
         order: { createdAt: 'DESC' },
-        relations: ['nicheId'],
+        relations: ['niche'],
       });
     });
   });

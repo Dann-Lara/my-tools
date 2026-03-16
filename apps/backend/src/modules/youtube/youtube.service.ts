@@ -67,7 +67,7 @@ export class YoutubeService {
     const channels = await this.channelRepo.find({
       where: { userId },
       order: { createdAt: 'DESC' },
-      relations: ['nicheId'],
+      relations: ['niche'],
     });
     return channels;
   }
@@ -75,7 +75,7 @@ export class YoutubeService {
   async getChannelById(id: string, userId: string) {
     const channel = await this.channelRepo.findOne({
       where: { id, userId },
-      relations: ['nicheId'],
+      relations: ['niche'],
     });
     if (!channel) throw new NotFoundException('Canal no encontrado');
     return channel;

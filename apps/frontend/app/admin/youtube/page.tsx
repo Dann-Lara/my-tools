@@ -115,7 +115,7 @@ function YoutubeDashboardContent() {
           onClick={() => setView('niches')}
           className={`pb-3 px-1 font-mono text-[11px] uppercase tracking-widest transition-colors
             ${view === 'niches'
-              ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+              ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400'
               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
         >
           Niches
@@ -124,7 +124,7 @@ function YoutubeDashboardContent() {
           onClick={() => setView('channels')}
           className={`pb-3 px-1 font-mono text-[11px] uppercase tracking-widest transition-colors
             ${view === 'channels'
-              ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+              ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400'
               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
         >
           My Channels
@@ -149,7 +149,7 @@ function YoutubeDashboardContent() {
             {niches.map((niche) => (
               <div
                 key={niche.id}
-                className="card p-5 hover:border-red-300 dark:hover:border-red-700/50 transition-colors cursor-pointer"
+                className="card p-5 hover:border-sky-300 dark:hover:border-sky-700/50 transition-colors cursor-pointer"
                 onClick={() => setSelectedNiche(niche)}
               >
                 <div className="flex items-start justify-between mb-3">
