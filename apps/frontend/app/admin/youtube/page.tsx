@@ -1,20 +1,263 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { DashboardLayout } from '../../../components/ui/DashboardLayout';
+import { useI18n } from '../../../lib/i18n-context';
 import { useAuth } from '../../../hooks/useAuth';
+import { usePermissions } from '../../../lib/permissions-context';
+import { PermissionGate } from '../../../components/ui/PermissionGate';
+import { Spinner } from '../../../components/ui/Spinner';
+import {
+  getNiches,
+  getChannels,
+  createChannel,
+  type Niche,
+  type Channel,
+  type CreateChannelDto,
+} from '../../../lib/youtube';
 
-const ADMIN_ROLES = ['superadmin', 'admin'];
+const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
-export default function AdminYoutubePage() {
+function YoutubeDashboardContent() {
+  const { t } = useI18n();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth(ADMIN_ROLES);
+  const { hasPermission } = usePermissions();
+  const [view, setView] = useState<'niches' | 'channels'>('niches');
+  const [niches, setNiches] = useState<Niche[]>([]);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedNiche, setSelectedNiche] = useState<Niche | null>(null);
+  const [creatingChannel, setCreatingChannel] = useState(false);
+  const [channelName, setChannelName] = useState('');
+  const [channelDescription, setChannelDescription] = useState('');
 
   useEffect(() => {
-    if (!authLoading && user) {
-      router.replace('/client/youtube');
+    if (!hasPermission('youtube')) {
+      router.push('/admin');
+      return;
     }
-  }, [authLoading, user, router]);
+    loadData();
+  }, [view]);
 
-  return null;
+  async function loadData() {
+    setLoading(true);
+    try {
+      if (view === 'niches') {
+        const data = await getNiches();
+        setNiches(data.niches);
+      } else {
+        const data = await getChannels();
+        setChannels(data);
+      }
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCreateChannel() {
+    if (!selectedNiche || !channelName.trim()) return;
+    setCreatingChannel(true);
+    try {
+      const dto: CreateChannelDto = {
+        nicheId: selectedNiche.id,
+        name: channelName,
+        description: channelDescription,
+      };
+      const newChannel = await createChannel(dto);
+      setChannels([newChannel, ...channels]);
+      setView('channels');
+      setSelectedNiche(null);
+      setChannelName('');
+      setChannelDescription('');
+    } catch (err) {
+      console.error('Failed to create channel:', err);
+    } finally {
+      setCreatingChannel(false);
+    }
+  }
+
+  const getOpportunityColor = (score: number) => {
+    if (score >= 80) return 'text-emerald-600 dark:text-emerald-400';
+    if (score >= 60) return 'text-sky-600 dark:text-sky-400';
+    if (score >= 40) return 'text-amber-600 dark:text-amber-400';
+    return 'text-slate-500';
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      setup: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
+      active: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300',
+      paused: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+      monetized: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+    };
+    return styles[status] || styles.setup;
+  };
+
+  return (
+    <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
+      <div className="py-10 border-b border-slate-200 dark:border-slate-800/60 mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-3">
+          <p className="font-mono text-[10px] text-slate-400 uppercase tracking-[0.4em]">
+            YouTube Channel Hack
+          </p>
+          <h1 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white">
+            <span>Grow Your</span><br/>
+            <span className="text-red-600 dark:text-red-400">YouTube Channel</span>
+          </h1>
+        </div>
+      </div>
+
+      <div className="flex gap-4 mb-8 border-b border-slate-200 dark:border-slate-800/60">
+        <button
+          onClick={() => setView('niches')}
+          className={`pb-3 px-1 font-mono text-[11px] uppercase tracking-widest transition-colors
+            ${view === 'niches'
+              ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+        >
+          Niches
+        </button>
+        <button
+          onClick={() => setView('channels')}
+          className={`pb-3 px-1 font-mono text-[11px] uppercase tracking-widest transition-colors
+            ${view === 'channels'
+              ? 'text-red-600 dark:text-red-400 border-b-2 border-red-600 dark:border-red-400'
+              : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+        >
+          My Channels
+        </button>
+      </div>
+
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="flex items-center gap-3 font-mono text-[11px] text-slate-400">
+            <span className="w-4 h-4 border-2 border-slate-300 dark:border-slate-700 border-t-red-500 rounded-full animate-spin" />
+            Loading...
+          </div>
+        </div>
+      )}
+
+      {!loading && view === 'niches' && (
+        <div className="space-y-4">
+          <p className="text-slate-500 dark:text-slate-400 mb-6">
+            Select a niche to start your YouTube channel.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {niches.map((niche) => (
+              <div
+                key={niche.id}
+                className="card p-5 hover:border-red-300 dark:hover:border-red-700/50 transition-colors cursor-pointer"
+                onClick={() => setSelectedNiche(niche)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">{niche.name}</h3>
+                  <span className={`font-mono text-lg font-bold ${getOpportunityColor(niche.opportunityScore)}`}>
+                    {niche.opportunityScore}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">
+                  {niche.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!loading && view === 'channels' && (
+        <div className="space-y-4">
+          {channels.length === 0 ? (
+            <div className="text-center py-12 text-slate-400">
+              <p className="mb-4">You haven't created any channels yet.</p>
+              <button
+                onClick={() => setView('niches')}
+                className="btn-primary"
+              >
+                Choose a Niche
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {channels.map((channel) => (
+                <div key={channel.id} className="card p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{channel.name}</h3>
+                    <span className={`text-[10px] px-2 py-1 rounded ${getStatusBadge(channel.status)}`}>
+                      {channel.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                    {channel.description || 'No description'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {selectedNiche && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="card p-6 max-w-md w-full">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
+              Create Channel in "{selectedNiche.name}"
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Channel Name
+                </label>
+                <input
+                  type="text"
+                  value={channelName}
+                  onChange={(e) => setChannelName(e.target.value)}
+                  className="input w-full"
+                  placeholder="My Awesome Channel"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setSelectedNiche(null)}
+                  className="btn-ghost flex-1"
+                  disabled={creatingChannel}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateChannel}
+                  className="btn-primary flex-1"
+                  disabled={!channelName.trim() || creatingChannel}
+                >
+                  {creatingChannel ? 'Creating...' : 'Create Channel'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function AdminYoutubePage() {
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  return (
+    <DashboardLayout variant="admin" user={user} title="YouTube Channel Hack">
+      <PermissionGate module="youtube">
+        <YoutubeDashboardContent />
+      </PermissionGate>
+    </DashboardLayout>
+  );
 }
