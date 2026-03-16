@@ -12,6 +12,7 @@ import type { AuthUser } from '../../lib/auth';
 import { checklistsApi, type Checklist } from '../../lib/checklists';
 import { CHECKLIST_STATUS_STYLES } from '../../components/checklists/constants';
 import { type Application, getHeaders } from '../../components/applications';
+import { getAllModuleVisibility, updateModuleVisibility, type ModuleVisibility } from '../../lib/youtube';
 
 const ADMIN_ROLES = ['superadmin', 'admin'];
 
@@ -140,7 +141,8 @@ function AdminDashboardContent({ user, logout }: { user: AuthUser; logout: () =>
   const { hasPermission } = usePermissions();
   const [checklists, setChecklists] = useState<Checklist[]>([]);
   const [apps, setApps] = useState<Application[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'system'>('overview');
+  const [moduleVisibility, setModuleVisibility] = useState<ModuleVisibility[]>([]);
+  const [activeTab, setActiveTab] = useState<'overview' | 'system' | 'modules'>('overview');
 
   useEffect(() => {
     checklistsApi.list().then(setChecklists).catch(() => {});
@@ -148,7 +150,10 @@ function AdminDashboardContent({ user, logout }: { user: AuthUser; logout: () =>
       .then(res => res.json())
       .then(data => setApps(Array.isArray(data) ? data : []))
       .catch(() => {});
-  }, [pathname]);
+    if (user.role === 'superadmin') {
+      getAllModuleVisibility().then(setModuleVisibility).catch(() => {});
+    }
+  }, [pathname, user.role]);
 
   const roleColor = user.role === 'superadmin'
     ? 'text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-400/30 bg-yellow-50 dark:bg-yellow-400/5'
@@ -177,10 +182,10 @@ function AdminDashboardContent({ user, logout }: { user: AuthUser; logout: () =>
       </div>
 
       <div className="flex gap-1 mb-8 border-b border-slate-200 dark:border-slate-800">
-        {(['overview', 'system'] as const).map((id) => (
+        {(['overview', 'system', 'modules'] as const).map((id) => (
           <button key={id} onClick={() => setActiveTab(id)}
             className={`font-mono text-[10px] uppercase tracking-widest px-5 py-3 border-b-2 -mb-px transition-all ${activeTab === id ? 'border-sky-500 text-sky-600 dark:text-sky-400' : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`} suppressHydrationWarning>
-            {id === 'overview' ? 'Resumen' : 'Sistema'}
+            {id === 'overview' ? 'Resumen' : id === 'system' ? 'Sistema' : 'Modulos'}
           </button>
         ))}
       </div>
@@ -252,6 +257,55 @@ function AdminDashboardContent({ user, logout }: { user: AuthUser; logout: () =>
             </div>
           </div>
         </>
+      )}
+
+      {activeTab === 'modules' && user.role === 'superadmin' && (
+        <div className="mb-8">
+          <p className="font-mono text-[9px] uppercase tracking-[0.3em] text-slate-400 mb-4">Visibilidad de Modulos</p>
+          <div className="card p-6">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+              Controla que modulos son visibles para los usuarios. Los cambios se aplican inmediatamente.
+            </p>
+            <div className="space-y-4">
+              {moduleVisibility.map((mod) => (
+                <div key={mod.id} className="flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <div>
+                    <p className="font-mono text-[12px] font-semibold text-slate-800 dark:text-slate-200 capitalize">
+                      {mod.moduleName}
+                    </p>
+                    <p className="font-mono text-[9px] text-slate-400 mt-0.5">
+                      Roles: {mod.allowedRoles?.length > 0 ? mod.allowedRoles.join(', ') : 'Todos'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await updateModuleVisibility({
+                          moduleName: mod.moduleName,
+                          isEnabled: !mod.isEnabled,
+                          allowedRoles: mod.allowedRoles,
+                          allowedUsers: mod.allowedUsers,
+                        });
+                        setModuleVisibility(prev => prev.map(m => 
+                          m.id === mod.id ? { ...m, isEnabled: !m.isEnabled } : m
+                        ));
+                      } catch (err) {
+                        console.error('Failed to update visibility:', err);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-all ${
+                      mod.isEnabled
+                        ? 'bg-emerald-100 dark:bg-emerald-400/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-400/30'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                    }`}
+                  >
+                    {mod.isEnabled ? 'Activo' : 'Inactivo'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

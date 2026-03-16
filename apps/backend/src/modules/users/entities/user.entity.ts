@@ -15,13 +15,15 @@ export type UserRole = 'superadmin' | 'admin' | 'client';
  *
  * Superadmin and admin always have access to every module regardless of this map.
  */
-export const MODULE_KEYS = ['checklist', 'applications'] as const;
+export const MODULE_KEYS = ['checklist', 'applications', 'ai', 'youtube'] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
 export type PermissionsMap = Record<ModuleKey, boolean>;
 
 export const DEFAULT_PERMISSIONS: PermissionsMap = {
   checklist:    true,
   applications: true,
+  ai:          true,
+  youtube:     true,
 };
 
 @Entity('users')

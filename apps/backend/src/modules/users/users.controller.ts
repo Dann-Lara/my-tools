@@ -77,7 +77,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get allowed modules for the current user' })
   async getMyPermissions(@CurrentUser() user: JwtUser): Promise<Record<string, boolean>> {
     const full = await this.usersService.findOne(user.userId);
-    const allModules = ['checklist', 'applications', 'ai'];
+    const allModules = ['checklist', 'applications', 'ai', 'youtube'];
 
     // Superadmin gets full access to all modules
     if (full.role === 'superadmin') {

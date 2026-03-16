@@ -36,6 +36,12 @@ const IconSparkles = () => (
     <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.54 15.54l2.83 2.83M5.64 18.36l2.83-2.83M15.54 8.46l2.83-2.83"/>
   </svg>
 );
+const IconYoutube = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/>
+    <path d="m10 15 5-3-5-3z"/>
+  </svg>
+);
 const IconChevron = ({ open }: { open: boolean }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
     className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`}>
@@ -90,6 +96,7 @@ export function Sidebar({ variant, user }: SidebarProps) {
     { key: 'checklist',     href: '/checklists',          label: t.nav.checklist,     icon: <IconChecklist />, permission: 'checklist' },
     { key: 'applications',  href: `${base}/applications`, label: t.nav.applications ?? 'Postulaciones', icon: <IconBriefcase />, permission: 'applications' },
     { key: 'ai',           href: `${base}/ai`,            label: 'AI',                 icon: <IconSparkles />, permission: 'ai' },
+    { key: 'youtube',      href: `${base}/youtube`,       label: 'YouTube',            icon: <IconYoutube />,  permission: 'youtube' },
   ];
 
   useEffect(() => { setMounted(true); }, []);

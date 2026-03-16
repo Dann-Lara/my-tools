@@ -18,7 +18,7 @@ export type UserRole = 'superadmin' | 'admin' | 'client';
  * superadmin: tiene acceso a todos los módulos automáticamente
  * admin/client: acceso según allowedModules
  */
-export const MODULE_KEYS = ['checklist', 'applications', 'ai'] as const;
+export const MODULE_KEYS = ['checklist', 'applications', 'ai', 'youtube'] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
 
 /**
@@ -26,7 +26,7 @@ export type ModuleKey = typeof MODULE_KEYS[number];
  * Array de strings - cada string es una key de módulo.
  * Si está vacío o null, no tiene acceso a ningún módulo.
  */
-export const DEFAULT_ALLOWED_MODULES: ModuleKey[] = ['checklist', 'applications', 'ai'];
+export const DEFAULT_ALLOWED_MODULES: ModuleKey[] = ['checklist', 'applications', 'ai', 'youtube'];
 
 @Entity('users')
 export class UserEntity {
