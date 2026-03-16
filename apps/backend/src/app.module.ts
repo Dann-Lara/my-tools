@@ -10,6 +10,7 @@ import { ChecklistsModule } from './modules/checklists/checklists.module';
 import { LandingModule } from './modules/landing/landing.module';
 import { UsersModule } from './modules/users/users.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { YoutubeModule } from './modules/youtube/youtube.module';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // .env loading strategy
@@ -70,6 +71,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     ChecklistsModule,
     ApplicationsModule,
     LandingModule,
+    YoutubeModule,
   ],
 })
 export class AppModule {}
