@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersModule } from '../users/users.module';
+import { UserEntity } from '../users/entities/user.entity';
 
 import { YoutubeController } from './youtube.controller';
 import { YoutubeService } from './youtube.service';
@@ -18,6 +19,7 @@ import {
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      UserEntity,
       NicheEntity,
       ChannelEntity,
       ContentIdeaEntity,
