@@ -84,7 +84,8 @@ Devuelve solo un JSON array de objetos.`;
   const { text } = await generateText({
     prompt,
     systemMessage,
-    temperature: 0.8,
+    temperature: 0.7,
+    maxTokens: 8000,
   });
 
   try {
