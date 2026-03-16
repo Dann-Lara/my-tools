@@ -13,7 +13,15 @@ import anime from 'animejs';
 
 function useCountUp(target: number, duration = 1200) {
   const ref = useRef<HTMLSpanElement>(null);
+  const [mounted, setMounted] = useState(false);
+  
   useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  useEffect(() => {
+    if (!mounted || !ref.current) return;
+    
     let start = 0;
     const step = target / (duration / 16);
     const timer = setInterval(() => {
@@ -22,7 +30,7 @@ function useCountUp(target: number, duration = 1200) {
       if (start >= target) clearInterval(timer);
     }, 16);
     return () => clearInterval(timer);
-  }, [target, duration]);
+  }, [target, duration, mounted]);
   return ref;
 }
 
@@ -153,7 +161,7 @@ function HeroAnimation() {
   ];
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-2xl mx-auto mb-12">
+    <div ref={containerRef} className="relative w-full max-w-4xl mx-auto mb-12" suppressHydrationWarning>
       <svg viewBox="0 0 400 200" className="w-full h-auto">
         <defs>
           <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="0%">
