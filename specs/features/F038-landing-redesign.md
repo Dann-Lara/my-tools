@@ -28,15 +28,20 @@
 
 ### Acceptance Criteria
 
-- [ ] **AC01**: Landing muestra animación SVG en hero con nodos conectados (User → Frontend → Backend → DB)
-- [ ] **AC02**: Sección de Arquitectura con diagrama animado del flujo de datos
-- [ ] **AC03**: Sección SDD mostrando el proceso Spec-Driven Development
-- [ ] **AC04**: Sección de métricas en tiempo real (usuarios, checklists, aplicaciones)
-- [ ] **AC05**: Sección n8n con workflows automatizados
-- [ ] **AC06**: Todas las animaciones usan animejs con prefers-reduced-motion
-- [ ] **AC07**: Link a GitHub en el hero
-- [ ] **AC08**: Dark mode soportado en todas las secciones
-- [ ] **AC09**: i18n completo (ES/EN)
+- [x] **AC01**: Landing muestra animación SVG en hero con nodos conectados (User → Frontend → Backend → DB)
+- [x] **AC02**: Sección de Arquitectura con diagrama del flujo de datos (diseño simplificado)
+- [x] **AC03**: Sección SDD mostrando el proceso Spec-Driven Development
+- [x] **AC04**: Sección de métricas en tiempo real (usuarios, checklists, aplicaciones)
+- [x] **AC05**: Sección n8n con workflows automatizados
+- [x] **AC06**: Animaciones reducidas - solo en hero (prefers-reduced-motion soportado)
+- [x] **AC07**: Link a GitHub en el hero
+- [x] **AC08**: Dark mode soportado en todas las secciones
+- [x] **AC09**: i18n completo (ES/EN)
+- [x] **AC10**: Todas las secciones alineadas a la izquierda
+- [x] **AC11**: Anchos consistentes: max-w-[1400px]
+- [x] **AC12**: Stack con cards de partners (logos + nombre + descripción)
+- [x] **AC13**: 6 Features con implementaciones reales del repo
+- [x] **AC14**: No hay errores de hidratación
 
 ### Funcionalidad Esperada
 
@@ -116,9 +121,18 @@ La landing debe funcionar como:
 
 ### Phase 3: Validación
 
-- [ ] **T09**: Verificar acceptance criteria
-- [ ] **T10**: Tests para componentes
-- [ ] **T11**: type-check pasa
+- [x] **T09**: Verificar acceptance criteria
+- [x] **T10**: Tests para componentes
+- [x] **T11**: type-check pasa
+
+### Phase 4: Fixes & Improvements
+
+- [x] **T12**: Fix hydration errors - remove span wrappers around SVGs
+- [x] **T13**: Align all sections to left (remove text-center)
+- [x] **T14**: Simplify animations - remove anime.js from Architecture, SddFlow, N8nShowcase
+- [x] **T15**: Update Stack with card design + logos (partners style)
+- [x] **T16**: Update Features with 6 real implementations from repo
+- [x] **T17**: Increase hero and metrics widths
 
 ---
 
@@ -126,11 +140,21 @@ La landing debe funcionar como:
 
 > La landing incluye:
 > - Hero animation con nodos SVG conectados
-> - Arquitectura con flujo animado
-> - SDD con pasos secuenciales
+> - Arquitectura con cards horizontales (diseño simplificado sin animación)
+> - SDD con pasos secuenciales (diseño simplificado sin animación)
+> - Stack con cards de partners (logos + nombre + descripción)
+> - 6 Features con implementaciones reales del repo:
+>   - AI Checklists
+>   - CV Builder
+>   - Interview Simulator
+>   - Robust Auth
+>   - Telegram Bot
+>   - n8n Workflows
 > - Métricas reales desde PostgreSQL
-> - n8n showcase con workflows
+> - n8n showcase con workflows (diseño simplificado sin animación)
 > - API docs ejemplo
+> - Todas las secciones alineadas a la izquierda
+> - Anchos consistentes: max-w-[1400px]
 
 ---
 
@@ -139,6 +163,7 @@ La landing debe funcionar como:
 | Fecha      | Versión | Cambio           | Autor |
 | ---------- | ------- | ---------------- | ----- |
 | 2026-03-15 | 1.0.0   | Creación inicial | Dann |
+| 2026-03-15 | 1.1.0   | Fix hydration, align left, simplify animations | Dann |
 
 ---
 
