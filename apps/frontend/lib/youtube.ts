@@ -134,7 +134,7 @@ export interface CreateChannelDto {
   nicheId: string;
   name: string;
   description?: string;
-  targetAudience?: string;
+  targetAudience: string;
 }
 
 export async function createChannel(dto: CreateChannelDto): Promise<Channel> {

@@ -80,6 +80,7 @@ function YoutubeDashboardContent() {
         nicheId: selectedNiche.slug,
         name: channelName,
         description: channelDescription,
+        targetAudience: selectedNiche.suggestedAudience || 'General',
       };
       const newChannel = await createChannel(dto);
       setChannels([newChannel, ...channels]);
