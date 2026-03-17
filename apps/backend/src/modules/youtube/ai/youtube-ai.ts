@@ -14,28 +14,28 @@ export interface NicheSuggestion {
   estimatedCPM: number;
 }
 
-export async function generateNichesWithAI(count: number = 10): Promise<NicheSuggestion[]> {
+export async function generateNichesWithAI(count: number = 5): Promise<NicheSuggestion[]> {
   const systemMessage = `Eres un experto en marketing de YouTube. Tu tarea es sugerir nichos de YouTube con alto potencial de monetización.`;
 
-  const prompt = `Genera ${count} nichos de YouTube en español con las siguientes propiedades para cada nicho:
+  const prompt = `Genera ${count} nichos de YouTube en español. Cada nicho debe tener:
 - name: Nombre del nicho
-- slug: URL-friendly version del nombre
-- description: Descripción breve (máx 100 caracteres)
+- slug: URL-friendly 
+- description: Máx 80 caracteres
 - searchVolume: "low", "medium", "high"
 - competition: "low", "medium", "high"
-- opportunityScore: Número 0-100
+- opportunityScore: 0-100
 - trend: "rising", "stable", "declining"
-- topKeywords: Array de 3-5 keywords
-- suggestedAudience: Audiencia objetivo (máx 50 caracteres)
-- estimatedCPM: Número decimal
+- topKeywords: 3 keywords
+- suggestedAudience: Máx 40 caracteres
+- estimatedCPM: decimal
 
-Devuelve solo un JSON array válido.`;
+JSON array válido.`;
 
   const { text } = await generateText({
     prompt,
     systemMessage,
     temperature: 0.7,
-    maxTokens: 6000,
+    maxTokens: 4000,
   });
 
   try {
@@ -43,8 +43,8 @@ Devuelve solo un JSON array válido.`;
     const parsed = JSON.parse(cleaned);
     return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
-    console.error('[generateNichesWithAI] Failed to parse AI response:', err);
-    console.error('[generateNichesWithAI] Raw response:', text);
+    console.error('[generateNichesWithAI] Failed to parse:', err);
+    console.error('[generateNichesWithAI] Raw:', text.substring(0, 500));
     return [];
   }
 }
