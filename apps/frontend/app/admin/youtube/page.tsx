@@ -2,18 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
 import { DashboardLayout } from '../../../components/ui/DashboardLayout';
 import { useI18n } from '../../../lib/i18n-context';
 import { useAuth } from '../../../hooks/useAuth';
@@ -28,17 +16,6 @@ import {
   type Channel,
   type CreateChannelDto,
 } from '../../../lib/youtube';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
@@ -192,82 +169,6 @@ function YoutubeDashboardContent() {
 
       {!loading && view === 'niches' && (
         <div className="space-y-6">
-          {niches.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                {t.youtube.growthHistory}
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                {t.youtube.topNichesDescription}
-              </p>
-              
-              <div className="card p-4">
-                {niches.map((niche) => (
-                  <div key={niche.slug} className="mb-6 last:mb-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 
-                        className="font-semibold text-slate-900 dark:text-white cursor-pointer hover:text-sky-600 dark:hover:text-sky-400"
-                        onClick={() => setSelectedNiche(niche)}
-                      >
-                        {niche.name}
-                      </h3>
-                      <span className={`font-mono text-sm font-bold ${getOpportunityColor(niche.opportunityScore)}`}>
-                        {niche.opportunityScore}
-                      </span>
-                    </div>
-                    {niche.growthHistory && niche.growthHistory.length > 0 && (
-                      <Line
-                        data={{
-                          labels: niche.growthHistory.map(h => h.month),
-                          datasets: [{
-                            data: niche.growthHistory.map(h => h.value),
-                            borderColor: '#0284c7',
-                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: '#0284c7',
-                          }],
-                        }}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                              callbacks: {
-                                label: (ctx) => `${ctx.parsed.y}`,
-                              },
-                            },
-                          },
-                          scales: {
-                            y: {
-                              beginAtZero: true,
-                              max: 100,
-                              grid: { color: 'rgba(148, 163, 184, 0.1)' },
-                              ticks: { 
-                                color: 'rgba(148, 163, 184, 0.6)',
-                                font: { size: 10 },
-                              },
-                            },
-                            x: {
-                              grid: { display: false },
-                              ticks: { 
-                                color: 'rgba(148, 163, 184, 0.6)',
-                                font: { size: 10 },
-                              },
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="flex justify-between items-center">
             <p className="text-slate-500 dark:text-slate-400">
               {t.youtube.nichesDescription}
