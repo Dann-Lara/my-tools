@@ -12,7 +12,6 @@ export interface NicheSuggestion {
   topKeywords: string[];
   suggestedAudience: string;
   estimatedCPM: number;
-  growthHistory: Array<{ month: string; value: number }>;
   suggestedChannelName: string;
 }
 
@@ -94,10 +93,9 @@ Generate ${count} YouTube niches in Spanish with high monetisation potential:
 - topKeywords: 3 keywords
 - suggestedAudience: Max 40 caracteres
 - estimatedCPM: Decimal
-- growthHistory: Array of 6 months with {month, value} (use last 6 months: Ene,Feb,Mar,Abr,May,Jun or similar). Values represent relative growth 0-100.
 - suggestedChannelName: Proposed channel name (max 50 chars)
 
-JSON array: [{"name":"...","slug":"...","description":"...","searchVolume":"...","competition":"...","opportunityScore":0,"trend":"...","topKeywords":["..."],"suggestedAudience":"...","estimatedCPM":0.0,"growthHistory":[{"month":"Ene","value":45},{"month":"Feb","value":52}],"suggestedChannelName":"..."}]`;
+JSON array: [{"name":"...","slug":"...","description":"...","searchVolume":"...","competition":"...","opportunityScore":0,"trend":"...","topKeywords":["..."],"suggestedAudience":"...","estimatedCPM":0.0,"suggestedChannelName":"..."}]`;
 
   return withRetry(
     async () => {

@@ -20,7 +20,6 @@ export interface Niche {
   source: string;
   createdAt: string;
   updatedAt: string;
-  growthHistory?: Array<{ month: string; value: number }>;
   suggestedChannelName?: string;
 }
 
