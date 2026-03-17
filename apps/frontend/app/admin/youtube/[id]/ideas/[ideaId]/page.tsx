@@ -2,17 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useI18n } from '../../../../../lib/i18n-context';
-import { usePermissions } from '../../../../../lib/permissions-context';
-import { PermissionGate } from '../../../../../components/ui/PermissionGate';
-import { Spinner } from '../../../../../components/ui/Spinner';
+import Link from 'next/link';
+import { useI18n } from '@/lib/i18n-context';
+import { useAuth } from '@/hooks/useAuth';
+import { PermissionGate } from '@/components/ui/PermissionGate';
+import { Spinner } from '@/components/ui/Spinner';
 import {
   getIdeaById,
   generateIdeaScript,
   updateIdeaStatus,
   type ContentIdea,
   type IdeaStatus,
-} from '../../../../../lib/youtube';
+} from '@/lib/youtube';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
@@ -20,7 +21,7 @@ function IdeaDetailContent() {
   const { t } = useI18n();
   const router = useRouter();
   const params = useParams();
-  const { hasPermission } = usePermissions();
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
   const [idea, setIdea] = useState<ContentIdea | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingScript, setGeneratingScript] = useState(false);
@@ -30,12 +31,13 @@ function IdeaDetailContent() {
   const channelId = params.id as string;
 
   useEffect(() => {
-    if (!hasPermission('youtube')) {
-      router.push('/admin');
+    if (authLoading) return;
+    if (!user) {
+      router.push('/login');
       return;
     }
     loadIdea();
-  }, [ideaId]);
+  }, [ideaId, authLoading, user]);
 
   async function loadIdea() {
     setLoading(true);
@@ -44,6 +46,7 @@ function IdeaDetailContent() {
       setIdea(data);
     } catch (err) {
       console.error('Failed to load idea:', err);
+      // @ts-expect-error - typedRoutes has issues with dynamic params
       router.push(`/admin/youtube/${channelId}`);
     } finally {
       setLoading(false);
@@ -112,6 +115,7 @@ function IdeaDetailContent() {
   return (
     <div>
       <button
+        // @ts-expect-error - typedRoutes has issues with dynamic params
         onClick={() => router.push(`/admin/youtube/${channelId}`)}
         className="mb-6 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2"
       >
@@ -233,9 +237,17 @@ function IdeaDetailContent() {
 }
 
 export default function IdeaDetailPage() {
-  const { hasPermission } = usePermissions();
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
 
-  if (!hasPermission('youtube')) {
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 

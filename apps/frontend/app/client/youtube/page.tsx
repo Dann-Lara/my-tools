@@ -30,6 +30,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
   const [creatingChannel, setCreatingChannel] = useState(false);
   const [channelName, setChannelName] = useState('');
   const [channelDescription, setChannelDescription] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
 
   useEffect(() => {
     if (!hasPermission('youtube')) {
@@ -64,6 +65,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
         nicheId: selectedNiche.id,
         name: channelName,
         description: channelDescription,
+        targetAudience: targetAudience,
       };
       const newChannel = await createChannel(dto);
       setChannels([newChannel, ...channels]);
@@ -71,6 +73,7 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
       setSelectedNiche(null);
       setChannelName('');
       setChannelDescription('');
+      setTargetAudience('');
     } catch (err) {
       console.error('Failed to create channel:', err);
     } finally {
@@ -260,6 +263,18 @@ function YoutubeDashboardContent({ user, logout }: { user: AuthUser; logout: () 
                   onChange={(e) => setChannelDescription(e.target.value)}
                   className="input w-full h-24"
                   placeholder="What is your channel about?"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Target Audience
+                </label>
+                <input
+                  type="text"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  className="input w-full"
+                  placeholder="e.g., Tech enthusiasts, 25-45 years old"
                 />
               </div>
               <div className="flex gap-3 pt-2">

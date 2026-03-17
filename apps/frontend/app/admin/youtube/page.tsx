@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '../../../components/ui/DashboardLayout';
 import { useI18n } from '../../../lib/i18n-context';
 import { useAuth } from '../../../hooks/useAuth';
-import { usePermissions } from '../../../lib/permissions-context';
 import { PermissionGate } from '../../../components/ui/PermissionGate';
 import { Spinner } from '../../../components/ui/Spinner';
 import {
@@ -22,7 +21,7 @@ const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 function YoutubeDashboardContent() {
   const { t } = useI18n();
   const router = useRouter();
-  const { hasPermission } = usePermissions();
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
   const [view, setView] = useState<'niches' | 'channels'>('niches');
   const [niches, setNiches] = useState<Niche[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -34,22 +33,30 @@ function YoutubeDashboardContent() {
   const [channelDescription, setChannelDescription] = useState('');
 
   useEffect(() => {
-    if (!hasPermission('youtube')) {
-      router.push('/admin');
+    if (authLoading) return;
+    if (!user) {
+      router.push('/login');
       return;
     }
     loadInitialData();
-  }, []);
+  }, [authLoading, user]);
 
   useEffect(() => {
-    loadData();
-  }, [view]);
+    if (!authLoading && user) {
+      loadData();
+    }
+  }, [view, authLoading, user]);
 
   async function loadInitialData() {
     setLoading(true);
     try {
-      const channelsData = await getChannels();
+      const [channelsData, nichesData] = await Promise.all([
+        getChannels(),
+        getNiches(),
+      ]);
       setChannels(channelsData);
+      const sorted = [...nichesData.niches].sort((a, b) => b.opportunityScore - a.opportunityScore);
+      setNiches(sorted);
       if (channelsData.length > 0) {
         setView('channels');
       }
@@ -61,17 +68,18 @@ function YoutubeDashboardContent() {
   }
 
   async function loadData() {
-    if (view === 'niches') {
-      setLoading(true);
-      try {
+    setLoading(true);
+    try {
+      if (view === 'niches') {
         const data = await getNiches();
         const sorted = [...data.niches].sort((a, b) => b.opportunityScore - a.opportunityScore);
         setNiches(sorted);
-      } catch (err) {
-        console.error('Failed to load data:', err);
-      } finally {
-        setLoading(false);
       }
+      // channels view doesn't need to load anything extra
+    } catch (err) {
+      console.error('Failed to load data:', err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -246,6 +254,7 @@ function YoutubeDashboardContent() {
                 <div 
                   key={channel.id} 
                   className="card p-5 cursor-pointer hover:border-sky-300 dark:hover:border-sky-700 transition-colors"
+                  // @ts-expect-error - typedRoutes has issues with dynamic params
                   onClick={() => router.push(`/admin/youtube/${channel.id}`)}
                 >
                   <div className="flex items-start justify-between mb-3">

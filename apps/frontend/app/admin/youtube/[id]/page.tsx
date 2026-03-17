@@ -111,6 +111,7 @@ function IdeasTabContent() {
             <div 
               key={idea.id} 
               className="card p-5 cursor-pointer hover:border-sky-300 dark:hover:border-sky-700 transition-colors"
+              // @ts-expect-error - typedRoutes has issues with dynamic params
               onClick={() => router.push(`/admin/youtube/${channelId}/ideas/${idea.id}`)}
             >
               <div className="flex items-start justify-between mb-3">

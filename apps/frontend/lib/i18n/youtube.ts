@@ -112,6 +112,7 @@ export const youtubeES = {
 
     // SEO Sheet (V6)
     seoSheet: 'SEO',
+    seoTitle: 'Título SEO',
     editTitle: 'Editar título',
     editDescription: 'Editar descripción',
     editTags: 'Editar tags',
@@ -249,6 +250,7 @@ export const youtubeEN = {
 
     // SEO Sheet (V6)
     seoSheet: 'SEO',
+    seoTitle: 'SEO Title',
     editTitle: 'Edit title',
     editDescription: 'Edit description',
     editTags: 'Edit tags',

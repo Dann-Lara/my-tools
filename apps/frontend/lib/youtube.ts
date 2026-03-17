@@ -70,11 +70,13 @@ export interface ContentIdea {
 
 export interface MonetizationStep {
   id: string;
+  category: string;
   title: string;
   description: string;
-  priority: 'critical' | 'optional';
+  actionUrl?: string;
   completed: boolean;
   completedAt?: string;
+  priority: 'critical' | 'high' | 'medium';
 }
 
 export interface MonetizationSetup {

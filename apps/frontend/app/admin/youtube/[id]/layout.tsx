@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useI18n } from '../../../../lib/i18n-context';
-import { usePermissions } from '../../../../lib/permissions-context';
+import { useI18n } from '@/lib/i18n-context';
+import { useAuth } from '@/hooks/useAuth';
 import {
   getChannelById,
   type Channel,
-} from '../../../../lib/youtube';
-import { Spinner } from '../../../../components/ui/Spinner';
+} from '@/lib/youtube';
+import { Spinner } from '@/components/ui/Spinner';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
@@ -22,31 +22,35 @@ export default function ChannelLayout({
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
-  const { hasPermission } = usePermissions();
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
   const [channel, setChannel] = useState<Channel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const channelId = params.id as string;
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     if (!channelId) {
       setLoading(false);
       return;
     }
-    if (!hasPermission('youtube')) {
-      router.push('/admin');
-      return;
-    }
     loadChannel();
-  }, [channelId]);
+  }, [channelId, authLoading, user]);
 
   async function loadChannel() {
     if (!channelId) return;
     try {
       const data = await getChannelById(channelId);
       setChannel(data);
+      setError(null);
     } catch (err) {
       console.error('Failed to load channel:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load channel');
     } finally {
       setLoading(false);
     }
@@ -71,11 +75,44 @@ export default function ChannelLayout({
     );
   }
 
+  if (error) {
+    return (
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
+        <button
+          // @ts-expect-error - typedRoutes has issues
+          onClick={() => router.push('/admin/youtube')}
+          className="mb-6 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2"
+        >
+          &larr; {t.youtube.backToChannels}
+        </button>
+        <div className="card p-8 text-center">
+          <h2 className="text-xl font-semibold text-red-600 dark:text-red-400 mb-2">
+            Error loading channel
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 mb-4">
+            {error}
+          </p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              loadChannel();
+            }}
+            className="btn-primary"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!channel) return null;
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
       <button
+        // @ts-expect-error - typedRoutes has issues
         onClick={() => router.push('/admin/youtube')}
         className="mb-6 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2"
       >
@@ -105,6 +142,7 @@ export default function ChannelLayout({
         {tabs.map((tab) => (
           <Link
             key={tab.href}
+            // @ts-expect-error - typedRoutes has issues with dynamic params
             href={tab.href}
             className={`pb-3 px-1 font-mono text-[11px] uppercase tracking-widest whitespace-nowrap transition-colors
               ${isActive(tab.href, tab.exact)

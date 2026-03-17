@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { useI18n } from '../../../../lib/i18n-context';
-import { usePermissions } from '../../../../lib/permissions-context';
-import { PermissionGate } from '../../../../components/ui/PermissionGate';
-import { Spinner } from '../../../../components/ui/Spinner';
+import { useRouter, useParams } from 'next/navigation';
+import { useI18n } from '@/lib/i18n-context';
+import { useAuth } from '@/hooks/useAuth';
+import { PermissionGate } from '@/components/ui/PermissionGate';
+import { Spinner } from '@/components/ui/Spinner';
 import {
   getIdeasByChannel,
   generateAIPrompts,
   type ContentIdea,
   type AIVideoPrompt,
-} from '../../../../lib/youtube';
+} from '@/lib/youtube';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
@@ -19,8 +19,9 @@ type PromptType = 'video' | 'thumbnail' | 'short';
 
 function PromptsTabContent() {
   const { t } = useI18n();
+  const router = useRouter();
   const params = useParams();
-  const { hasPermission } = usePermissions();
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<string>('');
   const [promptType, setPromptType] = useState<PromptType>('video');
@@ -32,8 +33,13 @@ function PromptsTabContent() {
   const channelId = params.id as string;
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     loadIdeas();
-  }, [channelId]);
+  }, [channelId, authLoading, user]);
 
   async function loadIdeas() {
     setLoading(true);
@@ -177,9 +183,17 @@ function PromptsTabContent() {
 }
 
 export default function PromptsPage() {
-  const { hasPermission } = usePermissions();
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
 
-  if (!hasPermission('youtube')) {
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!user) {
     return null;
   }
 
