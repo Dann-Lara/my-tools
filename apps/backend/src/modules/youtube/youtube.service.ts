@@ -15,7 +15,7 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { UpdateIdeaSeoDto, UpdateIdeaMetricsDto, UpdateIdeaStatusDto, GeneratePromptsDto } from './dto/update-idea.dto';
 import { UpdateVisibilityDto } from './dto/update-visibility.dto';
 import { ConfigService } from '@nestjs/config';
-import { generateNichesWithAI } from './ai/youtube-ai';
+import { generateNichesWithAI, generateScriptWithAI, generateAIPromptsWithAI, generateContentIdeasWithAI } from './ai/youtube-ai';
 
 @Injectable()
 export class YoutubeService {
@@ -140,6 +140,101 @@ export class YoutubeService {
     
     idea.status = dto.status;
     return this.ideaRepo.save(idea);
+  }
+
+  async generateScript(ideaId: string, userId: string) {
+    const idea = await this.getIdeaById(ideaId, userId);
+    const channel = await this.getChannelById(idea.channelId, userId);
+
+    const script = await generateScriptWithAI(
+      idea.title,
+      idea.hook || '',
+      idea.angle || '',
+      idea.format,
+      channel.targetAudience,
+    );
+
+    idea.script = script.script;
+    idea.seoTitle = idea.seoTitle || script.seoTitle;
+    idea.seoDescription = idea.seoDescription || script.seoDescription;
+    idea.tags = idea.tags || script.tags;
+    idea.hashtags = idea.hashtags || script.hashtags;
+    idea.status = IdeaStatus.SCRIPTED;
+
+    return this.ideaRepo.save(idea);
+  }
+
+  async generateAIPrompts(ideaId: string, userId: string, promptType: 'video' | 'thumbnail' | 'short') {
+    const idea = await this.getIdeaById(ideaId, userId);
+
+    const prompts = await generateAIPromptsWithAI(
+      idea.title,
+      idea.script || '',
+      promptType,
+    );
+
+    const existingPrompts = await this.promptRepo.find({
+      where: { ideaId },
+    });
+    const maxBatch = existingPrompts.length > 0 
+      ? Math.max(...existingPrompts.map(p => p.generationBatch))
+      : 0;
+
+    const newPromptsData = prompts.map(p => ({
+      ideaId,
+      platform: p.platform as any,
+      promptType: p.platform as any,
+      promptText: p.prompt,
+      generationBatch: maxBatch + 1,
+    }));
+
+    const newPrompts = this.promptRepo.create(newPromptsData);
+    await this.promptRepo.save(newPrompts);
+
+    return newPrompts;
+  }
+
+  async regenerateIdeas(channelId: string, userId: string) {
+    const channel = await this.getChannelById(channelId, userId);
+    
+    const existingIdeas = await this.ideaRepo.find({
+      where: { channelId },
+      select: ['title'],
+    });
+    const existingTitles = existingIdeas.map(i => i.title);
+
+    const newIdeas = await generateContentIdeasWithAI(
+      channel.name,
+      channel.nicheId,
+      channel.targetAudience,
+      5,
+    );
+
+    const maxPositionResult = await this.ideaRepo
+      .createQueryBuilder('idea')
+      .where('idea.channelId = :channelId', { channelId })
+      .select('MAX(idea.position)', 'max')
+      .getRawOne();
+    const maxPosition = maxPositionResult?.max || 0;
+
+    const newIdeasData = newIdeas.map((idea, index) => ({
+      channelId,
+      title: idea.title,
+      hook: idea.hook,
+      angle: idea.angle,
+      format: idea.format as any,
+      successProbability: idea.successProbability as any,
+      successReason: idea.successReason,
+      shortAngle: idea.shortAngle,
+      shortScript: idea.shortScript,
+      status: IdeaStatus.IDEA,
+      position: maxPosition + index + 1,
+    }));
+
+    const savedIdeas = this.ideaRepo.create(newIdeasData);
+    await this.ideaRepo.save(savedIdeas);
+
+    return savedIdeas;
   }
 
   // === MONETIZATION ===

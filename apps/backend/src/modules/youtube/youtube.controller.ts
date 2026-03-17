@@ -106,6 +106,34 @@ export class YoutubeController {
     return this.svc.updateIdeaStatus(id, user.userId, dto);
   }
 
+  @Post('ideas/:id/script')
+  @ApiOperation({ summary: 'Generate script for an idea' })
+  generateScript(
+    @CurrentUser() user: JwtUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.generateScript(id, user.userId);
+  }
+
+  @Post('ideas/:id/prompts')
+  @ApiOperation({ summary: 'Generate AI prompts for an idea' })
+  generateAIPrompts(
+    @CurrentUser() user: JwtUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: { promptType: 'video' | 'thumbnail' | 'short' },
+  ) {
+    return this.svc.generateAIPrompts(id, user.userId, dto.promptType);
+  }
+
+  @Post('channels/:channelId/ideas/regenerate')
+  @ApiOperation({ summary: 'Regenerate ideas for a channel' })
+  regenerateIdeas(
+    @CurrentUser() user: JwtUser,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+  ) {
+    return this.svc.regenerateIdeas(channelId, user.userId);
+  }
+
   // === MONETIZATION ===
 
   @Get('channels/:channelId/monetization')
