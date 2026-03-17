@@ -2,76 +2,56 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { DashboardLayout } from '../../../../components/ui/DashboardLayout';
 import { useI18n } from '../../../../lib/i18n-context';
-import { useAuth } from '../../../../hooks/useAuth';
 import { usePermissions } from '../../../../lib/permissions-context';
 import { PermissionGate } from '../../../../components/ui/PermissionGate';
 import { Spinner } from '../../../../components/ui/Spinner';
 import {
-  getChannelById,
   getIdeasByChannel,
-  type Channel,
+  regenerateChannelIdeas,
   type ContentIdea,
 } from '../../../../lib/youtube';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
-function ChannelDetailContent() {
+function IdeasTabContent() {
   const { t } = useI18n();
   const router = useRouter();
   const params = useParams();
   const { hasPermission } = usePermissions();
-  const [channel, setChannel] = useState<Channel | null>(null);
   const [ideas, setIdeas] = useState<ContentIdea[]>([]);
   const [loading, setLoading] = useState(true);
+  const [regenerating, setRegenerating] = useState(false);
 
   const channelId = params.id as string;
 
   useEffect(() => {
-    if (!hasPermission('youtube')) {
-      router.push('/admin');
-      return;
-    }
-    loadData();
+    loadIdeas();
   }, [channelId]);
 
-  async function loadData() {
+  async function loadIdeas() {
     setLoading(true);
     try {
-      const [channelData, ideasData] = await Promise.all([
-        getChannelById(channelId),
-        getIdeasByChannel(channelId),
-      ]);
-      setChannel(channelData);
-      setIdeas(ideasData);
+      const data = await getIdeasByChannel(channelId);
+      setIdeas(data);
     } catch (err) {
-      console.error('Failed to load channel:', err);
-      router.push('/admin/youtube');
+      console.error('Failed to load ideas:', err);
     } finally {
       setLoading(false);
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      setup: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300',
-      active: 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300',
-      paused: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-      monetized: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
-    };
-    return styles[status] || styles.setup;
-  };
-
-  const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      setup: t.youtube.statusSetup,
-      active: t.youtube.statusActive,
-      paused: t.youtube.statusPaused,
-      monetized: t.youtube.statusMonetized,
-    };
-    return labels[status] || status;
-  };
+  async function handleRegenerate() {
+    setRegenerating(true);
+    try {
+      const newIdeas = await regenerateChannelIdeas(channelId);
+      setIdeas([...ideas, ...newIdeas]);
+    } catch (err) {
+      console.error('Failed to regenerate ideas:', err);
+    } finally {
+      setRegenerating(false);
+    }
+  }
 
   const getIdeaStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -84,6 +64,17 @@ function ChannelDetailContent() {
     return styles[status] || styles.idea;
   };
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      idea: t.youtube.statusIdea,
+      scripted: t.youtube.statusScripted,
+      filmed: t.youtube.statusFilmed,
+      published: t.youtube.statusPublished,
+      analyzed: t.youtube.statusAnalyzed,
+    };
+    return labels[status] || status;
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -92,66 +83,49 @@ function ChannelDetailContent() {
     );
   }
 
-  if (!channel) return null;
-
   return (
-    <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
-      <button
-        onClick={() => router.push('/admin/youtube')}
-        className="mb-6 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2"
-      >
-        &larr; {t.youtube.backToChannels || 'Back to Channels'}
-      </button>
-
-      <div className="py-10 border-b border-slate-200 dark:border-slate-800/60 mb-10">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="font-mono text-[10px] text-slate-400 uppercase tracking-[0.4em] mb-2">
-              {channel.nicheId}
-            </p>
-            <h1 className="headline text-3xl md:text-5xl text-slate-900 dark:text-white">
-              {channel.name}
-            </h1>
-          </div>
-          <span className={`text-xs px-3 py-1.5 rounded ${getStatusBadge(channel.status)}`}>
-            {getStatusLabel(channel.status)}
-          </span>
-        </div>
-        {channel.description && (
-          <p className="mt-4 text-slate-500 dark:text-slate-400 max-w-2xl">
-            {channel.description}
-          </p>
-        )}
-      </div>
-
-      <div className="flex gap-4 mb-8 border-b border-slate-200 dark:border-slate-800/60">
-        <button className="pb-3 px-1 font-mono text-[11px] uppercase tracking-widest text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400">
-          Ideas
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <p className="text-slate-500 dark:text-slate-400">
+          {ideas.length} {t.youtube.ideas.toLowerCase()}
+        </p>
+        <button
+          onClick={handleRegenerate}
+          disabled={regenerating}
+          className="btn-secondary text-sm"
+        >
+          {regenerating ? t.youtube.generating : t.youtube.generateIdeas}
         </button>
       </div>
 
       {ideas.length === 0 ? (
         <div className="text-center py-12 text-slate-400">
-          <p className="mb-4">{t.youtube.noIdeas || 'No ideas yet'}</p>
-          <button className="btn-primary">
-            {t.youtube.generateIdeas || 'Generate Ideas'}
+          <p className="mb-4">{t.youtube.noIdeas}</p>
+          <button onClick={handleRegenerate} className="btn-primary">
+            {t.youtube.generateIdeas}
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {ideas.map((idea) => (
-            <div key={idea.id} className="card p-5">
+            <div 
+              key={idea.id} 
+              className="card p-5 cursor-pointer hover:border-sky-300 dark:hover:border-sky-700 transition-colors"
+              onClick={() => router.push(`/admin/youtube/${channelId}/ideas/${idea.id}`)}
+            >
               <div className="flex items-start justify-between mb-3">
-                <h3 className="font-semibold text-slate-900 dark:text-white">{idea.title}</h3>
+                <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-2">{idea.title}</h3>
                 <span className={`text-[10px] px-2 py-1 rounded ${getIdeaStatusBadge(idea.status)}`}>
-                  {idea.status}
+                  {getStatusLabel(idea.status)}
                 </span>
               </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
-                {idea.hook}
-              </p>
+              {idea.hook && (
+                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
+                  {idea.hook}
+                </p>
+              )}
               <div className="flex gap-2 flex-wrap">
-                {idea.topKeywords?.slice(0, 3).map((kw) => (
+                {idea.tags?.slice(0, 3).map((kw) => (
                   <span key={kw} className="text-[10px] px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded">
                     {kw}
                   </span>
@@ -165,22 +139,16 @@ function ChannelDetailContent() {
   );
 }
 
-export default function ChannelDetailPage() {
-  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
+export default function ChannelIdeasPage() {
+  const { hasPermission } = usePermissions();
 
-  if (authLoading || !user) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
+  if (!hasPermission('youtube')) {
+    return null;
   }
 
   return (
-    <DashboardLayout variant="admin" user={user} title="YouTube Channel">
-      <PermissionGate module="youtube">
-        <ChannelDetailContent />
-      </PermissionGate>
-    </DashboardLayout>
+    <PermissionGate module="youtube">
+      <IdeasTabContent />
+    </PermissionGate>
   );
 }

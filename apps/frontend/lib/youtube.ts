@@ -254,3 +254,43 @@ export async function canAccessModule(moduleName: string): Promise<boolean> {
   if (!res.ok) return false;
   return res.json();
 }
+
+// AI GENERATION
+export async function generateIdeaScript(ideaId: string): Promise<ContentIdea> {
+  const res = await fetch(`${API_BASE}/ideas/${ideaId}/script`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to generate script');
+  return res.json();
+}
+
+export async function generateAIPrompts(ideaId: string, promptType: 'video' | 'thumbnail' | 'short'): Promise<AIVideoPrompt[]> {
+  const res = await fetch(`${API_BASE}/ideas/${ideaId}/prompts`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ promptType }),
+  });
+  if (!res.ok) throw new Error('Failed to generate prompts');
+  return res.json();
+}
+
+export async function regenerateChannelIdeas(channelId: string): Promise<ContentIdea[]> {
+  const res = await fetch(`${API_BASE}/channels/${channelId}/ideas/regenerate`, {
+    method: 'POST',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to regenerate ideas');
+  return res.json();
+}
+
+// AI PROMPTS
+export interface AIVideoPrompt {
+  id: string;
+  ideaId: string;
+  platform: string;
+  promptType: string;
+  promptText: string;
+  generationBatch: number;
+  createdAt: string;
+}
