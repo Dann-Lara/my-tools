@@ -16,7 +16,7 @@ export interface NicheSuggestion {
 }
 
 function extractJson<T>(text: string): T | null {
-  let s = text
+  const s = text
     .replace(/```json\s*/gi, '')
     .replace(/```\s*/g, '')
     .trim();
@@ -35,7 +35,8 @@ function extractJson<T>(text: string): T | null {
 
   // Use whichever comes first
   if (objStart !== -1 && (arrStart === -1 || objStart < arrStart)) {
-    let depth = 0, end = -1;
+    let depth = 0,
+      end = -1;
     for (let i = objStart; i < s.length; i++) {
       if (s[i] === '{') depth++;
       else if (s[i] === '}') {
@@ -54,7 +55,8 @@ function extractJson<T>(text: string): T | null {
     }
   } else if (arrStart !== -1) {
     // Handle array
-    let depth = 0, end = -1;
+    let depth = 0,
+      end = -1;
     for (let i = arrStart; i < s.length; i++) {
       if (s[i] === '[') depth++;
       else if (s[i] === ']') {
@@ -185,25 +187,27 @@ export async function generateScriptWithAI(
   format: string,
   targetAudience: string,
 ): Promise<ScriptGeneration> {
-  const systemMessage = `YouTube script writer expert. Always respond in Spanish.`;
-  const prompt = `YouTube expert. Output ONLY valid JSON — start with { end with } — no markdown, no text outside JSON.
+  const systemMessage = `YouTube script writer expert. Always respond in Spanish. Output ONLY valid JSON.`;
+  const prompt = `YouTube script architect. Output ONLY valid JSON — no markdown, no text outside JSON.
 
-Generate script for video:
+Generate script architecture for video:
 - title: ${ideaTitle}
 - hook: ${ideaHook}
 - angle: ${ideaAngle}
 - format: ${format}
 - audience: ${targetAudience}
 
-Required fields:
-- script: 1500-3000 words
-- timestamps: [{"time":"0:00","description":"..."}]
-- seoTitle: Max 60 caracteres
-- seoDescription: Max 160 caracteres
-- tags: 10 tags
-- hashtags: 5 hashtags
+Response format (STRICT):
+{
+  "script": "FULL script with intro, body, outro - 2000-4000 words",
+  "timestamps": [{"time":"0:00","description":"intro"},{"time":"0:30","description":"topic 1"},{"time":"2:00","description":"topic 2"},{"time":"4:00","description":"conclusion"}],
+  "seoTitle": "SEO title - max 60 chars",
+  "seoDescription": "SEO description - max 160 chars",
+  "tags": ["tag1","tag2","tag3","tag4","tag5","tag6","tag7","tag8","tag9","tag10"],
+  "hashtags": ["#hashtag1","#hashtag2","#hashtag3","#hashtag4","#hashtag5"]
+}
 
-JSON: {"script":"...","timestamps":[],"seoTitle":"...","seoDescription":"...","tags":["..."],"hashtags":["..."]}`;
+CRITICAL: Return ALL fields. Do NOT truncate script. Use proper JSON syntax.`;
 
   return withRetry(
     async () => {
@@ -211,7 +215,7 @@ JSON: {"script":"...","timestamps":[],"seoTitle":"...","seoDescription":"...","t
         prompt,
         systemMessage,
         temperature: 0.7,
-        maxTokens: 8000,
+        maxTokens: 10000,
       });
       const parsed = extractJson<ScriptGeneration>(text);
       if (!parsed) {
