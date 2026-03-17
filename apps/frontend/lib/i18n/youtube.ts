@@ -67,6 +67,9 @@ export const youtubeES = {
     // Top niches chart
     topNiches: 'Nichos principales',
     topNichesDescription: 'Los nichos con mayor puntuación de oportunidad',
+    growthHistory: 'Historial de crecimiento',
+    suggestedChannelName: 'Nombre sugerido para tu canal',
+    useSuggested: 'Usar nombre sugerido',
   },
 } as const;
 
@@ -137,5 +140,8 @@ export const youtubeEN = {
     // Top niches chart
     topNiches: 'Top Niches',
     topNichesDescription: 'Niches with highest opportunity score',
+    growthHistory: 'Growth history',
+    suggestedChannelName: 'Suggested channel name',
+    useSuggested: 'Use suggested name',
   },
 } as const;

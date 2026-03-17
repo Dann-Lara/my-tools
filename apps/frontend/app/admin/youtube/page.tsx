@@ -1,7 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import { DashboardLayout } from '../../../components/ui/DashboardLayout';
 import { useI18n } from '../../../lib/i18n-context';
 import { useAuth } from '../../../hooks/useAuth';
@@ -17,6 +29,17 @@ import {
   type CreateChannelDto,
 } from '../../../lib/youtube';
 
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
 function YoutubeDashboardContent() {
@@ -29,7 +52,6 @@ function YoutubeDashboardContent() {
   const [loading, setLoading] = useState(true);
   const [generatingNiches, setGeneratingNiches] = useState(false);
   const [selectedNiche, setSelectedNiche] = useState<Niche | null>(null);
-  const [hoveredNiche, setHoveredNiche] = useState<Niche | null>(null);
   const [creatingChannel, setCreatingChannel] = useState(false);
   const [channelName, setChannelName] = useState('');
   const [channelDescription, setChannelDescription] = useState('');
@@ -173,97 +195,75 @@ function YoutubeDashboardContent() {
           {niches.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-                {t.youtube.topNiches}
+                {t.youtube.growthHistory}
               </h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
                 {t.youtube.topNichesDescription}
               </p>
               
-              <div className="card p-4 overflow-hidden">
-                <div className="relative h-48">
-                  <svg className="w-full h-full" viewBox={`0 0 ${niches.length * 100} 180`} preserveAspectRatio="none">
-                    <defs>
-                      <marker id="dot" markerWidth="8" markerHeight="8" refX="4" refY="4">
-                        <circle cx="4" cy="4" r="3" fill="currentColor" className="text-sky-500" />
-                      </marker>
-                    </defs>
-                    
-                    <line x1="0" y1="20" x2={niches.length * 100} y2="20" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="1" />
-                    <line x1="0" y1="65" x2={niches.length * 100} y2="65" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="1" />
-                    <line x1="0" y1="110" x2={niches.length * 100} y2="110" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="1" />
-                    <line x1="0" y1="155" x2={niches.length * 100} y2="155" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="1" />
-                    
-                    <text x="0" y="18" fontSize="8" fill="currentColor" className="text-slate-400">100</text>
-                    <text x="0" y="63" fontSize="8" fill="currentColor" className="text-slate-400">75</text>
-                    <text x="0" y="108" fontSize="8" fill="currentColor" className="text-slate-400">50</text>
-                    <text x="0" y="153" fontSize="8" fill="currentColor" className="text-slate-400">25</text>
-                    <text x="0" y="175" fontSize="8" fill="currentColor" className="text-slate-400">0</text>
-                    
-                    <polyline
-                      fill="none"
-                      stroke="currentColor"
-                      className="text-sky-500"
-                      strokeWidth="2"
-                      points={niches.map((n, i) => `${i * 100 + 50},${180 - (n.opportunityScore * 1.8)}`).join(' ')}
-                    />
-                    
-                    {niches.map((niche, i) => (
-                      <g key={niche.slug}>
-                        <circle
-                          cx={i * 100 + 50}
-                          cy={180 - (niche.opportunityScore * 1.8)}
-                          r="6"
-                          fill="currentColor"
-                          className={`cursor-pointer transition-all duration-200 ${
-                            hoveredNiche?.slug === niche.slug
-                              ? 'text-sky-600 dark:text-sky-300 scale-125'
-                              : 'text-sky-500 dark:text-sky-400'
-                          }`}
-                          onMouseEnter={() => setHoveredNiche(niche)}
-                          onMouseLeave={() => setHoveredNiche(null)}
-                          onClick={() => setSelectedNiche(niche)}
-                        />
-                      </g>
-                    ))}
-                  </svg>
-                  
-                  {hoveredNiche && (
-                    <div 
-                      className="absolute z-10 bg-slate-900 dark:bg-slate-800 text-white text-xs rounded-lg p-3 shadow-xl border border-slate-700 pointer-events-none"
-                      style={{
-                        left: `${niches.findIndex(n => n.slug === hoveredNiche.slug) * 16.66 + 8}%`,
-                        top: '0',
-                        transform: 'translateX(-50%)'
-                      }}
-                    >
-                      <p className="font-semibold mb-1">{hoveredNiche.name}</p>
-                      <p className="text-sky-400 font-mono text-lg">{hoveredNiche.opportunityScore}</p>
-                      <p className="text-slate-400 text-[10px] mt-1">{hoveredNiche.description?.slice(0, 50)}</p>
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {hoveredNiche.topKeywords?.slice(0, 3).map((kw) => (
-                          <span key={kw} className="text-[9px] px-1.5 py-0.5 bg-slate-700 rounded">{kw}</span>
-                        ))}
-                      </div>
+              <div className="card p-4">
+                {niches.map((niche) => (
+                  <div key={niche.slug} className="mb-6 last:mb-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 
+                        className="font-semibold text-slate-900 dark:text-white cursor-pointer hover:text-sky-600 dark:hover:text-sky-400"
+                        onClick={() => setSelectedNiche(niche)}
+                      >
+                        {niche.name}
+                      </h3>
+                      <span className={`font-mono text-sm font-bold ${getOpportunityColor(niche.opportunityScore)}`}>
+                        {niche.opportunityScore}
+                      </span>
                     </div>
-                  )}
-                </div>
-                
-                <div className="flex justify-between mt-2 px-2">
-                  {niches.map((niche, i) => (
-                    <span 
-                      key={niche.slug}
-                      className={`text-[10px] font-mono cursor-pointer transition-colors ${
-                        hoveredNiche?.slug === niche.slug 
-                          ? 'text-sky-600 dark:text-sky-300 font-semibold' 
-                          : 'text-slate-400 dark:text-slate-500'
-                      }`}
-                      onMouseEnter={() => setHoveredNiche(niche)}
-                      onMouseLeave={() => setHoveredNiche(null)}
-                    >
-                      #{i + 1}
-                    </span>
-                  ))}
-                </div>
+                    {niche.growthHistory && niche.growthHistory.length > 0 && (
+                      <Line
+                        data={{
+                          labels: niche.growthHistory.map(h => h.month),
+                          datasets: [{
+                            data: niche.growthHistory.map(h => h.value),
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#0284c7',
+                          }],
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                              callbacks: {
+                                label: (ctx) => `${ctx.parsed.y}`,
+                              },
+                            },
+                          },
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              max: 100,
+                              grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                              ticks: { 
+                                color: 'rgba(148, 163, 184, 0.6)',
+                                font: { size: 10 },
+                              },
+                            },
+                            x: {
+                              grid: { display: false },
+                              ticks: { 
+                                color: 'rgba(148, 163, 184, 0.6)',
+                                font: { size: 10 },
+                              },
+                            },
+                          },
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -360,6 +360,15 @@ function YoutubeDashboardContent() {
                   className="input w-full"
                   placeholder={t.youtube.channelNamePlaceholder}
                 />
+                {selectedNiche.suggestedChannelName && (
+                  <button
+                    type="button"
+                    onClick={() => setChannelName(selectedNiche.suggestedChannelName || '')}
+                    className="mt-2 text-xs text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
+                  >
+                    {t.youtube.useSuggested}: <span className="font-medium">{selectedNiche.suggestedChannelName}</span>
+                  </button>
+                )}
               </div>
               <div className="flex gap-3 pt-2">
                 <button
