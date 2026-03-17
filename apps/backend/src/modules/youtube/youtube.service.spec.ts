@@ -109,7 +109,7 @@ describe('YoutubeService', () => {
 
       expect(result.niches).toEqual(mockNiches);
       expect(result.source).toBe('ai');
-      expect(mockGenerateNichesWithAI).toHaveBeenCalledWith(5);
+      expect(mockGenerateNichesWithAI).toHaveBeenCalledWith(6);
     });
 
     it('should return empty array when AI fails', async () => {

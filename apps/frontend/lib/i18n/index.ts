@@ -20,6 +20,7 @@ import { profileES, profileEN } from './profile';
 import { checklistES, checklistEN } from './checklist';
 import { telegramES, telegramEN } from './telegram';
 import { applicationsES, applicationsEN } from './applications';
+import { youtubeES, youtubeEN } from './youtube';
 import type { Locale } from './types';
 
 // ── Merged type ──────────────────────────────────────────────────────────────
@@ -32,7 +33,8 @@ export type Messages =
   typeof profileES &
   typeof checklistES &
   typeof telegramES &
-  typeof applicationsES;
+  typeof applicationsES &
+  typeof youtubeES;
 
 // ── Merged translations ──────────────────────────────────────────────────────
 // Using type assertion to allow ES and EN to have compatible structure
@@ -40,12 +42,14 @@ const es = {
   ...commonES, ...authES, ...homeES,
   ...dashboardES, ...usersES, ...profileES,
   ...checklistES, ...telegramES, ...applicationsES,
+  ...youtubeES,
 } as unknown as Messages;
 
 const en = {
   ...commonEN, ...authEN, ...homeEN,
   ...dashboardEN, ...usersEN, ...profileEN,
   ...checklistEN, ...telegramEN, ...applicationsEN,
+  ...youtubeEN,
 } as unknown as Messages;
 
 export const translations: Record<Locale, Messages> = { es, en };

@@ -27,6 +27,7 @@ function YoutubeDashboardContent() {
   const [niches, setNiches] = useState<Niche[]>([]);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generatingNiches, setGeneratingNiches] = useState(false);
   const [selectedNiche, setSelectedNiche] = useState<Niche | null>(null);
   const [creatingChannel, setCreatingChannel] = useState(false);
   const [channelName, setChannelName] = useState('');
@@ -45,7 +46,8 @@ function YoutubeDashboardContent() {
     try {
       if (view === 'niches') {
         const data = await getNiches();
-        setNiches(data.niches);
+        const sorted = [...data.niches].sort((a, b) => b.opportunityScore - a.opportunityScore);
+        setNiches(sorted);
       } else {
         const data = await getChannels();
         setChannels(data);
@@ -57,12 +59,25 @@ function YoutubeDashboardContent() {
     }
   }
 
+  async function handleGenerateMoreNiches() {
+    setGeneratingNiches(true);
+    try {
+      const data = await getNiches();
+      const sorted = [...data.niches].sort((a, b) => b.opportunityScore - a.opportunityScore);
+      setNiches(sorted);
+    } catch (err) {
+      console.error('Failed to generate niches:', err);
+    } finally {
+      setGeneratingNiches(false);
+    }
+  }
+
   async function handleCreateChannel() {
     if (!selectedNiche || !channelName.trim()) return;
     setCreatingChannel(true);
     try {
       const dto: CreateChannelDto = {
-        nicheId: selectedNiche.id,
+        nicheId: selectedNiche.slug,
         name: channelName,
         description: channelDescription,
       };
@@ -96,16 +111,28 @@ function YoutubeDashboardContent() {
     return styles[status] || styles.setup;
   };
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      setup: t.youtube.statusSetup,
+      active: t.youtube.statusActive,
+      paused: t.youtube.statusPaused,
+      monetized: t.youtube.statusMonetized,
+    };
+    return labels[status] || status;
+  };
+
+  const topNiches = niches.slice(0, 3);
+
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
       <div className="py-10 border-b border-slate-200 dark:border-slate-800/60 mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-3">
           <p className="font-mono text-[10px] text-slate-400 uppercase tracking-[0.4em]">
-            YouTube Channel Hack
+            {t.youtube.title}
           </p>
           <h1 className="headline text-4xl md:text-6xl text-slate-900 dark:text-white">
-            <span>Grow Your</span><br/>
-            <span className="text-sky-600 dark:text-sky-400">YouTube Channel</span>
+            <span>{t.youtube.subtitle.split(' ')[0]}</span><br/>
+            <span className="text-sky-600 dark:text-sky-400">{t.youtube.subtitle.split(' ').slice(1).join(' ')}</span>
           </h1>
         </div>
       </div>
@@ -118,7 +145,7 @@ function YoutubeDashboardContent() {
               ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400'
               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
         >
-          Niches
+          {t.youtube.niches}
         </button>
         <button
           onClick={() => setView('channels')}
@@ -127,7 +154,7 @@ function YoutubeDashboardContent() {
               ? 'text-sky-600 dark:text-sky-400 border-b-2 border-sky-600 dark:border-sky-400'
               : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
         >
-          My Channels
+          {t.youtube.myChannels}
         </button>
       </div>
 
@@ -135,20 +162,62 @@ function YoutubeDashboardContent() {
         <div className="flex items-center justify-center py-20">
           <div className="flex items-center gap-3 font-mono text-[11px] text-slate-400">
             <span className="w-4 h-4 border-2 border-slate-300 dark:border-slate-700 border-t-red-500 rounded-full animate-spin" />
-            Loading...
+            {t.youtube.loading}
           </div>
         </div>
       )}
 
       {!loading && view === 'niches' && (
-        <div className="space-y-4">
-          <p className="text-slate-500 dark:text-slate-400 mb-6">
-            Select a niche to start your YouTube channel.
-          </p>
+        <div className="space-y-6">
+          {topNiches.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                {t.youtube.topNiches}
+              </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                {t.youtube.topNichesDescription}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {topNiches.map((niche, index) => (
+                  <div
+                    key={niche.slug}
+                    className="card p-4 border-l-4 border-l-sky-500 dark:border-l-sky-400"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl font-bold text-slate-300 dark:text-slate-600">
+                        #{index + 1}
+                      </span>
+                      <span className={`font-mono text-2xl font-bold ${getOpportunityColor(niche.opportunityScore)}`}>
+                        {niche.opportunityScore}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{niche.name}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
+                      {niche.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between items-center">
+            <p className="text-slate-500 dark:text-slate-400">
+              {t.youtube.nichesDescription}
+            </p>
+            <button
+              onClick={handleGenerateMoreNiches}
+              disabled={generatingNiches}
+              className="btn-secondary text-sm"
+            >
+              {generatingNiches ? t.youtube.generating : t.youtube.generateMore}
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {niches.map((niche) => (
               <div
-                key={niche.id}
+                key={niche.slug}
                 className="card p-5 hover:border-sky-300 dark:hover:border-sky-700/50 transition-colors cursor-pointer"
                 onClick={() => setSelectedNiche(niche)}
               >
@@ -161,6 +230,13 @@ function YoutubeDashboardContent() {
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">
                   {niche.description}
                 </p>
+                <div className="flex gap-2 flex-wrap">
+                  {niche.topKeywords?.slice(0, 3).map((kw) => (
+                    <span key={kw} className="text-[10px] px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -171,12 +247,12 @@ function YoutubeDashboardContent() {
         <div className="space-y-4">
           {channels.length === 0 ? (
             <div className="text-center py-12 text-slate-400">
-              <p className="mb-4">You haven't created any channels yet.</p>
+              <p className="mb-4">{t.youtube.noChannels}</p>
               <button
                 onClick={() => setView('niches')}
                 className="btn-primary"
               >
-                Choose a Niche
+                {t.youtube.chooseNiche}
               </button>
             </div>
           ) : (
@@ -186,11 +262,11 @@ function YoutubeDashboardContent() {
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-slate-900 dark:text-white">{channel.name}</h3>
                     <span className={`text-[10px] px-2 py-1 rounded ${getStatusBadge(channel.status)}`}>
-                      {channel.status}
+                      {getStatusLabel(channel.status)}
                     </span>
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                    {channel.description || 'No description'}
+                    {channel.description || t.youtube.noDescription}
                   </p>
                 </div>
               ))}
@@ -203,19 +279,19 @@ function YoutubeDashboardContent() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="card p-6 max-w-md w-full">
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-              Create Channel in "{selectedNiche.name}"
+              {t.youtube.createChannelIn} "{selectedNiche.name}"
             </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Channel Name
+                  {t.youtube.channelName}
                 </label>
                 <input
                   type="text"
                   value={channelName}
                   onChange={(e) => setChannelName(e.target.value)}
                   className="input w-full"
-                  placeholder="My Awesome Channel"
+                  placeholder={t.youtube.channelNamePlaceholder}
                 />
               </div>
               <div className="flex gap-3 pt-2">
@@ -224,14 +300,14 @@ function YoutubeDashboardContent() {
                   className="btn-ghost flex-1"
                   disabled={creatingChannel}
                 >
-                  Cancel
+                  {t.youtube.cancel}
                 </button>
                 <button
                   onClick={handleCreateChannel}
                   className="btn-primary flex-1"
                   disabled={!channelName.trim() || creatingChannel}
                 >
-                  {creatingChannel ? 'Creating...' : 'Create Channel'}
+                  {creatingChannel ? t.youtube.creating : t.youtube.createChannel}
                 </button>
               </div>
             </div>

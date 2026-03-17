@@ -75,11 +75,13 @@ function extractJson<T>(text: string): T | null {
   return null;
 }
 
-export async function generateNichesWithAI(count: number = 5): Promise<NicheSuggestion[]> {
+export async function generateNichesWithAI(count: number = 6): Promise<NicheSuggestion[]> {
+  const today = new Date().toISOString().split('T')[0];
   const systemMessage = `YouTube marketing expert. Always respond in Spanish.`;
   const prompt = `YouTube expert. Output ONLY valid JSON — start with [ end with ] — no markdown, no text outside JSON.
 
-Generate ${count} YouTube niches in Spanish:
+Date: ${today}
+Generate ${count} YouTube niches in Spanish with high monetisation potential:
 - name: Nombre del nicho
 - slug: URL-friendly version
 - description: Max 80 caracteres
