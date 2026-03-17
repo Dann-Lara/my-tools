@@ -38,24 +38,40 @@ function YoutubeDashboardContent() {
       router.push('/admin');
       return;
     }
+    loadInitialData();
+  }, []);
+
+  useEffect(() => {
     loadData();
   }, [view]);
 
-  async function loadData() {
+  async function loadInitialData() {
     setLoading(true);
     try {
-      if (view === 'niches') {
+      const channelsData = await getChannels();
+      setChannels(channelsData);
+      if (channelsData.length > 0) {
+        setView('channels');
+      }
+    } catch (err) {
+      console.error('Failed to load initial data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadData() {
+    if (view === 'niches') {
+      setLoading(true);
+      try {
         const data = await getNiches();
         const sorted = [...data.niches].sort((a, b) => b.opportunityScore - a.opportunityScore);
         setNiches(sorted);
-      } else {
-        const data = await getChannels();
-        setChannels(data);
+      } catch (err) {
+        console.error('Failed to load data:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load data:', err);
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -227,7 +243,11 @@ function YoutubeDashboardContent() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {channels.map((channel) => (
-                <div key={channel.id} className="card p-5">
+                <div 
+                  key={channel.id} 
+                  className="card p-5 cursor-pointer hover:border-sky-300 dark:hover:border-sky-700 transition-colors"
+                  onClick={() => router.push(`/admin/youtube/${channel.id}`)}
+                >
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-slate-900 dark:text-white">{channel.name}</h3>
                     <span className={`text-[10px] px-2 py-1 rounded ${getStatusBadge(channel.status)}`}>

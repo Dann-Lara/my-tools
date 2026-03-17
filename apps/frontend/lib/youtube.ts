@@ -65,6 +65,7 @@ export interface ContentIdea {
   position: number;
   createdAt: string;
   updatedAt: string;
+  topKeywords?: string[];
 }
 
 export interface MonetizationStep {

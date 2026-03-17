@@ -69,6 +69,9 @@ export const youtubeES = {
     topNichesDescription: 'Los nichos con mayor puntuación de oportunidad',
     suggestedChannelName: 'Nombre sugerido para tu canal',
     useSuggested: 'Usar nombre sugerido',
+    backToChannels: 'Volver a mis canales',
+    noIdeas: 'No hay ideas aún',
+    generateIdeas: 'Generar ideas',
   },
 } as const;
 
@@ -141,5 +144,8 @@ export const youtubeEN = {
     topNichesDescription: 'Niches with highest opportunity score',
     suggestedChannelName: 'Suggested channel name',
     useSuggested: 'Use suggested name',
+    backToChannels: 'Back to my channels',
+    noIdeas: 'No ideas yet',
+    generateIdeas: 'Generate ideas',
   },
 } as const;
