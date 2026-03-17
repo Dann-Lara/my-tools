@@ -13,6 +13,7 @@ import {
   AIVideoPromptEntity,
   MonetizationSetupEntity,
   ModuleVisibilityEntity,
+  NicheEntity,
 } from './entities';
 
 @Module({
@@ -24,6 +25,7 @@ import {
       AIVideoPromptEntity,
       MonetizationSetupEntity,
       ModuleVisibilityEntity,
+      NicheEntity,
     ]),
     UsersModule,
   ],

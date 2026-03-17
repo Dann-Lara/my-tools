@@ -5,15 +5,17 @@ import { useRouter, useParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n-context';
 import { useAuth } from '@/hooks/useAuth';
+import { DashboardLayout } from '@/components/ui/DashboardLayout';
+import { PermissionGate } from '@/components/ui/PermissionGate';
+import { Spinner } from '@/components/ui/Spinner';
 import {
   getChannelById,
   type Channel,
 } from '@/lib/youtube';
-import { Spinner } from '@/components/ui/Spinner';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
 
-export default function ChannelLayout({
+function ChannelLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -80,7 +82,7 @@ export default function ChannelLayout({
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
         <button
           // @ts-expect-error - typedRoutes has issues
-          onClick={() => router.push('/admin/youtube')}
+          onClick={() => router.push('/admin/youtube/channels')}
           className="mb-6 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2"
         >
           &larr; {t.youtube.backToChannels}
@@ -113,7 +115,7 @@ export default function ChannelLayout({
     <div className="max-w-[1400px] mx-auto px-6 md:px-12 pt-8 pb-16">
       <button
         // @ts-expect-error - typedRoutes has issues
-        onClick={() => router.push('/admin/youtube')}
+        onClick={() => router.push('/admin/youtube/channels')}
         className="mb-6 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2"
       >
         &larr; {t.youtube.backToChannels}
@@ -156,6 +158,30 @@ export default function ChannelLayout({
 
       {children}
     </div>
+  );
+}
+
+export default function ChannelLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  return (
+    <DashboardLayout variant={user.role === 'client' ? 'client' : 'admin'} user={user} title="YouTube - Canal">
+      <PermissionGate module="youtube">
+        <ChannelLayoutContent>{children}</ChannelLayoutContent>
+      </PermissionGate>
+    </DashboardLayout>
   );
 }
 

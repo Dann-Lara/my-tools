@@ -135,6 +135,12 @@ export const youtubeES = {
     contentPolicy: 'Política de contenido',
     affiliate: 'Afiliados',
     ownedProduct: 'Producto propio',
+
+    // Delete niche
+    deleteNiche: 'Eliminar nicho',
+    deleteConfirm: '¿Confirmar?',
+    deleteYes: 'Sí',
+    deleteNo: 'No',
   },
 } as const;
 
@@ -273,5 +279,11 @@ export const youtubeEN = {
     contentPolicy: 'Content Policy',
     affiliate: 'Affiliates',
     ownedProduct: 'Own Product',
+
+    // Delete niche
+    deleteNiche: 'Delete niche',
+    deleteConfirm: 'Confirm?',
+    deleteYes: 'Yes',
+    deleteNo: 'No',
   },
 } as const;

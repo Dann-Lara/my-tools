@@ -296,3 +296,12 @@ export interface AIVideoPrompt {
   generationBatch: number;
   createdAt: string;
 }
+
+// NICHES - DELETE
+export async function deleteNiche(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/niches/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to delete niche');
+}

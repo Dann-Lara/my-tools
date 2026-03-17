@@ -7,6 +7,7 @@ import {
   AIVideoPromptEntity,
   MonetizationSetupEntity,
   ModuleVisibilityEntity,
+  NicheEntity,
   ChannelStatus,
   IdeaStatus,
   DEFAULT_MONETIZATION_STEPS,
@@ -32,6 +33,8 @@ export class YoutubeService {
     private readonly monetizationRepo: Repository<MonetizationSetupEntity>,
     @InjectRepository(ModuleVisibilityEntity)
     private readonly visibilityRepo: Repository<ModuleVisibilityEntity>,
+    @InjectRepository(NicheEntity)
+    private readonly nicheRepo: Repository<NicheEntity>,
     private readonly configService: ConfigService,
   ) {}
 
@@ -45,6 +48,14 @@ export class YoutubeService {
       this.logger.error('Failed to generate niches with AI', err);
       return { niches: [], source: 'ai', cachedAt: null };
     }
+  }
+
+  async deleteNiche(id: string, userId: string) {
+    const niche = await this.nicheRepo.findOne({ where: { id } });
+    if (!niche) {
+      throw new NotFoundException('Nicho no encontrado');
+    }
+    await this.nicheRepo.remove(niche);
   }
 
   // === CHANNELS ===
