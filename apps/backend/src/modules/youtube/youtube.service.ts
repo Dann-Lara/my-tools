@@ -39,7 +39,7 @@ export class YoutubeService {
 
   async getNiches() {
     try {
-      const niches = await generateNichesWithAI(20);
+      const niches = await generateNichesWithAI(5);
       return { niches, source: 'ai', cachedAt: null };
     } catch (err) {
       this.logger.error('Failed to generate niches with AI', err);

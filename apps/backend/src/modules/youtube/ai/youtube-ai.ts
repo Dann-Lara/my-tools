@@ -1,4 +1,5 @@
 import { generateText } from '@ai-lab/ai-core';
+import { withRetry } from '@ai-lab/shared';
 
 export interface NicheSuggestion {
   name: string;
@@ -8,45 +9,78 @@ export interface NicheSuggestion {
   competition: string;
   opportunityScore: number;
   trend: string;
-  trendPercent?: number;
   topKeywords: string[];
   suggestedAudience: string;
   estimatedCPM: number;
 }
 
-export async function generateNichesWithAI(count: number = 5): Promise<NicheSuggestion[]> {
-  const systemMessage = `Eres un experto en marketing de YouTube. Tu tarea es sugerir nichos de YouTube con alto potencial de monetización.`;
-
-  const prompt = `Genera ${count} nichos de YouTube en español. Cada nicho debe tener:
-- name: Nombre del nicho
-- slug: URL-friendly 
-- description: Máx 80 caracteres
-- searchVolume: "low", "medium", "high"
-- competition: "low", "medium", "high"
-- opportunityScore: 0-100
-- trend: "rising", "stable", "declining"
-- topKeywords: 3 keywords
-- suggestedAudience: Máx 40 caracteres
-- estimatedCPM: decimal
-
-JSON array válido.`;
-
-  const { text } = await generateText({
-    prompt,
-    systemMessage,
-    temperature: 0.7,
-    maxTokens: 4000,
-  });
+function extractJson<T>(text: string): T | null {
+  let s = text
+    .replace(/```json\s*/gi, '')
+    .replace(/```\s*/g, '')
+    .trim();
 
   try {
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error('[generateNichesWithAI] Failed to parse:', err);
-    console.error('[generateNichesWithAI] Raw:', text.substring(0, 500));
-    return [];
+    return JSON.parse(s) as T;
+  } catch {
+    // continue
   }
+
+  const start = s.indexOf('{');
+  if (start === -1) return null;
+  let depth = 0, end = -1;
+  for (let i = start; i < s.length; i++) {
+    if (s[i] === '{') depth++;
+    else if (s[i] === '}') {
+      if (--depth === 0) {
+        end = i;
+        break;
+      }
+    }
+  }
+  if (end !== -1) {
+    try {
+      return JSON.parse(s.slice(start, end + 1)) as T;
+    } catch {
+      // continue
+    }
+  }
+
+  const last = s.lastIndexOf('}');
+  if (last > start) {
+    try {
+      return JSON.parse(s.slice(start, last + 1)) as T;
+    } catch {
+      // fall through
+    }
+  }
+  return null;
+}
+
+export async function generateNichesWithAI(count: number = 5): Promise<NicheSuggestion[]> {
+  const systemMessage = `Eres experto en marketing de YouTube. Sugiere nichos con alto potencial de monetización.`;
+  const prompt = `Genera ${count} nichos YouTube en español. JSON array.
+Cada nicho: name, slug, description(60car), searchVolume(low/medium/high), competition(low/medium/high), opportunityScore(0-100), trend(rising/stable/declining), topKeywords(3), suggestedAudience(40car), estimatedCPM(decimal).`;
+
+  return withRetry(
+    async () => {
+      const { text } = await generateText({
+        prompt,
+        systemMessage,
+        temperature: 0.7,
+        maxTokens: 3500,
+      });
+      console.log('[generateNichesWithAI] Raw:', text.slice(0, 300));
+      const parsed = extractJson<NicheSuggestion[]>(text);
+      if (!parsed || !Array.isArray(parsed)) {
+        console.warn('[generateNichesWithAI] Invalid response, retrying...');
+        throw new Error('Invalid AI response');
+      }
+      return parsed;
+    },
+    2,
+    2000,
+  );
 }
 
 export interface ContentIdeaSuggestion {
@@ -64,39 +98,29 @@ export async function generateContentIdeasWithAI(
   channelName: string,
   niche: string,
   targetAudience: string,
-  count: number = 10,
+  count: number = 5,
 ): Promise<ContentIdeaSuggestion[]> {
-  const systemMessage = `Eres un experto en estrategia de contenido de YouTube. Tu tarea es generar ideas de video吸引观众的Content.`;
+  const systemMessage = `Eres experto en estrategia de contenido de YouTube.`;
+  const prompt = `Genera ${count} ideas de video para canal "${channelName}" sobre "${niche}" para "${targetAudience}".
+Cada idea: title, hook, angle, format(tutorial/story/list/comparison/reaction/shorts_only), successProbability(high/medium/low), successReason, shortAngle, shortScript. JSON array.`;
 
-  const prompt = `Genera ${count} ideas de video para un canal de YouTube sobre "${niche}" llamado "${channelName}" dirigido a "${targetAudience}".
-
-Para cada idea proporciona:
-- title: Título atractivo y clickbait (sin falsear)
-- hook: Primeras 15-30 segundos del video (el gancho)
-- angle: Ángulo único para diferenciarse de otros videos del mismo tema
-- format: "tutorial", "story", "list", "comparison", "reaction" o "shorts_only"
-- successProbability: "high", "medium" o "low" - sé honesto
-- successReason: Por qué esta idea tiene potencial
-- shortAngle: Ángulo para un Short (60 segundos)
-- shortScript: Script breve para el Short
-
-Devuelve solo un JSON array de objetos.`;
-
-  const { text } = await generateText({
-    prompt,
-    systemMessage,
-    temperature: 0.7,
-    maxTokens: 8000,
-  });
-
-  try {
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error('[generateContentIdeasWithAI] Failed to parse AI response:', err);
-    return [];
-  }
+  return withRetry(
+    async () => {
+      const { text } = await generateText({
+        prompt,
+        systemMessage,
+        temperature: 0.7,
+        maxTokens: 5000,
+      });
+      const parsed = extractJson<ContentIdeaSuggestion[]>(text);
+      if (!parsed || !Array.isArray(parsed)) {
+        throw new Error('Invalid AI response');
+      }
+      return parsed;
+    },
+    2,
+    2000,
+  );
 }
 
 export interface ScriptGeneration {
@@ -115,46 +139,27 @@ export async function generateScriptWithAI(
   format: string,
   targetAudience: string,
 ): Promise<ScriptGeneration> {
-  const systemMessage = `Eres un experto escribiendo scripts para YouTube. Tu tarea es generar un script completo y optimizado para SEO.`;
+  const systemMessage = `Eres experto en scripts para YouTube optimizados para SEO.`;
+  const prompt = `Genera script para video: título="${ideaTitle}", hook="${ideaHook}", ángulo="${ideaAngle}", formato="${format}", audiencia="${targetAudience}".
+Debe incluir: script(1500-3000 palabras), timestamps({time,description}), seoTitle(60car), seoDescription(160car), tags(10), hashtags(5). JSON object.`;
 
-  const prompt = `Genera un script completo para un video de YouTube con:
-- Título: ${ideaTitle}
-- Hook: ${ideaHook}
-- Ángulo: ${ideaAngle}
-- Formato: ${format}
-- Audiencia: ${targetAudience}
-
-El script debe incluir:
-- script: Script completo del video (1500-3000 palabras)
-- timestamps: Array de timestamps con { time: "0:00", description: "..." }
-- seoTitle: Título optimizado para SEO (máx 60 caracteres)
-- seoDescription: Descripción optimizada para SEO (máx 160 caracteres)
-- tags: Array de 10-15 tags relevantes
-- hashtags: Array de 5-10 hashtags
-
-Devuelve solo un JSON object.`;
-
-  const { text } = await generateText({
-    prompt,
-    systemMessage,
-    temperature: 0.7,
-  });
-
-  try {
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    return parsed;
-  } catch (err) {
-    console.error('[generateScriptWithAI] Failed to parse AI response:', err);
-    return {
-      script: '',
-      timestamps: [],
-      seoTitle: ideaTitle,
-      seoDescription: '',
-      tags: [],
-      hashtags: [],
-    };
-  }
+  return withRetry(
+    async () => {
+      const { text } = await generateText({
+        prompt,
+        systemMessage,
+        temperature: 0.7,
+        maxTokens: 8000,
+      });
+      const parsed = extractJson<ScriptGeneration>(text);
+      if (!parsed) {
+        throw new Error('Invalid AI response');
+      }
+      return parsed;
+    },
+    2,
+    2000,
+  );
 }
 
 export interface AIPrompt {
@@ -168,34 +173,25 @@ export async function generateAIPromptsWithAI(
   script: string,
   format: string,
 ): Promise<AIPrompt[]> {
-  const systemMessage = `Eres un experto en generación de video con IA. Tu tarea es crear prompts para herramientas de video IA.`;
+  const systemMessage = `Eres experto en generación de video con IA.`;
+  const prompt = `Genera 5 prompts de IA para video: título="${title}", formato="${format}", resumen="${script.slice(0, 500)}".
+Plataformas: Sora, Runway, Kling, Midjourney, Pika. Cada una: platform, prompt, tips. JSON array.`;
 
-  const prompt = `Genera 5 prompts de IA (uno para cada plataforma) para un video de YouTube:
-- Título: ${title}
-- Resumen del script: ${script.substring(0, 500)}...
-- Formato: ${format}
-
-Plataformas: Sora, Runway, Kling, Midjourney, Pika
-
-Para cada plataforma proporciona:
-- platform: Nombre de la plataforma
-- prompt: Prompt detallado para generar el video/imagen
-- tips: Consejos para obtener mejores resultados
-
-Devuelve solo un JSON array de objetos.`;
-
-  const { text } = await generateText({
-    prompt,
-    systemMessage,
-    temperature: 0.7,
-  });
-
-  try {
-    const cleaned = text.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error('[generateAIPromptsWithAI] Failed to parse AI response:', err);
-    return [];
-  }
+  return withRetry(
+    async () => {
+      const { text } = await generateText({
+        prompt,
+        systemMessage,
+        temperature: 0.7,
+        maxTokens: 4000,
+      });
+      const parsed = extractJson<AIPrompt[]>(text);
+      if (!parsed || !Array.isArray(parsed)) {
+        throw new Error('Invalid AI response');
+      }
+      return parsed;
+    },
+    2,
+    2000,
+  );
 }
