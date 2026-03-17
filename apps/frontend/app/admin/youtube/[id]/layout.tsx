@@ -29,6 +29,10 @@ export default function ChannelLayout({
   const channelId = params.id as string;
 
   useEffect(() => {
+    if (!channelId) {
+      setLoading(false);
+      return;
+    }
     if (!hasPermission('youtube')) {
       router.push('/admin');
       return;
@@ -37,12 +41,12 @@ export default function ChannelLayout({
   }, [channelId]);
 
   async function loadChannel() {
+    if (!channelId) return;
     try {
       const data = await getChannelById(channelId);
       setChannel(data);
     } catch (err) {
       console.error('Failed to load channel:', err);
-      router.push('/admin/youtube');
     } finally {
       setLoading(false);
     }
