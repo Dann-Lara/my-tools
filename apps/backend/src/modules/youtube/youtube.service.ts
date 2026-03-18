@@ -193,8 +193,8 @@ export class YoutubeService {
 
     const newPromptsData = prompts.map(p => ({
       ideaId,
-      platform: p.platform as any,
-      promptType: p.platform as any,
+      platform: p.platform.toLowerCase() as any,
+      promptType: p.platform.toLowerCase() as any,
       promptText: p.prompt,
       generationBatch: maxBatch + 1,
     }));

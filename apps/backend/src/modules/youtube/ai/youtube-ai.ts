@@ -240,17 +240,17 @@ export async function generateAIPromptsWithAI(
   format: string,
 ): Promise<AIPrompt[]> {
   const systemMessage = `AI video generation expert. Always respond in valid JSON.`;
-  const prompt = `YouTube AI prompts expert. Output ONLY valid JSON array — no markdown, no text outside JSON.
+  const prompt = `YouTube AI prompts expert. Output ONLY valid JSON — no markdown, no text outside JSON.
 
-Generate 3 AI prompts for video creation:
+Generate 1 AI prompt for video creation:
 - title: ${title}
 - format: ${format}
 - context: ${script.slice(0, 300)}
 
-Each prompt must have: platform (Sora, Runway, Kling, Midjourney, or Pika), prompt (detailed generation prompt), tips (3 tips for best results).
+Prompt must have: platform (choose ONE: Sora, Runway, Kling, Midjourney, or Pika), prompt (detailed 2-3 sentence generation prompt), tips (3 tips).
 
 STRICT JSON format:
-[{"platform":"Sora","prompt":"...","tips":"..."},{"platform":"Runway","prompt":"...","tips":"..."},{"platform":"Kling","prompt":"...","tips":"..."}]`;
+[{"platform":"Sora","prompt":"...","tips":"..."}]`;
 
   return withRetry(
     async () => {
