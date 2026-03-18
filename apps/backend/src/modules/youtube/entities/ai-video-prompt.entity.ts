@@ -39,6 +39,9 @@ export class AIVideoPromptEntity {
   @Column({ type: 'int' })
   generationBatch!: number;
 
+  @Column({ default: false })
+  completed!: boolean;
+
   @CreateDateColumn()
   createdAt!: Date;
 }

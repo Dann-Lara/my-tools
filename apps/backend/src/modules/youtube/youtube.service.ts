@@ -205,6 +205,35 @@ export class YoutubeService {
     return newPrompts;
   }
 
+  async deletePrompt(promptId: string, userId: string) {
+    const prompt = await this.promptRepo.findOne({
+      where: { id: promptId },
+      relations: ['idea', 'idea.channel', 'idea.channel.userId'],
+    });
+    if (!prompt) {
+      throw new NotFoundException('Prompt no encontrado');
+    }
+    if (prompt.idea?.channel?.userId !== userId) {
+      throw new ForbiddenException('No tienes acceso a este prompt');
+    }
+    await this.promptRepo.remove(prompt);
+  }
+
+  async togglePromptComplete(promptId: string, userId: string) {
+    const prompt = await this.promptRepo.findOne({
+      where: { id: promptId },
+      relations: ['idea', 'idea.channel'],
+    });
+    if (!prompt) {
+      throw new NotFoundException('Prompt no encontrado');
+    }
+    if (prompt.idea?.channel?.userId !== userId) {
+      throw new ForbiddenException('No tienes acceso a este prompt');
+    }
+    prompt.completed = !prompt.completed;
+    return this.promptRepo.save(prompt);
+  }
+
   async regenerateIdeas(channelId: string, userId: string) {
     const channel = await this.getChannelById(channelId, userId);
     

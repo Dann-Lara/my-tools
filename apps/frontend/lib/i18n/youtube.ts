@@ -141,6 +141,12 @@ export const youtubeES = {
     deleteConfirm: '¿Confirmar?',
     deleteYes: 'Sí',
     deleteNo: 'No',
+
+    // AI Prompts
+    generateNewPrompt: 'Generar nuevo prompt',
+    noPrompts: 'No hay prompts generados',
+    deletePrompt: 'Eliminar prompt',
+    promptCompleted: 'Prompt completado',
   },
 } as const;
 
@@ -285,5 +291,11 @@ export const youtubeEN = {
     deleteConfirm: 'Confirm?',
     deleteYes: 'Yes',
     deleteNo: 'No',
+
+    // AI Prompts
+    generateNewPrompt: 'Generate new prompt',
+    noPrompts: 'No prompts generated',
+    deletePrompt: 'Delete prompt',
+    promptCompleted: 'Prompt completed',
   },
 } as const;

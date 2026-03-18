@@ -135,6 +135,25 @@ export class YoutubeController {
     return this.svc.generateAIPrompts(id, user.userId, dto.promptType);
   }
 
+  @Delete('prompts/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete an AI prompt' })
+  deletePrompt(
+    @CurrentUser() user: JwtUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.deletePrompt(id, user.userId);
+  }
+
+  @Patch('prompts/:id/toggle')
+  @ApiOperation({ summary: 'Toggle prompt completion status' })
+  togglePromptComplete(
+    @CurrentUser() user: JwtUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.togglePromptComplete(id, user.userId);
+  }
+
   @Post('channels/:channelId/ideas/regenerate')
   @ApiOperation({ summary: 'Regenerate ideas for a channel' })
   regenerateIdeas(

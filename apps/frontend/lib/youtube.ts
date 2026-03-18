@@ -294,7 +294,25 @@ export interface AIVideoPrompt {
   promptType: string;
   promptText: string;
   generationBatch: number;
+  completed: boolean;
   createdAt: string;
+}
+
+export async function deletePrompt(promptId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/prompts/${promptId}`, {
+    method: 'DELETE',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to delete prompt');
+}
+
+export async function togglePromptComplete(promptId: string): Promise<AIVideoPrompt> {
+  const res = await fetch(`${API_BASE}/prompts/${promptId}/toggle`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to toggle prompt');
+  return res.json();
 }
 
 // NICHES - DELETE

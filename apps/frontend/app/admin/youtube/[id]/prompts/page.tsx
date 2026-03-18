@@ -9,6 +9,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import {
   getIdeasByChannel,
   generateAIPrompts,
+  deletePrompt,
+  togglePromptComplete,
   type ContentIdea,
   type AIVideoPrompt,
 } from '@/lib/youtube';
@@ -72,11 +74,34 @@ function PromptsTabContent() {
     }
   }
 
+  async function handleDelete(promptId: string) {
+    try {
+      await deletePrompt(promptId);
+      setPrompts(prompts.filter(p => p.id !== promptId));
+    } catch (err) {
+      console.error('Failed to delete prompt:', err);
+    }
+  }
+
+  async function handleToggleComplete(promptId: string) {
+    try {
+      const updated = await togglePromptComplete(promptId);
+      setPrompts(prompts.map(p => p.id === promptId ? updated : p));
+    } catch (err) {
+      console.error('Failed to toggle prompt:', err);
+    }
+  }
+
   async function copyToClipboard(text: string, id: string) {
     await navigator.clipboard.writeText(text);
     setCopied(id);
     setTimeout(() => setCopied(null), 1500);
   }
+
+  const getIdeaTitle = (ideaId: string) => {
+    const idea = ideas.find(i => i.id === ideaId);
+    return idea ? idea.title : 'Unknown idea';
+  };
 
   const getPlatformIcon = (platform: string) => {
     const icons: Record<string, string> = {
@@ -99,7 +124,7 @@ function PromptsTabContent() {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-4 mb-8 items-end">
+      <div className="flex flex-wrap items-end gap-4 mb-6">
         <div className="flex-1 min-w-[200px]">
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             {t.youtube.selectIdea}
@@ -136,9 +161,9 @@ function PromptsTabContent() {
         <button
           onClick={handleGenerate}
           disabled={generating || !selectedIdea}
-          className="btn-primary"
+          className="btn-primary whitespace-nowrap"
         >
-          {generating ? t.youtube.generatingPrompts : t.youtube.generatePrompts}
+          {generating ? t.youtube.generatingPrompts : t.youtube.generateNewPrompt}
         </button>
       </div>
 
@@ -150,48 +175,61 @@ function PromptsTabContent() {
             disabled={generating}
             className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
           >
-            {t.youtube.generatePrompts}
+            {t.youtube.generateNewPrompt}
           </button>
         </div>
       )}
 
       {prompts.length === 0 ? (
         <div className="text-center py-12 text-slate-400">
-          <p>{t.youtube.noIdeas}</p>
+          <p>{t.youtube.noPrompts}</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {Array.from(new Set(prompts.map(p => p.generationBatch)))
-            .sort((a, b) => b - a)
-            .map((batch) => (
-              <div key={batch} className="card p-4">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4">
-                  {t.youtube.batch} {batch}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {prompts
-                    .filter((p) => p.generationBatch === batch)
-                    .map((prompt) => (
-                      <div key={prompt.id} className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-mono uppercase tracking-wider text-slate-500">
-                            {getPlatformIcon(prompt.platform)} {prompt.platform}
-                          </span>
-                          <button
-                            onClick={() => copyToClipboard(prompt.promptText, prompt.id)}
-                            className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
-                          >
-                            {copied === prompt.id ? t.youtube.copied : t.youtube.copyPrompt}
-                          </button>
-                        </div>
-                        <p className="text-sm text-slate-700 dark:text-slate-300 line-clamp-4">
-                          {prompt.promptText}
-                        </p>
-                      </div>
-                    ))}
+        <div className="space-y-4">
+          {prompts.map((prompt) => (
+            <div
+              key={prompt.id}
+              className={`card p-4 ${prompt.completed ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' : ''}`}
+            >
+              <div className="flex items-start gap-4">
+                <input
+                  type="checkbox"
+                  checked={prompt.completed}
+                  onChange={() => handleToggleComplete(prompt.id)}
+                  className="mt-1 w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-sky-600 focus:ring-sky-500"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono uppercase tracking-wider text-slate-500">
+                        {getPlatformIcon(prompt.platform)} {prompt.platform}
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        {getIdeaTitle(prompt.ideaId)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => copyToClipboard(prompt.promptText, prompt.id)}
+                        className="text-xs text-sky-600 dark:text-sky-400 hover:underline"
+                      >
+                        {copied === prompt.id ? t.youtube.copied : t.youtube.copyPrompt}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(prompt.id)}
+                        className="text-xs text-red-500 hover:underline"
+                      >
+                        {t.youtube.deletePrompt}
+                      </button>
+                    </div>
+                  </div>
+                  <p className={`text-sm ${prompt.completed ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-700 dark:text-slate-300'}`}>
+                    {prompt.promptText}
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -201,16 +239,12 @@ function PromptsTabContent() {
 export default function PromptsPage() {
   const { user, loading: authLoading } = useAuth(ALLOWED_ROLES);
 
-  if (authLoading) {
+  if (authLoading || !user) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <Spinner />
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (
