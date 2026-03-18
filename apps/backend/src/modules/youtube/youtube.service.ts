@@ -235,8 +235,11 @@ export class YoutubeService {
       select: ['id'],
     });
     const ideaIds = ideas.map(i => i.id);
+    if (ideaIds.length === 0) {
+      return [];
+    }
     const prompts = await this.promptRepo.find({
-      where: { ideaId: { _in: ideaIds } as any },
+      where: { ideaId: { $in: ideaIds } as any },
       order: { createdAt: 'DESC' },
     });
     return prompts;
