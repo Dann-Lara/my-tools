@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import {
   ChannelEntity,
   ContentIdeaEntity,
@@ -239,7 +239,7 @@ export class YoutubeService {
       return [];
     }
     const prompts = await this.promptRepo.find({
-      where: { ideaId: { $in: ideaIds } as any },
+      where: { ideaId: In(ideaIds) },
       order: { createdAt: 'DESC' },
     });
     return prompts;
