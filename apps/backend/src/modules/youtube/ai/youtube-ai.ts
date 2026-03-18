@@ -239,26 +239,29 @@ export async function generateAIPromptsWithAI(
   script: string,
   format: string,
 ): Promise<AIPrompt[]> {
-  const systemMessage = `AI video generation expert. Always respond in Spanish.`;
-  const prompt = `YouTube expert. Output ONLY valid JSON — start with [ end with ] — no markdown, no text outside JSON.
+  const systemMessage = `AI video generation expert. Always respond in valid JSON.`;
+  const prompt = `YouTube AI prompts expert. Output ONLY valid JSON array — no markdown, no text outside JSON.
 
-Generate 5 AI prompts for video: title="${title}", format="${format}", summary="${script.slice(0, 500)}"
+Generate 3 AI prompts for video creation:
+- title: ${title}
+- format: ${format}
+- context: ${script.slice(0, 300)}
 
-Platforms: Sora, Runway, Kling, Midjourney, Pika
-Each: platform, prompt, tips
+Each prompt must have: platform (Sora, Runway, Kling, Midjourney, or Pika), prompt (detailed generation prompt), tips (3 tips for best results).
 
-JSON array: [{"platform":"...","prompt":"...","tips":"..."}]`;
+STRICT JSON format:
+[{"platform":"Sora","prompt":"...","tips":"..."},{"platform":"Runway","prompt":"...","tips":"..."},{"platform":"Kling","prompt":"...","tips":"..."}]`;
 
   return withRetry(
     async () => {
       const { text } = await generateText({
         prompt,
         systemMessage,
-        temperature: 0.7,
-        maxTokens: 4000,
+        temperature: 0.8,
+        maxTokens: 3000,
       });
       const parsed = extractJson<AIPrompt[]>(text);
-      if (!parsed || !Array.isArray(parsed)) {
+      if (!parsed || !Array.isArray(parsed) || parsed.length === 0) {
         throw new Error('Invalid AI response');
       }
       return parsed;

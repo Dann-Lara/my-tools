@@ -28,6 +28,7 @@ function PromptsTabContent() {
   const [prompts, setPrompts] = useState<AIVideoPrompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
   const channelId = params.id as string;
@@ -59,11 +60,13 @@ function PromptsTabContent() {
   async function handleGenerate() {
     if (!selectedIdea) return;
     setGenerating(true);
+    setError(null);
     try {
       const newPrompts = await generateAIPrompts(selectedIdea, promptType);
       setPrompts([...prompts, ...newPrompts]);
     } catch (err) {
       console.error('Failed to generate prompts:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate prompts');
     } finally {
       setGenerating(false);
     }
@@ -138,6 +141,19 @@ function PromptsTabContent() {
           {generating ? t.youtube.generatingPrompts : t.youtube.generatePrompts}
         </button>
       </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="mt-2 text-sm text-red-600 dark:text-red-400 hover:underline"
+          >
+            {t.youtube.generatePrompts}
+          </button>
+        </div>
+      )}
 
       {prompts.length === 0 ? (
         <div className="text-center py-12 text-slate-400">
