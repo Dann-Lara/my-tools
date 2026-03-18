@@ -205,6 +205,43 @@ export class YoutubeService {
     return newPrompts;
   }
 
+  async getPromptsByIdea(ideaId: string, userId: string) {
+    const idea = await this.ideaRepo.findOne({
+      where: { id: ideaId },
+      relations: ['channel'],
+    });
+    if (!idea) {
+      throw new NotFoundException('Idea no encontrada');
+    }
+    if (idea.channel.userId !== userId) {
+      throw new ForbiddenException('No tienes acceso a esta idea');
+    }
+    const prompts = await this.promptRepo.find({
+      where: { ideaId },
+      order: { createdAt: 'DESC' },
+    });
+    return prompts;
+  }
+
+  async getPromptsByChannel(channelId: string, userId: string) {
+    const channel = await this.channelRepo.findOne({
+      where: { id: channelId, userId },
+    });
+    if (!channel) {
+      throw new NotFoundException('Canal no encontrado');
+    }
+    const ideas = await this.ideaRepo.find({
+      where: { channelId },
+      select: ['id'],
+    });
+    const ideaIds = ideas.map(i => i.id);
+    const prompts = await this.promptRepo.find({
+      where: { ideaId: { _in: ideaIds } as any },
+      order: { createdAt: 'DESC' },
+    });
+    return prompts;
+  }
+
   async deletePrompt(promptId: string, userId: string) {
     const prompt = await this.promptRepo.findOne({
       where: { id: promptId },

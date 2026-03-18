@@ -277,6 +277,24 @@ export async function generateAIPrompts(ideaId: string, promptType: 'video' | 't
   return res.json();
 }
 
+export async function getPromptsByIdea(ideaId: string): Promise<AIVideoPrompt[]> {
+  const res = await fetch(`${API_BASE}/ideas/${ideaId}/prompts`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to get prompts');
+  return res.json();
+}
+
+export async function getPromptsByChannel(channelId: string): Promise<AIVideoPrompt[]> {
+  const res = await fetch(`${API_BASE}/channels/${channelId}/prompts`, {
+    method: 'GET',
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to get prompts');
+  return res.json();
+}
+
 export async function regenerateChannelIdeas(channelId: string): Promise<ContentIdea[]> {
   const res = await fetch(`${API_BASE}/channels/${channelId}/ideas/regenerate`, {
     method: 'POST',

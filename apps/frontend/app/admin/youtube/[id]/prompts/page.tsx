@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import {
   getIdeasByChannel,
   generateAIPrompts,
+  getPromptsByChannel,
   deletePrompt,
   togglePromptComplete,
   type ContentIdea,
@@ -47,13 +48,17 @@ function PromptsTabContent() {
   async function loadIdeas() {
     setLoading(true);
     try {
-      const data = await getIdeasByChannel(channelId);
-      setIdeas(data);
-      if (data.length > 0) {
-        setSelectedIdea(data[0].id);
+      const [ideasData, promptsData] = await Promise.all([
+        getIdeasByChannel(channelId),
+        getPromptsByChannel(channelId),
+      ]);
+      setIdeas(ideasData);
+      setPrompts(promptsData);
+      if (ideasData.length > 0) {
+        setSelectedIdea(ideasData[0].id);
       }
     } catch (err) {
-      console.error('Failed to load ideas:', err);
+      console.error('Failed to load data:', err);
     } finally {
       setLoading(false);
     }

@@ -135,6 +135,24 @@ export class YoutubeController {
     return this.svc.generateAIPrompts(id, user.userId, dto.promptType);
   }
 
+  @Get('ideas/:id/prompts')
+  @ApiOperation({ summary: 'Get all prompts for an idea' })
+  getPromptsByIdea(
+    @CurrentUser() user: JwtUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.getPromptsByIdea(id, user.userId);
+  }
+
+  @Get('channels/:channelId/prompts')
+  @ApiOperation({ summary: 'Get all prompts for a channel' })
+  getPromptsByChannel(
+    @CurrentUser() user: JwtUser,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+  ) {
+    return this.svc.getPromptsByChannel(channelId, user.userId);
+  }
+
   @Delete('prompts/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete an AI prompt' })
