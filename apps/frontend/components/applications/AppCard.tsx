@@ -187,7 +187,7 @@ export function AppCard({ app, userRole, onStatusChange, onDelete, onUpdate, t }
   const ta = t ?? {};
 
   return (
-    <div className="relative z-10">
+    <div className="relative z-20">
       <Link
         href={`/client/applications/${app.id}`}
         className="block card p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 group"
