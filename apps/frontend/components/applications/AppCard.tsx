@@ -104,7 +104,7 @@ export function StatusSelector({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-20 min-w-[150px] overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50 min-w-[150px] overflow-hidden">
           {allStatuses.map((s) => {
             const meta = statusMap[s];
             const isSelected = s === status;
@@ -187,7 +187,7 @@ export function AppCard({ app, userRole, onStatusChange, onDelete, onUpdate, t }
   const ta = t ?? {};
 
   return (
-    <div className="relative">
+    <div className="relative z-10">
       <Link
         href={`/client/applications/${app.id}`}
         className="block card p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 group"
