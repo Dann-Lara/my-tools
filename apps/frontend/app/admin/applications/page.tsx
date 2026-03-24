@@ -34,6 +34,7 @@ export default function ApplicationsPage() {
     loadApps,
     loadBaseCV,
     deleteApp,
+    updateStatus,
     cvComplete,
     toast,
     showToast,
@@ -204,6 +205,7 @@ export default function ApplicationsPage() {
                   app={app}
                   userRole={user.role}
                   onDelete={deleteApp}
+                  onStatusChange={updateStatus}
                   t={t.applications}
                 />
               ))}

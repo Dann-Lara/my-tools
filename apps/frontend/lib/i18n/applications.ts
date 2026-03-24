@@ -35,6 +35,11 @@ export const applicationsES = {
     statusInProcess: 'En proceso',
     statusAccepted: 'Aceptado',
     statusRejected: 'Rechazado',
+    // Status change confirmation
+    confirmStatusChange: '¿Cambiar estado a {status}?',
+    statusChangeYes: 'Sí, cambiar',
+    statusChangeNo: 'Cancelar',
+    toastStatusChanged: 'Estado actualizado',
 
     // App card actions
     generateCV: 'Generar CV ATS',
@@ -266,6 +271,11 @@ export const applicationsEN = {
     statusInProcess: 'In process',
     statusAccepted: 'Accepted',
     statusRejected: 'Rejected',
+    // Status change confirmation
+    confirmStatusChange: 'Change status to {status}?',
+    statusChangeYes: 'Yes, change',
+    statusChangeNo: 'Cancel',
+    toastStatusChanged: 'Status updated',
 
     generateCV: 'Generate ATS CV',
     regenerateCV: 'Re-generate ATS CV',

@@ -9,7 +9,7 @@ import { useFadeInUp } from '../../../../hooks/useAnime';
 import { DashboardLayout } from '../../../../components/ui/DashboardLayout';
 import { Spinner } from '../../../../components/ui/Spinner';
 import { Toast } from '../../../../components/ui/Toast';
-import { InterviewSimulator, Application, BaseCV, getHeaders, EMPTY_CV, AppStatus, printATS } from '../../../../components/applications';
+import { InterviewSimulator, Application, BaseCV, getHeaders, EMPTY_CV, AppStatus, printATS, StatusSelector } from '../../../../components/applications';
 import { PermissionGate } from '../../../../components/ui/PermissionGate';
 
 const ALLOWED_ROLES = ['superadmin', 'admin', 'client'];
@@ -68,6 +68,23 @@ export default function ApplicationDetailPage() {
     setApp(prev => prev ? { ...prev, ...patch } : null);
   }
 
+  const handleStatusChange = useCallback(async (newStatus: AppStatus) => {
+    if (!app) return;
+    try {
+      const res = await fetch(`/api/applications/${app.id}`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setApp(prev => prev ? { ...prev, status: newStatus } : null);
+        showToast(t.applications.toastStatusChanged ?? 'Estado actualizado', 'ok');
+      }
+    } catch {
+      showToast(t.applications.toastStatusError ?? 'Error actualizando estado', 'err');
+    }
+  }, [app, getHeaders, showToast, t.applications.toastStatusChanged, t.applications.toastStatusError]);
+
   if (authLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -122,9 +139,11 @@ export default function ApplicationDetailPage() {
                     <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
                       {t.applications.detailStatus}
                     </p>
-                    <span className={`inline-block px-3 py-1 rounded-full font-mono text-[10px] font-semibold ${statusMap[app.status].color}`}>
-                      {statusMap[app.status].label}
-                    </span>
+                    <StatusSelector 
+                      status={app.status} 
+                      onChange={handleStatusChange}
+                      t={t.applications}
+                    />
                   </div>
                   <div>
                     <p className="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-1">
