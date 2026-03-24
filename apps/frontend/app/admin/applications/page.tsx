@@ -198,7 +198,7 @@ export default function ApplicationsPage() {
               )}
             </div>
           ) : (
-            <div className="relative z-10 space-y-3">
+            <div className="space-y-3">
               {filteredApps.map((app) => (
                 <AppCard 
                   key={app.id}
