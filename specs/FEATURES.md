@@ -72,8 +72,10 @@
 | F035 | Rediseño Módulo Postulaciones      | applications | COMPLETED        | Alta      |
 | F036 | UX/UI Refactor Postulaciones       | applications | IN_PROGRESS      | Alta      |
 | F037 | Simplificar CV Base                | applications | IN_PROGRESS      | Alta      |
-| F038 | Landing Page Redesign             | frontend     | VALIDATING       | Alta      |
-| F039 | YouTube Channel Hack            | youtube      | IN_PROGRESS      | Alta      |
+| F038 | Landing Page Redesign              | frontend     | VALIDATING       | Alta      |
+| F039 | YouTube Channel Hack               | youtube      | IN_PROGRESS      | Alta      |
+| F040 | Google OAuth Authentication        | auth         | APPROVED         | Alta      |
+| F041 | Password Recovery                  | auth         | DRAFT            | Alta      |
 
 ---
 
