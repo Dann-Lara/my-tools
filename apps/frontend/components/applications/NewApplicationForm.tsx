@@ -1,22 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { getHeaders } from './types';
-import { AtsRing, IconDownload, IconSave, IconSpark, IconCheck, Spinner } from './icons';
+import { AtsRing, IconDownload, IconSave, IconSpark, IconCheck, IconEdit, Spinner } from './icons';
 import { jsPDF } from 'jspdf';
-
-const IconEdit = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-  </svg>
-);
-const IconGlobe = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="2" y1="12" x2="22" y2="12" />
-    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-  </svg>
-);
 
 function printATS(cvText: string, lang: 'es' | 'en', position: string, company: string) {
   const SECTION_RX =
@@ -141,19 +127,14 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
   const [genError, setErr] = useState('');
   const [atsScore, setScore] = useState<number | null>(null);
 
-  const [cvEn, setCvEn] = useState('');
-  const [cvEs, setCvEs] = useState('');
-  const [editedEn, setEditedEn] = useState(false);
-  const [editedEs, setEditedEs] = useState(false);
-  const [activeTab, setTab] = useState<'en' | 'es'>('en');
+  const [generatedCv, setGeneratedCv] = useState('');
+  const [isEdited, setIsEdited] = useState(false);
+  const [cvLang, setCvLang] = useState<'en' | 'es'>('en');
 
   const [savedAppId, setSavedAppId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [translating, setTranslating] = useState(false);
-  const [translateError, setTranslateError] = useState('');
 
   const hasResult = atsScore !== null;
-  const isEdited = editedEn || editedEs;
 
   async function generate() {
     if (!form.company || !form.position || !form.jobOffer) {
@@ -161,11 +142,9 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
       return;
     }
     setGen(true);
-    setCvEn('');
-    setCvEs('');
+    setGeneratedCv('');
     setScore(null);
-    setEditedEn(false);
-    setEditedEs(false);
+    setIsEdited(false);
     setErr('');
     setSavedAppId(null);
     try {
@@ -187,14 +166,8 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
         );
       const data = (await res.json()) as { atsScore: number; cv?: string; lang?: string };
       setScore(data.atsScore ?? 0);
-      if (data.lang === 'es') {
-        setCvEs(data.cv ?? '');
-        setCvEn('');
-      } else {
-        setCvEn(data.cv ?? '');
-        setCvEs('');
-      }
-      setTab(data.lang === 'es' ? 'es' : 'en');
+      setGeneratedCv(data.cv ?? '');
+      setCvLang(data.lang === 'es' ? 'es' : 'en');
     } catch (e) {
       setErr(e instanceof Error ? e.message : ta.toastGenerateError);
     } finally {
@@ -203,7 +176,7 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
   }
 
   async function save() {
-    if (!cvEn) return;
+    if (!generatedCv) return;
     setSaving(true);
     try {
       const res = await fetch('/api/applications', {
@@ -214,8 +187,8 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
           position: form.position || undefined,
           jobOffer: form.jobOffer || undefined,
           atsScore: atsScore ?? 0,
-          generatedCvText: cvEn,
-          generatedCvLang: lang,
+          generatedCvText: generatedCv,
+          generatedCvLang: cvLang,
           appliedFrom: form.appliedFrom || undefined,
           location: form.location || undefined,
           salary: form.salary || undefined,
@@ -235,33 +208,11 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
     }
   }
 
-  async function translateToSpanish() {
-    if (!savedAppId) return;
-    setTranslating(true);
-    setTranslateError('');
-    try {
-      const res = await fetch(`/api/applications/${savedAppId}/translate-cv`, {
-        method: 'POST',
-        headers: getHeaders(),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = (await res.json()) as { cvEs: string };
-      setCvEs(data.cvEs);
-      setTab('es');
-    } catch (e) {
-      setTranslateError(e instanceof Error ? e.message : 'Error adaptando al español');
-    } finally {
-      setTranslating(false);
-    }
-  }
-
   function finish() {
     setForm({ company: '', position: '', jobOffer: '', appliedFrom: '', location: '', salary: '', sourceUrl: '' });
-    setCvEn('');
-    setCvEs('');
+    setGeneratedCv('');
     setScore(null);
-    setEditedEn(false);
-    setEditedEs(false);
+    setIsEdited(false);
     setSavedAppId(null);
     onSaved();
   }
@@ -425,8 +376,7 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
             <button
               onClick={() => {
                 setScore(null);
-                setCvEn('');
-                setCvEs('');
+                setGeneratedCv('');
                 setSavedAppId(null);
               }}
               className="ml-auto btn-ghost text-[10px] py-1.5 px-3"
@@ -436,83 +386,30 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
           </div>
 
           <div className="card overflow-hidden">
-            <div className="flex border-b border-slate-200 dark:border-slate-700">
-              <button
-                onClick={() => setTab('en')}
-                className={`px-5 py-2 font-mono text-[10px] uppercase tracking-widest -mb-px border-b-2 transition-colors
-                  ${
-                    activeTab === 'en'
-                      ? 'border-sky-500 text-sky-600 dark:text-sky-400'
-                      : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                  }`}
-              >
-                English {editedEn && <IconEdit />}
-              </button>
-              {cvEs && (
-                <button
-                  onClick={() => setTab('es')}
-                  className={`px-5 py-2 font-mono text-[10px] uppercase tracking-widest -mb-px border-b-2 transition-colors
-                    ${
-                      activeTab === 'es'
-                        ? 'border-sky-500 text-sky-600 dark:text-sky-400'
-                        : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                    }`}
-                >
-                  Español {editedEs && <IconEdit />}
-                </button>
-              )}
-            </div>
-
             <div className="p-4">
-              {activeTab === 'en' && (
-                <textarea
-                  value={cvEn}
-                  onChange={(e) => {
-                    setCvEn(e.target.value);
-                    setEditedEn(true);
-                  }}
-                  rows={28}
-                  className="w-full font-mono text-[10.5px] text-slate-700 dark:text-slate-300 leading-relaxed
-                             bg-slate-50 dark:bg-slate-900 rounded-lg p-3
-                             border border-slate-200 dark:border-slate-700
-                             focus:outline-none focus:ring-2 focus:ring-sky-400/40 focus:border-sky-400
-                             resize-y transition-all"
-                />
-              )}
-              {activeTab === 'es' && cvEs && (
-                <textarea
-                  value={cvEs}
-                  onChange={(e) => {
-                    setCvEs(e.target.value);
-                    setEditedEs(true);
-                  }}
-                  rows={28}
-                  className="w-full font-mono text-[10.5px] text-slate-700 dark:text-slate-300 leading-relaxed
-                             bg-slate-50 dark:bg-slate-900 rounded-lg p-3
-                             border border-slate-200 dark:border-slate-700
-                             focus:outline-none focus:ring-2 focus:ring-sky-400/40 focus:border-sky-400
-                             resize-y transition-all"
-                />
-              )}
+              <textarea
+                value={generatedCv}
+                onChange={(e) => {
+                  setGeneratedCv(e.target.value);
+                  setIsEdited(true);
+                }}
+                rows={28}
+                className="w-full font-mono text-[10.5px] text-slate-700 dark:text-slate-300 leading-relaxed
+                           bg-slate-50 dark:bg-slate-900 rounded-lg p-3
+                           border border-slate-200 dark:border-slate-700
+                           focus:outline-none focus:ring-2 focus:ring-sky-400/40 focus:border-sky-400
+                           resize-y transition-all"
+              />
             </div>
 
             <div className="flex items-center gap-3 flex-wrap px-4 pb-4">
               <button
-                onClick={() => printATS(cvEn, 'en', form.position, form.company)}
-                disabled={!cvEn}
+                onClick={() => printATS(generatedCv, cvLang, form.position, form.company)}
+                disabled={!generatedCv}
                 className="btn-ghost text-[9.5px] py-1.5 px-3 flex items-center gap-1.5 disabled:opacity-40"
               >
-                <IconDownload /> {ta.pdfExportEn ?? 'PDF English'}
+                <IconDownload /> {ta.pdfExport ?? 'Exportar PDF'}
               </button>
-              {cvEs && (
-                <button
-                  onClick={() => printATS(cvEs, 'es', form.position, form.company)}
-                  disabled={!cvEs}
-                  className="btn-ghost text-[9.5px] py-1.5 px-3 flex items-center gap-1.5 disabled:opacity-40"
-                >
-                  <IconDownload /> {ta.pdfExportEs ?? 'PDF Español'}
-                </button>
-              )}
               <p className="font-mono text-[9px] text-slate-400">
                 {ta.atsCompliantNote ?? 'ATS-friendly · sin tablas ni columnas'}
               </p>
@@ -535,7 +432,7 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
               <div className="flex flex-col gap-1">
                 <button
                   onClick={save}
-                  disabled={saving || !cvEn}
+                  disabled={saving || !generatedCv}
                   className="btn-primary text-[11px] py-2.5 px-6 flex items-center gap-2 disabled:opacity-40"
                 >
                   {saving ? (
@@ -553,7 +450,7 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
                 <p className="font-mono text-[9px] text-slate-400 pl-1">
                   {isEdited
                     ? ta.saveAppHintEdited ?? 'Se guardará tu versión editada.'
-                    : ta.saveAppHint ?? 'Guardará el CV en inglés.'}
+                    : ta.saveAppHint ?? 'Guardará el CV generado.'}
                 </p>
               </div>
             ) : (
@@ -565,47 +462,12 @@ export function NewApplicationForm({ cvComplete, onSaved, onGoToBaseCV, t, lang 
               </div>
             )}
 
-            {!cvEs && (
-              <div className="flex flex-col gap-1">
-                <button
-                  onClick={translateToSpanish}
-                  disabled={translating || !savedAppId}
-                  title={!savedAppId ? (ta.saveFirstHint ?? 'Guardá primero para habilitar esta opción') : undefined}
-                  className={`text-[11px] py-2.5 px-5 flex items-center gap-2 rounded-lg border font-mono transition-all
-                    ${
-                      savedAppId
-                        ? 'border-sky-300 dark:border-sky-500/40 text-sky-700 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-400/10'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 cursor-not-allowed'
-                    }`}
-                >
-                  {translating ? (
-                    <>
-                      <Spinner sm />
-                      {ta.generatingES ?? 'Adaptando al español...'}
-                    </>
-                  ) : (
-                    <>
-                      <IconGlobe />
-                      {ta.generateSpanishBtn ?? 'Adaptar al español'}
-                    </>
-                  )}
-                </button>
-                <p className="font-mono text-[9px] text-slate-400 pl-1">
-                  {savedAppId
-                    ? ta.generateSpanishHint ?? 'Adapta el CV en inglés al español (gratis)'
-                    : ta.saveFirstHint ?? 'Guardá primero para habilitar'}
-                </p>
-              </div>
-            )}
-
             {savedAppId && (
               <button onClick={finish} className="ml-auto btn-ghost text-[10px] py-2 px-4 flex items-center gap-1.5">
                 {ta.doneBtn ?? 'Listo — ver postulaciones →'}
               </button>
             )}
           </div>
-
-          {translateError && <p className="font-mono text-[10px] text-rose-500">{translateError}</p>}
         </div>
       )}
     </div>
