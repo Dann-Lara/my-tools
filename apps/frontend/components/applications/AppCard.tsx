@@ -40,7 +40,7 @@ const statusMap: Record<AppStatus, { label: string; colors: string; dot: string 
 
 const allStatuses: AppStatus[] = ['pending', 'in_process', 'accepted', 'rejected'];
 
-function StatusSelector({
+export function StatusSelector({
   status,
   onChange,
   t,
