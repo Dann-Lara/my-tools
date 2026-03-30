@@ -46,7 +46,7 @@ import { YoutubeModule } from './modules/youtube/youtube.module';
         type: 'postgres',
         url: getDatabaseUrl(config),
         autoLoadEntities: true,
-        synchronize: config.get('NODE_ENV') !== 'production',
+        synchronize: config.get('TYPEORM_SYNCHRONIZE', 'false') === 'true',
         logging: config.get('NODE_ENV') === 'development',
         retryAttempts: 10,
         retryDelay: 3000,
