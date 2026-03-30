@@ -339,7 +339,7 @@ async function main() {
 
   if (files.length === 0) {
     warn('No workflow JSON files found in n8n-workflows/');
-    process.exit(0);
+    return;
   }
 
   step(`Syncing ${files.length} workflow(s)...`);
@@ -371,20 +371,11 @@ async function main() {
   console.log(`  3. Open "02 - Telegram Responses" → assign credentials → toggle ON`);
   console.log(`  4. See ${c.cyan}n8n-workflows/SETUP.md${c.reset} for full instructions\n`);
 
-  const exitCode = failed > 0 ? 1 : 0;
-  if (process.platform === 'win32') {
-    setImmediate(() => process.exit(exitCode));
-  } else {
-    process.exit(exitCode);
-  }
+  process.exitCode = failed > 0 ? 1 : 0;
 }
 
 main().catch((e) => {
   fail(`Unexpected error: ${e.message}`);
   console.error(e.stack);
-  if (process.platform === 'win32') {
-    setImmediate(() => process.exit(1));
-  } else {
-    process.exit(1);
-  }
+  process.exitCode = 1;
 });

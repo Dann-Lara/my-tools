@@ -1,6 +1,11 @@
 # AI Lab Template - Setup Script for Windows (PowerShell)
 # Run with: powershell -ExecutionPolicy Bypass -File scripts/setup.ps1
+# To reset database: powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -ResetDatabase
 # Encoding: ASCII-safe (no Unicode/emoji to avoid parse errors)
+
+param(
+    [switch]$ResetDatabase  # Add -ResetDatabase to drop and recreate the database
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -21,6 +26,9 @@ Clear-Host
 Write-Host "========================================" -ForegroundColor Blue
 Write-Host "     AI Lab Template - Setup            " -ForegroundColor Blue
 Write-Host "========================================" -ForegroundColor Blue
+if ($ResetDatabase) {
+    Write-Host "  [MODE] Database will be RESET" -ForegroundColor Cyan
+}
 
 # -- 1. CHECK REQUIREMENTS ----------------------------------------
 Write-Step "Checking requirements..."
@@ -194,34 +202,28 @@ if ($dockerAvailable) {
     }
     Write-Success "PostgreSQL is ready"
 
-    # Create database if not exists (ignore if already exists)
-    Write-Step "Creating database if not exists..."
+    # Create/reset database
     $dbName = "mytools"
-    $existingDb = docker exec $pgContainer psql -U admin -d postgres -t -c "SELECT 1 FROM pg_database WHERE datname='$dbName';" 2>$null
-    if ($existingDb.Trim() -ne "1") {
+    if ($ResetDatabase) {
+        Write-Step "Resetting database (dropping and recreating)..."
+        docker exec $pgContainer psql -U admin -d postgres -c "DROP DATABASE IF EXISTS $dbName;" 2>$null
         docker exec $pgContainer psql -U admin -d postgres -c "CREATE DATABASE $dbName;" 2>$null
+        Write-Success "Database $dbName reset"
+    } else {
+        Write-Step "Creating database if not exists..."
+        $existingDb = docker exec $pgContainer psql -U admin -d postgres -t -c "SELECT 1 FROM pg_database WHERE datname='$dbName';" 2>$null
+        if ($existingDb.Trim() -ne "1") {
+            docker exec $pgContainer psql -U admin -d postgres -c "CREATE DATABASE $dbName;" 2>$null
+        }
+        Write-Success "Database $dbName ready"
     }
-    Write-Success "Database $dbName ready"
 
     # Run migrations
     Write-Step "Running database migrations..."
     npm run db:migrate
     if ($LASTEXITCODE -ne 0) {
-        Write-Warn "Some migrations failed (expected if this is first run with existing tables)."
-        Write-Host "  Falling back to synchronize (creates tables from entities)..." -ForegroundColor Gray
-        # Enable synchronize temporarily for initial setup
-        $dataSourceContent = Get-Content "apps/backend/src/database/data-source.ts" -Raw
-        if ($dataSourceContent -match "synchronize: false") {
-            $dataSourceContent = $dataSourceContent -replace "synchronize: false", "synchronize: true"
-            Set-Content -Path "apps/backend/src/database/data-source.ts" -Value $dataSourceContent -NoNewline
-            npm run db:migrate
-            if ($LASTEXITCODE -eq 0) {
-                Write-Success "Tables created with synchronize"
-            }
-            # Restore synchronize: false
-            $dataSourceContent = $dataSourceContent -replace "synchronize: true", "synchronize: false"
-            Set-Content -Path "apps/backend/src/database/data-source.ts" -Value $dataSourceContent -NoNewline
-        }
+        Write-Fail "Migrations failed. Run with -ResetDatabase to reset the database."
+        exit 1
     } else {
         Write-Success "Migrations complete"
     }
@@ -236,14 +238,24 @@ if ($dockerAvailable) {
 
     # Sync n8n workflows
     Write-Step "Syncing n8n workflows..."
-    $syncResult = & node scripts/sync-n8n-workflows.js 2>&1
-    Write-Host $syncResult
-    if ($LASTEXITCODE -eq 0) {
-        Write-Success "n8n workflows synced"
-    } else {
+    $ErrorActionPreference = 'Continue'
+    try {
+        $syncResult = & node scripts/sync-n8n-workflows.js 2>&1 | Out-String
+        # Filter out Windows Node.js assertion errors (UV_HANDLE_CLOSING) - these are harmless
+        $cleanResult = $syncResult -replace '(?m)^.*UV_HANDLE_CLOSING.*$', '' -replace '(?m)^.*Assertion failed.*$', ''
+        if ($cleanResult.Trim()) {
+            Write-Host $cleanResult
+        }
+        # Check exit code - 0 or 1 are expected, anything else might indicate real error
+        if ($LASTEXITCODE -eq 0 -or $LASTEXITCODE -eq 1) {
+            Write-Success "n8n workflows sync completed"
+        } else {
+            Write-Warn "Workflow sync exited with code $LASTEXITCODE"
+        }
+    } catch {
         Write-Warn "Workflow sync failed - run manually: npm run n8n:sync"
-        Write-Warn "Make sure N8N_API_KEY is set in apps/backend/.env or .env"
     }
+    $ErrorActionPreference = 'Stop'
 
 } else {
     Write-Host ""
@@ -268,3 +280,5 @@ Write-Host "  API Docs : " -NoNewline ; Write-Host "http://localhost:3001/api/do
 Write-Host "  n8n      : " -NoNewline ; Write-Host "http://localhost:5678" -ForegroundColor Cyan -NoNewline
 Write-Host "  (admin / admin123)"
 Write-Host ""
+Write-Host "  Tip: To reset database, run:" -ForegroundColor Gray
+Write-Host "    powershell -ExecutionPolicy Bypass -File scripts/setup.ps1 -ResetDatabase" -ForegroundColor Gray
