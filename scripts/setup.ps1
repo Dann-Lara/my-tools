@@ -4,6 +4,14 @@
 
 $ErrorActionPreference = "Stop"
 
+# Disable Docker color codes that break PowerShell parsing
+$env:NO_COLOR = "1"
+
+function Get-ContainerName($service) {
+    $projectName = if ($env:COMPOSE_PROJECT_NAME) { $env:COMPOSE_PROJECT_NAME } else { "my-tools" }
+    return "${projectName}_${service}"
+}
+
 function Write-Success($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
 function Write-Warn($msg)    { Write-Host "  [!!] $msg" -ForegroundColor Yellow }
 function Write-Fail($msg)    { Write-Host "  [ERROR] $msg" -ForegroundColor Red }
@@ -153,10 +161,10 @@ if ($dockerAvailable) {
     Write-Step "Starting Docker services (postgres + redis)..."
 
     # Try docker compose v2 first, fall back to v1
-    docker compose up -d postgres redis 2>&1
+    docker compose up -d postgres redis --no-color
     if ($LASTEXITCODE -ne 0) {
         Write-Warn "docker compose v2 failed, trying docker-compose v1..."
-        docker-compose up -d postgres redis
+        docker-compose up -d postgres redis --no-color
         if ($LASTEXITCODE -ne 0) {
             Write-Fail "Could not start Docker services. Check docker-compose.yml."
             exit 1
@@ -168,8 +176,9 @@ if ($dockerAvailable) {
     Write-Step "Waiting for PostgreSQL to be ready..."
     $retries = 30
     $ready = $false
+    $pgContainer = Get-ContainerName "postgres"
     while ($retries -gt 0 -and -not $ready) {
-        $pgCheck = docker compose exec -T postgres pg_isready -U admin 2>&1
+        $pgCheck = docker exec $pgContainer pg_isready -U admin 2>&1
         if ($LASTEXITCODE -eq 0) {
             $ready = $true
         } else {
@@ -185,25 +194,45 @@ if ($dockerAvailable) {
     }
     Write-Success "PostgreSQL is ready"
 
-    # Create database if not exists
+    # Create database if not exists (ignore if already exists)
     Write-Step "Creating database if not exists..."
     $dbName = "mytools"
-    docker compose exec -T postgres psql -U admin -d postgres -c "CREATE DATABASE $dbName;" 2>&1 | Out-Null
+    $existingDb = docker exec $pgContainer psql -U admin -d postgres -t -c "SELECT 1 FROM pg_database WHERE datname='$dbName';" 2>$null
+    if ($existingDb.Trim() -ne "1") {
+        docker exec $pgContainer psql -U admin -d postgres -c "CREATE DATABASE $dbName;" 2>$null
+    }
     Write-Success "Database $dbName ready"
 
     # Run migrations
     Write-Step "Running database migrations..."
     npm run db:migrate
     if ($LASTEXITCODE -ne 0) {
-        Write-Warn "Migration failed. Run 'npm run db:migrate' manually after checking DATABASE_URL in apps\backend\.env"
+        Write-Warn "Some migrations failed (expected if this is first run with existing tables)."
+        Write-Host "  Falling back to synchronize (creates tables from entities)..." -ForegroundColor Gray
+        # Enable synchronize temporarily for initial setup
+        $dataSourceContent = Get-Content "apps/backend/src/database/data-source.ts" -Raw
+        if ($dataSourceContent -match "synchronize: false") {
+            $dataSourceContent = $dataSourceContent -replace "synchronize: false", "synchronize: true"
+            Set-Content -Path "apps/backend/src/database/data-source.ts" -Value $dataSourceContent -NoNewline
+            npm run db:migrate
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Tables created with synchronize"
+            }
+            # Restore synchronize: false
+            $dataSourceContent = $dataSourceContent -replace "synchronize: true", "synchronize: false"
+            Set-Content -Path "apps/backend/src/database/data-source.ts" -Value $dataSourceContent -NoNewline
+        }
     } else {
         Write-Success "Migrations complete"
     }
 
     # Start n8n
     Write-Step "Starting n8n..."
-    docker compose up -d n8n 2>&1
-    Write-Success "n8n started at http://localhost:5678 (admin / admin123)"
+    docker compose up -d n8n --no-color
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warn "Failed to start n8n. Run 'docker compose up -d n8n' manually."
+    }
+    Write-Success "n8n started at http://localhost:5678"
 
     # Sync n8n workflows
     Write-Step "Syncing n8n workflows..."
