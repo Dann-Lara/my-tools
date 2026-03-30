@@ -6,5 +6,6 @@ module.exports = {
   },
   rules: {
     '@typescript-eslint/explicit-function-return-type': 'error',
+    '@typescript-eslint/no-duplicate-enum-values': 'off',
   },
 };

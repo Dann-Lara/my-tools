@@ -30,7 +30,7 @@
 
 'use strict';
 
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
 
 // ── Load .env files without external deps ────────────────────────────────────
@@ -45,7 +45,7 @@ function loadEnvFile(filePath) {
     // Remove surrounding quotes, strip inline comments (# preceded by whitespace)
     let val = trimmed.slice(eqIdx + 1).trim();
     val = val.replace(/^["']|["']$/g, '');
-    val = val.replace(/(?<=\S)\s+#.*$/, '');  // only strip # if preceded by a non-space char
+    val = val.replace(/(?<=\S)\s+#.*$/, ''); // only strip # if preceded by a non-space char
     if (!(key in process.env)) process.env[key] = val;
   }
 }
@@ -55,18 +55,27 @@ loadEnvFile(path.join(ROOT, '.env'));
 loadEnvFile(path.join(ROOT, 'apps', 'backend', '.env'));
 
 // ── Config ───────────────────────────────────────────────────────────────────
-const N8N_URL      = (process.env.N8N_URL || process.env.N8N_BASE_URL || 'http://localhost:5678').replace(/\/$/, '');
-const API_KEY      = process.env.N8N_API_KEY || '';
-const BASIC_USER   = process.env.N8N_USER     || process.env.N8N_BASIC_AUTH_USER     || 'admin';
-const BASIC_PASS   = process.env.N8N_PASSWORD || process.env.N8N_BASIC_AUTH_PASSWORD || 'admin123';
+const N8N_URL = (
+  process.env.N8N_URL ||
+  process.env.N8N_BASE_URL ||
+  'http://localhost:5678'
+).replace(/\/$/, '');
+const API_KEY = process.env.N8N_API_KEY || '';
+const BASIC_USER = process.env.N8N_USER || process.env.N8N_BASIC_AUTH_USER || 'admin';
+const BASIC_PASS = process.env.N8N_PASSWORD || process.env.N8N_BASIC_AUTH_PASSWORD || 'admin123';
 const WORKFLOWS_DIR = path.join(ROOT, 'n8n-workflows');
 
 // ── Terminal colours ─────────────────────────────────────────────────────────
 const c = {
-  reset: '\x1b[0m', green: '\x1b[32m', yellow: '\x1b[33m',
-  red: '\x1b[31m',  blue: '\x1b[34m',  cyan: '\x1b[36m', bold: '\x1b[1m',
+  reset: '\x1b[0m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  red: '\x1b[31m',
+  blue: '\x1b[34m',
+  cyan: '\x1b[36m',
+  bold: '\x1b[1m',
 };
-const ok   = (m) => console.log(`${c.green}  [OK]${c.reset} ${m}`);
+const ok = (m) => console.log(`${c.green}  [OK]${c.reset} ${m}`);
 const warn = (m) => console.log(`${c.yellow}  [!!]${c.reset} ${m}`);
 const fail = (m) => console.log(`${c.red}  [ERR]${c.reset} ${m}`);
 const step = (m) => console.log(`\n${c.yellow}>>${c.reset} ${m}`);
@@ -79,7 +88,8 @@ async function request(method, endpoint, body) {
   if (API_KEY) {
     headers['X-N8N-API-KEY'] = API_KEY;
   } else {
-    headers['Authorization'] = 'Basic ' + Buffer.from(`${BASIC_USER}:${BASIC_PASS}`).toString('base64');
+    headers['Authorization'] =
+      'Basic ' + Buffer.from(`${BASIC_USER}:${BASIC_PASS}`).toString('base64');
   }
 
   const opts = { method, headers };
@@ -94,7 +104,11 @@ async function request(method, endpoint, body) {
 
   const text = await res.text();
   let data;
-  try { data = JSON.parse(text); } catch { data = { raw: text }; }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
 
   return { status: res.status, ok: res.ok, data };
 }
@@ -148,14 +162,14 @@ async function verifyAuth() {
 async function syncVariables() {
   const varsToSync = [
     {
-      key:   'BACKEND_PUBLIC_URL',
+      key: 'BACKEND_PUBLIC_URL',
       value: process.env.BACKEND_PUBLIC_URL || 'http://localhost:3001',
-      note:  'Base URL of the backend API (http://localhost:3001 in dev)',
+      note: 'Base URL of the backend API (http://localhost:3001 in dev)',
     },
     {
-      key:   'N8N_WEBHOOK_SECRET',
+      key: 'N8N_WEBHOOK_SECRET',
       value: process.env.N8N_WEBHOOK_SECRET || '',
-      note:  'Shared secret for backend↔n8n webhook validation',
+      note: 'Shared secret for backend↔n8n webhook validation',
     },
   ];
 
@@ -175,9 +189,7 @@ async function syncVariables() {
     return;
   }
 
-  const existing = Array.isArray(listRes.data)
-    ? listRes.data
-    : (listRes.data?.data ?? []);
+  const existing = Array.isArray(listRes.data) ? listRes.data : (listRes.data?.data ?? []);
 
   for (const v of varsToSync) {
     if (!v.value) {
@@ -190,7 +202,9 @@ async function syncVariables() {
       if (r.ok) {
         ok(`Updated  $vars.${v.key} = ${v.value}`);
       } else {
-        warn(`Failed to update $vars.${v.key} (${r.status}) — update manually in n8n UI → Settings → Variables`);
+        warn(
+          `Failed to update $vars.${v.key} (${r.status}) — update manually in n8n UI → Settings → Variables`,
+        );
       }
     } else {
       const r = await request('POST', '/api/v1/variables', { key: v.key, value: v.value });
@@ -217,11 +231,11 @@ async function findWorkflowByName(name) {
 // ── Build the workflow payload n8n accepts ───────────────────────────────────
 function buildPayload(wf) {
   return {
-    name:        wf.name,
-    nodes:       wf.nodes       ?? [],
+    name: wf.name,
+    nodes: wf.nodes ?? [],
     connections: wf.connections ?? {},
-    settings:    wf.settings    ?? { executionOrder: 'v1' },
-    staticData:  wf.staticData  ?? null,
+    settings: wf.settings ?? { executionOrder: 'v1' },
+    staticData: wf.staticData ?? null,
   };
 }
 
@@ -246,7 +260,7 @@ async function upsertWorkflow(filePath) {
     return false;
   }
 
-  const name    = wf.name;
+  const name = wf.name;
   const payload = buildPayload(wf);
   const existing = await findWorkflowByName(name);
 
@@ -254,7 +268,9 @@ async function upsertWorkflow(filePath) {
   if (existing) {
     const r = await request('PUT', `/api/v1/workflows/${existing.id}`, payload);
     if (!r.ok) {
-      fail(`Update failed for "${name}" (HTTP ${r.status}): ${JSON.stringify(r.data).slice(0, 200)}`);
+      fail(
+        `Update failed for "${name}" (HTTP ${r.status}): ${JSON.stringify(r.data).slice(0, 200)}`,
+      );
       return false;
     }
     workflowId = existing.id;
@@ -262,7 +278,9 @@ async function upsertWorkflow(filePath) {
   } else {
     const r = await request('POST', '/api/v1/workflows', payload);
     if (!r.ok) {
-      fail(`Create failed for "${name}" (HTTP ${r.status}): ${JSON.stringify(r.data).slice(0, 200)}`);
+      fail(
+        `Create failed for "${name}" (HTTP ${r.status}): ${JSON.stringify(r.data).slice(0, 200)}`,
+      );
       return false;
     }
     workflowId = r.data.id;
@@ -290,7 +308,9 @@ async function main() {
   console.log(`${c.bold}${c.blue}  n8n Workflow Sync${c.reset}`);
   console.log(`${c.bold}${c.blue}══════════════════════════════${c.reset}`);
   console.log(`  ${c.cyan}n8n URL :${c.reset} ${N8N_URL}`);
-  console.log(`  ${c.cyan}Auth    :${c.reset} ${API_KEY ? `API Key (${API_KEY.slice(0, 12)}...)` : `Basic (${BASIC_USER})`}`);
+  console.log(
+    `  ${c.cyan}Auth    :${c.reset} ${API_KEY ? `API Key (${API_KEY.slice(0, 12)}...)` : `Basic (${BASIC_USER})`}`,
+  );
 
   // 1. Wait for n8n
   step('Waiting for n8n to be ready...');
@@ -311,7 +331,8 @@ async function main() {
   await syncVariables();
 
   // 4. Sync Workflows
-  const files = fs.readdirSync(WORKFLOWS_DIR)
+  const files = fs
+    .readdirSync(WORKFLOWS_DIR)
     .filter((f) => f.endsWith('.json') && !f.startsWith('_'))
     .sort()
     .map((f) => path.join(WORKFLOWS_DIR, f));
@@ -332,8 +353,12 @@ async function main() {
 
   // 5. Summary
   const allOk = failed === 0;
-  console.log(`\n${c.bold}${allOk ? c.green : c.yellow}──────────────────────────────────────${c.reset}`);
-  console.log(`${c.bold}${allOk ? c.green : c.yellow}  Result: ${synced}/${files.length} workflows synced${c.reset}`);
+  console.log(
+    `\n${c.bold}${allOk ? c.green : c.yellow}──────────────────────────────────────${c.reset}`,
+  );
+  console.log(
+    `${c.bold}${allOk ? c.green : c.yellow}  Result: ${synced}/${files.length} workflows synced${c.reset}`,
+  );
   if (failed > 0) warn(`${failed} workflow(s) failed — check output above`);
 
   console.log(`\n  ${c.bold}Next steps:${c.reset}`);
@@ -346,11 +371,20 @@ async function main() {
   console.log(`  3. Open "02 - Telegram Responses" → assign credentials → toggle ON`);
   console.log(`  4. See ${c.cyan}n8n-workflows/SETUP.md${c.reset} for full instructions\n`);
 
-  process.exit(failed > 0 ? 1 : 0);
+  const exitCode = failed > 0 ? 1 : 0;
+  if (process.platform === 'win32') {
+    setImmediate(() => process.exit(exitCode));
+  } else {
+    process.exit(exitCode);
+  }
 }
 
 main().catch((e) => {
   fail(`Unexpected error: ${e.message}`);
   console.error(e.stack);
-  process.exit(1);
+  if (process.platform === 'win32') {
+    setImmediate(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
 });

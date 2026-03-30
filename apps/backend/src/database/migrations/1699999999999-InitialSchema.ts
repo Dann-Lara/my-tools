@@ -15,7 +15,6 @@ export class InitialSchema1699999999999 implements MigrationInterface {
         "isActive" boolean NOT NULL DEFAULT true,
         "telegramChatId" character varying,
         "adminId" uuid,
-        "permissions" jsonb,
         "allowedModules" VARCHAR[] DEFAULT ARRAY['checklist', 'applications', 'ai', 'youtube'],
         "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
         "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
